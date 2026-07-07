@@ -14,6 +14,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "backup": "bash scripts/backup-to-github.sh",
     "cron:overdue-assignments": "tsx scripts/resolve-overdue-assignments.ts",
     "data:clean-overdue-abnormal-descriptions": "tsx scripts/clean-overdue-abnormal-descriptions.ts",
     "data:clean-overdue-operation-log-remarks": "tsx scripts/clean-overdue-operation-log-remarks.ts"
