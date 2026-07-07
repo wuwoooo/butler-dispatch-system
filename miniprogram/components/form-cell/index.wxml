@@ -1,8 +1,8 @@
-<view class="form-cell">
+<view class="form-cell {{error ? 'is-error' : ''}} {{disabled ? 'is-disabled' : ''}}">
   <view class="form-label">
     <text wx:if="{{required}}" class="required">*</text>{{label}}
   </view>
   <view class="form-control"><slot></slot></view>
-  <view wx:if="{{desc}}" class="form-desc">{{desc}}</view>
+  <view wx:if="{{desc && !error}}" class="form-desc">{{desc}}</view>
+  <view wx:if="{{error && errorMessage}}" class="error-message anim-fade-in">{{errorMessage}}</view>
 </view>
-

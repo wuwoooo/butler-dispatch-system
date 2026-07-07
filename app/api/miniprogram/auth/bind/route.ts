@@ -14,11 +14,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = miniProgramBindSchema.parse(await request.json());
     username = body.username;
-    const session = await exchangeMiniProgramCode(body.code);
-    const user = await prisma.user.findUnique({
-      where: { username: body.username },
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { username: body.username },
+          { phone: body.username }
+        ]
+      },
+      take: 2,
       select: { ...accountPublicSelect, passwordHash: true }
     });
+    if (users.length > 1) {
+      await writeOperationLog({
+        operatorId: null,
+        operationType: "MINIPROGRAM_BIND_FAILED",
+        targetType: "User",
+        targetId: body.username,
+        remark: "小程序账号绑定失败：用户名与手机号匹配到不同账号",
+        ...meta
+      });
+      return errorResponse("ACCOUNT_IDENTIFIER_CONFLICT", "账号标识冲突，请联系管理员", 409);
+    }
+
+    const user = users[0] ?? null;
     const passwordMatched = user
       ? await verifyPassword(body.password, user.passwordHash)
       : false;
@@ -56,6 +74,8 @@ export async function POST(request: NextRequest) {
       });
       return errorResponse("MINIPROGRAM_ROLE_NOT_ALLOWED", "当前角色暂不支持小程序端使用，请使用后台系统", 403);
     }
+
+    const session = await exchangeMiniProgramCode(body.code);
     if (user.wechatOpenId && user.wechatOpenId !== session.openid) {
       await writeOperationLog({
         operatorId: user.id,

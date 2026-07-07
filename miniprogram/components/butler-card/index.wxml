@@ -1,5 +1,8 @@
-<view class="butler-card {{selected ? 'selected' : ''}} {{item.available === false ? 'disabled' : ''}}" bindtap="handleTap">
-  <view class="avatar">{{avatar}}</view>
+<view class="butler-card {{selected ? 'selected' : ''}} {{item.available === false ? 'disabled' : ''}} anim-fade-in" bindtap="handleTap">
+  <view class="avatar-wrap">
+    <view class="avatar-ring avatar-ring-{{statusRing}}"></view>
+    <view class="avatar">{{avatar}}</view>
+  </view>
   <view class="content">
     <view class="top-line">
       <view class="name">{{item.name}}</view>
@@ -9,5 +12,5 @@
     <view wx:if="{{item.vehicleInfo}}" class="meta">车型：{{item.vehicleInfo}}</view>
     <view wx:if="{{reasonText}}" class="reason">{{reasonText}}</view>
   </view>
-  <view wx:if="{{selectable}}" class="check">{{selected ? '✓' : ''}}</view>
+  <view wx:if="{{selectable}}" class="check {{selected ? 'check-active' : ''}}">{{selected ? '✓' : ''}}</view>
 </view>

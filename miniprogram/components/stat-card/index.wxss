@@ -1,12 +1,11 @@
 /* 统计卡片 */
 .stat-card {
-  padding: 28rpx 28rpx 28rpx 32rpx;
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
-              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
-  border-left: 6rpx solid #2AACE2;
-  transition: transform 0.2s ease;
+  padding: 30rpx 28rpx 30rpx 36rpx;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+  border-left: 8rpx solid var(--color-primary);
+  transition: transform var(--duration-fast) var(--ease-smooth);
   position: relative;
 }
 
@@ -14,66 +13,97 @@
   transform: scale(0.97);
 }
 
-.stat-card.clickable::after {
+/* 右上角红色圆点指示器（如有） */
+.stat-card.has-dot::after {
   content: '';
+  display: block;
   position: absolute;
-  right: 26rpx;
+  right: 28rpx;
   top: 28rpx;
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: #D8E1EC;
+  background: var(--color-success);
+  box-shadow: 0 0 8rpx rgba(16, 185, 129, 0.4);
+}
+
+.stat-value-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
 }
 
 .stat-value {
   font-size: 48rpx;
   font-weight: 800;
-  color: #1A2332;
+  color: var(--color-text-primary);
   letter-spacing: -1rpx;
+  animation: countPop 0.5s var(--ease-spring) both;
+}
+
+.stat-unit {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  opacity: 0.85;
 }
 
 .stat-label {
-  margin-top: 10rpx;
+  margin-top: 12rpx;
   font-size: 24rpx;
-  color: #5A6B82;
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
+/* 右上角精致 chevron 箭头代替粗点 */
+.chevron-arrow {
+  position: absolute;
+  right: 28rpx;
+  top: 36rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-right: 3rpx solid var(--color-decor);
+  border-top: 3rpx solid var(--color-decor);
+  transform: rotate(45deg);
+}
+
+/* ── 各色调样式与微量渐变背景 ── */
 .tone-blue {
-  border-left-color: #2AACE2;
+  border-left-color: var(--color-primary);
+  background: linear-gradient(135deg, rgba(42, 172, 226, 0.04) 0%, var(--color-bg-card) 60%);
 }
-
-.tone-blue .stat-value {
-  color: #2AACE2;
+.tone-blue .stat-value, .tone-blue .stat-unit {
+  color: var(--color-primary);
 }
 
 .tone-green {
-  border-left-color: #10B981;
+  border-left-color: var(--color-success);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, var(--color-bg-card) 60%);
 }
-
-.tone-green .stat-value {
-  color: #10B981;
+.tone-green .stat-value, .tone-green .stat-unit {
+  color: var(--color-success-deep);
 }
 
 .tone-orange {
-  border-left-color: #F59E0B;
+  border-left-color: var(--color-warning);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, var(--color-bg-card) 60%);
 }
-
-.tone-orange .stat-value {
-  color: #F59E0B;
+.tone-orange .stat-value, .tone-orange .stat-unit {
+  color: var(--color-warning-deep);
 }
 
 .tone-red {
-  border-left-color: #EF4444;
+  border-left-color: var(--color-danger);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.04) 0%, var(--color-bg-card) 60%);
 }
-
-.tone-red .stat-value {
-  color: #EF4444;
+.tone-red .stat-value, .tone-red .stat-unit {
+  color: var(--color-danger);
 }
 
 .tone-cyan {
-  border-left-color: #0EA5E9;
+  border-left-color: var(--color-cyan-deep);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.04) 0%, var(--color-bg-card) 60%);
 }
-
-.tone-cyan .stat-value {
-  color: #0EA5E9;
+.tone-cyan .stat-value, .tone-cyan .stat-unit {
+  color: var(--color-cyan-deep);
 }

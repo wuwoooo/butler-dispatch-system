@@ -1,6 +1,16 @@
 <page-container title="消息通知" subtitle="派单、请假、评价消息都在这里">
-  <button class="read-all" bindtap="readAll">全部已读</button>
-  <notification-item wx:for="{{items}}" wx:key="id" item="{{item}}" bind:tap="open" />
-  <empty-state wx:if="{{items.length === 0}}" title="暂无通知" description="当前没有新的系统消息" buttonText="刷新" bind:refresh="load" />
-</page-container>
+  <view class="notification-header anim-fade-in" wx:if="{{items.length > 0}}">
+    <view class="count-badge">共 {{items.length}} 条消息</view>
+    <button class="read-all-btn" bindtap="readAll">全部已读</button>
+  </view>
 
+  <notification-item
+    wx:for="{{items}}"
+    wx:key="id"
+    class="anim-fade-in anim-stagger-{{index % 5 + 1}}"
+    item="{{item}}"
+    bind:tap="open"
+  />
+
+  <empty-state wx:if="{{items.length === 0}}" scene="notifications" title="暂无通知" description="当前没有新的系统消息" buttonText="刷新" bind:refresh="load" />
+</page-container>

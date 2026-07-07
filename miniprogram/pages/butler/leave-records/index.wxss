@@ -1,71 +1,75 @@
+@import "../../../styles/shared.wxss";
+
 /* 管家请假记录 */
 .apply-btn {
-  margin: 12rpx 32rpx 16rpx;
-  height: 80rpx;
-  border-radius: 999rpx;
-  color: #2AACE2;
-  background: #EAF6FD;
+  width: calc(100% - var(--spacing-2xl) * 2) !important;
+  margin: 12rpx var(--spacing-2xl) var(--spacing-md) !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  height: 88rpx;
+  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
   font-size: 28rpx;
   font-weight: 700;
-  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(42, 172, 226, 0.12);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.apply-btn::after,
+.cancel-btn::after {
+  border: none !important;
 }
 
 .apply-btn:active {
-  background: #D5EEFC;
+  background: var(--color-primary-lighter);
   transform: scale(0.97);
+  box-shadow: none;
 }
 
-.leave-card {
-  margin: 20rpx 32rpx;
-  padding: 30rpx;
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
-              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+.leave-detail-row {
+  margin-top: var(--spacing-sm);
 }
 
-.leave-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.detail-label {
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  width: 140rpx;
 }
 
-.leave-type {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: #1A2332;
+.detail-value {
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
-.time,
-.reason {
-  margin-top: 16rpx;
-  color: #5A6B82;
-  font-size: 26rpx;
-  line-height: 1.5;
-}
-
-.reject {
-  margin-top: 18rpx;
-  padding: 18rpx 20rpx;
-  border-radius: 20rpx;
-  color: #EF4444;
-  background: #FEF2F2;
-  font-size: 24rpx;
-  line-height: 1.5;
+.reject-icon {
+  margin-right: 4rpx;
 }
 
 .cancel-btn {
-  margin-top: 22rpx;
+  margin-top: var(--spacing-lg) !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
   height: 72rpx;
-  border-radius: 999rpx;
-  color: #EF4444;
-  background: #FEF2F2;
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  background: var(--color-danger-light);
   font-size: 26rpx;
   font-weight: 700;
-  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid rgba(239, 68, 68, 0.15);
+  transition: all var(--duration-fast);
 }
 
 .cancel-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
   background: #FEE2E2;
 }

@@ -19,7 +19,12 @@ Page({
             items: (data.items || []).map((item) => (Object.assign(Object.assign({}, item), { typeText: status_map_1.leaveTypeMap[item.leaveType] || "-", startText: (0, format_1.formatDateTimeFull)(item.startAt), endText: (0, format_1.formatDateTimeFull)(item.endAt), reviewedText: (0, format_1.formatDateTimeFull)(item.reviewedAt) })))
         });
     },
+    lastCancelTime: 0,
     cancel(event) {
+        const now = Date.now();
+        if (now - this.lastCancelTime < 1000)
+            return;
+        this.lastCancelTime = now;
         const id = event.currentTarget.dataset.id;
         wx.showModal({
             title: "撤销请假",

@@ -1,5 +1,13 @@
-<view class="loading-state">
+<view wx:if="{{mode === 'spinner'}}" class="loading-state">
   <view class="spinner"></view>
   <view>{{text}}</view>
 </view>
 
+<view wx:else class="skeleton-container">
+  <view wx:for="{{skeletonRows}}" wx:key="*this" class="skeleton-card">
+    <view class="skeleton-line skeleton-title-line"></view>
+    <view class="skeleton-line skeleton-short-line"></view>
+    <view class="skeleton-grid-block"></view>
+    <view class="skeleton-line skeleton-footer-line"></view>
+  </view>
+</view>

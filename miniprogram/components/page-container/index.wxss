@@ -1,21 +1,27 @@
 /* 页面容器 */
 .page-container {
   min-height: 100vh;
-  padding-bottom: calc(192rpx + env(safe-area-inset-bottom));
-  background: #EFF3FA;
+  padding-bottom: calc(128rpx + var(--spacing-lg) + env(safe-area-inset-bottom));
+  background: var(--color-bg-page);
 }
 
 .hero-head {
   padding: 100rpx 36rpx 56rpx;
   color: #ffffff;
-  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 60%, #2B5EA7 100%);
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
+  background: linear-gradient(135deg, #2AACE2 0%, #1A3C6B 60%, #152E52 100%);
+  border-bottom-left-radius: var(--radius-hero);
+  border-bottom-right-radius: var(--radius-hero);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 12rpx 36rpx rgba(26, 60, 107, 0.25);
 }
 
-/* 装饰性背景圆 */
+.hero-slot-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+/* 装饰性背景圆 + 呼吸动画 */
 .hero-head::before {
   content: '';
   position: absolute;
@@ -25,6 +31,7 @@
   height: 280rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
+  animation: decorBreathe 8s ease-in-out infinite;
 }
 
 .hero-head::after {
@@ -36,6 +43,7 @@
   height: 180rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.04);
+  animation: decorBreathe 6s ease-in-out infinite 3s;
 }
 
 .plain-head {
@@ -48,35 +56,48 @@
 }
 
 .title-wrap.has-back {
-  padding-left: 64rpx;
+  padding-left: 72rpx;
 }
 
+/* 返回按钮半透明美化 */
 .back-button {
   position: absolute;
   left: 28rpx;
-  width: 52rpx;
-  height: 52rpx;
+  width: 60rpx;
+  height: 60rpx;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  transition: background var(--duration-fast);
+}
+
+.plain-head .back-button {
+  background: rgba(26, 35, 50, 0.05);
+  color: var(--color-text-primary);
+}
+
+.hero-head .back-button {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .back-button:active {
-  background: rgba(26, 35, 50, 0.08);
+  background: rgba(26, 35, 50, 0.12) !important;
 }
 
 .hero-head .back-button:active {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.22) !important;
 }
 
 .back-icon {
-  width: 20rpx;
-  height: 20rpx;
+  width: 18rpx;
+  height: 18rpx;
   border-left: 4rpx solid currentColor;
   border-bottom: 4rpx solid currentColor;
   transform: rotate(45deg);
+  margin-left: 6rpx;
 }
 
 .title {
@@ -86,6 +107,22 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* plain-head 标题增加品牌竖条 */
+.plain-head .title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.plain-head .title::before {
+  content: '';
+  width: 6rpx;
+  height: 36rpx;
+  border-radius: 3rpx;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-deep));
+  flex-shrink: 0;
 }
 
 .subtitle {

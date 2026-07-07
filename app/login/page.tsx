@@ -148,6 +148,7 @@ function LoginContent() {
           </Button>
         </Form>
       </Card>
+      <IcpFooter />
     </main>
   );
 }
@@ -160,6 +161,20 @@ function LoginShell() {
       <div className="login-bg-orb-2" />
       <div className="login-bg-orb-3" />
       <Card className="login-card" loading />
+      <IcpFooter />
     </main>
+  );
+}
+
+function IcpFooter() {
+  return (
+    <Typography.Link
+      className="login-icp-footer"
+      href="https://beian.miit.gov.cn/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      滇ICP备2025068996号
+    </Typography.Link>
   );
 }

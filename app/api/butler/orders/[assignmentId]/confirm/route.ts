@@ -1,6 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
-import { notifyRoleUsers } from "@/lib/notification";
+import {
+  markDispatchNotificationReadForOrder,
+  notifyRoleUsers
+} from "@/lib/notification";
 import { updateOrderStatusAfterConfirm, refreshButlerStatus } from "@/lib/order-status";
 import { prisma } from "@/lib/prisma";
 import { getRequestMeta, requireApiRoles } from "@/lib/request";
@@ -46,11 +49,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         throw new ApiError("ASSIGNMENT_STATUS_NOT_ALLOWED", "只有待确认状态可以确认接单", 422);
       }
 
+      const confirmedAt = new Date();
+
       await tx.orderButlerAssignment.update({
         where: { id: assignmentId },
         data: {
           status: "confirmed",
-          confirmedAt: new Date()
+          confirmedAt
         }
       });
 
@@ -60,6 +65,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         remark: "管家确认接单后检查订单确认状态",
         ...meta
       });
+      await markDispatchNotificationReadForOrder(user.id, before.orderId, tx, confirmedAt);
 
       await notifyRoleUsers(
         ["dispatcher"],

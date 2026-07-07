@@ -9,8 +9,8 @@ const request_1 = require("./request");
 function wechatLogin(code, options) {
     return request_1.http.post("/api/miniprogram/auth/wechat-login", { code }, options);
 }
-function bindAccount(data) {
-    return request_1.http.post("/api/miniprogram/auth/bind", data);
+function bindAccount(data, options) {
+    return request_1.http.post("/api/miniprogram/auth/bind", data, options);
 }
 function getCurrentUser(options) {
     return request_1.http.get("/api/miniprogram/auth/me", options);

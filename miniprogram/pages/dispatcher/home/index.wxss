@@ -1,61 +1,181 @@
+@import "../../../styles/shared.wxss";
+
 /* 调配首页 */
-.hero-note {
-  margin-top: 28rpx;
-  padding: 14rpx 24rpx;
-  border-radius: 16rpx;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-size: 25rpx;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.5;
-  position: relative;
-  z-index: 1;
+.hero-split-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10rpx 0 20rpx;
 }
 
+.hero-main-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-greet-line {
+  color: #ffffff;
+  display: flex;
+  align-items: baseline;
+}
+
+.hero-greet-title {
+  font-size: 38rpx;
+  font-weight: 800;
+  opacity: 0.95;
+}
+
+.hero-username {
+  font-size: 44rpx;
+  font-weight: 900;
+  text-shadow: 0 2rpx 4rpx rgba(21, 46, 82, 0.25);
+}
+
+.hero-date-line {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 8rpx;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.hero-controls-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: 24rpx;
+}
+
+.status-pill-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 24rpx;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.status-indicator-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: var(--color-success);
+  border-radius: 50%;
+  box-shadow: 0 0 10rpx var(--color-success);
+  animation: pulse 2s infinite;
+}
+
+.refresh-circle-btn {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 56rpx !important;
+  height: 56rpx !important;
+  min-width: 56rpx !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1rpx solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05);
+}
+
+.refresh-circle-btn::after {
+  border: none !important;
+}
+
+.refresh-circle-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.32) !important;
+}
+
+.refresh-icon-spin {
+  width: 20rpx;
+  height: 20rpx;
+  border: 3rpx solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.is-refreshing .refresh-icon-spin {
+  animation: rotate 0.8s linear infinite;
+}
+
+/* 右侧拍立得相框 */
+.hero-polaroid-aside {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180rpx;
+}
+
+.polaroid-card {
+  background: #ffffff;
+  padding: 12rpx 12rpx 16rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 16rpx 36rpx rgba(21, 46, 82, 0.25);
+  transform: rotate(4deg);
+  transition: all var(--duration-normal) var(--ease-spring);
+}
+
+.polaroid-card:active {
+  transform: rotate(0deg) scale(1.06);
+}
+
+.polaroid-photo {
+  width: 156rpx;
+  height: 156rpx;
+  border-radius: 6rpx;
+  background: var(--color-bg-page);
+}
+
+.polaroid-caption {
+  font-size: 16rpx;
+  color: var(--color-text-tertiary);
+  font-weight: 700;
+  text-align: center;
+  margin-top: 10rpx;
+  letter-spacing: 0.5rpx;
+}
+
+/* 统计卡片网格 */
 .stat-grid {
-  margin: -52rpx 32rpx 28rpx;
+  margin: -32rpx var(--spacing-2xl) var(--spacing-lg);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
+  gap: var(--spacing-md);
 }
 
 .block-title {
-  margin: 38rpx 32rpx 12rpx;
+  margin: 38rpx var(--spacing-2xl) 12rpx;
   font-size: 32rpx;
   font-weight: 800;
-  color: #1A2332;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
-.shortcut-grid {
-  margin: 24rpx 32rpx 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-}
-
-.shortcut-card {
-  padding: 30rpx;
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
-              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
-  transition: transform 0.2s ease;
-}
-
-.shortcut-card:active {
-  transform: scale(0.97);
-}
-
-.shortcut-title {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: #1A2332;
-}
-
-.shortcut-desc {
-  margin-top: 12rpx;
-  color: #5A6B82;
-  font-size: 24rpx;
-  line-height: 1.5;
+.block-title::before {
+  content: '';
+  width: 6rpx;
+  height: 28rpx;
+  background: var(--color-primary);
+  border-radius: 3rpx;
 }

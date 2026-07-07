@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProductQualityValidationResult",
+  "type": "object",
+  "required": ["score", "status", "items", "rework"],
+  "properties": {
+    "score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "status": { "type": "string", "enum": ["pass", "needs_rework", "fail"] },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "points", "maxPoints", "evidence"],
+        "properties": {
+          "name": { "type": "string" },
+          "points": { "type": "number" },
+          "maxPoints": { "type": "number" },
+          "evidence": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "rework": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

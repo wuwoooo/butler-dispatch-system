@@ -1,22 +1,60 @@
-<page-container title="你好，{{user.name || butler.name || '管家'}}" subtitle="{{today}}" hero="{{true}}">
-  <view slot="hero" class="status-pill">当前状态：{{butlerStatusText}}</view>
+<page-container hero="{{true}}">
+  <!-- 自定义左右分栏的高级 Hero 内容 -->
+  <view slot="hero" class="hero-split-layout anim-fade-in">
+    <!-- 左侧文字信息列 -->
+    <view class="hero-main-info">
+      <view class="hero-greet-line">
+        <text class="hero-greet-title">{{greetText}}，</text>
+        <text class="hero-username">{{user.name || butler.name || '管家'}}</text>
+      </view>
+      <view class="hero-date-line">{{todayDate}}</view>
+      <view class="hero-quote-block">“{{encouragement}}”</view>
+      
+      <!-- 控制组 -->
+      <view class="hero-controls-row">
+        <view class="status-pill-glass">
+          <view class="status-indicator-dot"></view>
+          <text>{{butlerStatusText}}</text>
+        </view>
+        <button class="refresh-circle-btn {{refreshing ? 'is-refreshing' : ''}}" disabled="{{refreshing}}" bindtap="handleRefresh">
+          <view class="refresh-icon-spin"></view>
+        </button>
+      </view>
+    </view>
 
-  <view class="stat-grid">
-    <stat-card label="今日任务" value="{{cards.todayTaskCount || 0}}" tone="blue" url="/pages/butler/orders/index" bind:tap="openShortcut" />
-    <stat-card label="待接单" value="{{cards.pendingCount || 0}}" tone="orange" url="/pages/butler/orders/index?tab=pending" bind:tap="openShortcut" />
-    <stat-card label="准备接待" value="{{cards.readyCount || 0}}" tone="cyan" url="/pages/butler/orders/index?tab=confirmedWaiting" bind:tap="openShortcut" />
-    <stat-card label="未读消息" value="{{cards.unreadCount || 0}}" tone="red" url="/pages/butler/notifications/index" bind:tap="openShortcut" />
-  </view>
-
-  <view class="block-title">当前重点任务</view>
-  <order-card wx:if="{{currentTask}}" item="{{currentTask}}" bind:tap="openTask" />
-  <empty-state wx:else title="暂无进行中的接待" description="当前没有需要立即处理的订单" />
-
-  <view class="shortcut-grid">
-    <view wx:for="{{shortcuts}}" wx:key="title" class="shortcut-card" data-url="{{item.url}}" bindtap="openShortcut">
-      <view class="shortcut-title">{{item.title}}</view>
-      <view class="shortcut-desc">{{item.desc}}</view>
+    <!-- 右侧实体化艺术拍立得相框 -->
+    <view class="hero-polaroid-aside">
+      <view class="polaroid-card">
+        <image class="polaroid-photo" src="/assets/images/profile-hero.png" mode="aspectFill" />
+        <view class="polaroid-caption">好客大理</view>
+      </view>
     </view>
   </view>
-  <app-navbar role="butler" active="home" />
+
+  <view class="stat-grid anim-fade-in anim-stagger-1">
+    <stat-card label="今日任务" value="{{cards.todayTaskCount || 0}}" unit="单" tone="blue" url="/pages/butler/orders/index" showDot="{{true}}" bind:tap="openShortcut" />
+    <stat-card label="待接单" value="{{cards.pendingCount || 0}}" unit="单" tone="orange" url="/pages/butler/orders/index?tab=pending" showDot="{{true}}" bind:tap="openShortcut" />
+    <stat-card label="准备接待" value="{{cards.readyCount || 0}}" unit="单" tone="cyan" url="/pages/butler/orders/index?tab=confirmedWaiting" showDot="{{true}}" bind:tap="openShortcut" />
+    <stat-card label="未读消息" value="{{cards.unreadCount || 0}}" unit="条" tone="red" url="/pages/butler/notifications/index" showDot="{{true}}" bind:tap="openShortcut" />
+  </view>
+
+  <view class="block-title anim-fade-in anim-stagger-2">当前重点任务</view>
+  <view class="anim-fade-in anim-stagger-3">
+    <order-card wx:if="{{currentTask}}" item="{{currentTask}}" bind:tap="openTask" />
+    <empty-state wx:else scene="orders" title="暂无进行中的接待" description="当前没有需要立即处理的订单" />
+  </view>
+
+  <view class="block-title anim-fade-in anim-stagger-4">快捷操作</view>
+  <view class="shortcut-grid anim-fade-in anim-stagger-5">
+    <view wx:for="{{shortcuts}}" wx:key="title" class="shortcut-card" data-url="{{item.url}}" bindtap="openShortcut">
+      <view class="shortcut-icon icon-theme-{{item.tone}}">
+        <view class="shortcut-icon-inner"></view>
+      </view>
+      <view class="shortcut-info">
+        <view class="shortcut-title">{{item.title}}</view>
+        <view class="shortcut-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
 </page-container>
+<app-navbar role="butler" active="home" />

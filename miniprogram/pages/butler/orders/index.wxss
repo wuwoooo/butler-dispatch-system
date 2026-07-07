@@ -1,26 +1,10 @@
-/* 管家订单列表 */
-.tabs {
-  white-space: nowrap;
-  margin: 12rpx 0 20rpx;
-  padding-left: 32rpx;
+@import "../../../styles/shared.wxss";
+
+/* 管家订单列表额外样式 */
+.tab-scroll {
+  margin-top: var(--spacing-sm);
 }
 
-.tab {
-  display: inline-flex;
-  margin-right: 16rpx;
-  padding: 16rpx 28rpx;
-  border-radius: 999rpx;
-  background: #ffffff;
-  color: #5A6B82;
-  font-size: 26rpx;
-  font-weight: 500;
-  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
-  transition: all 0.25s ease;
-}
-
-.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
-  font-weight: 700;
-  box-shadow: 0 6rpx 18rpx rgba(42, 172, 226, 0.30);
+.order-card {
+  margin-bottom: var(--spacing-lg) !important;
 }

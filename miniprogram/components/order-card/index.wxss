@@ -1,12 +1,11 @@
 /* 订单卡片 */
 .order-card {
-  margin: 20rpx 32rpx;
+  margin: 20rpx var(--spacing-2xl);
   padding: 30rpx;
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
-              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
-  transition: transform 0.2s ease;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-fast) var(--ease-smooth);
 }
 
 .order-card:active {
@@ -17,91 +16,144 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16rpx;
+  gap: var(--spacing-md);
+}
+
+.title-section {
+  flex: 1;
+  min-width: 0;
 }
 
 .hotel-name {
-  max-width: 430rpx;
   font-size: 32rpx;
   font-weight: 800;
-  color: #1A2332;
+  color: var(--color-text-primary);
+  word-break: break-all;
 }
 
 .order-no {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #94A3B8;
+  color: var(--color-text-tertiary);
 }
 
 .guest-line {
   margin-top: 24rpx;
   font-size: 30rpx;
   font-weight: 700;
-  color: #2AACE2;
+  color: var(--color-primary-deep);
 }
 
 .info-grid {
   margin-top: 20rpx;
-  padding: 18rpx 20rpx;
+  padding: 20rpx;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12rpx;
-  background: #F8FAFD;
-  border-radius: 18rpx;
+  grid-template-columns: 1fr 1fr;
+  gap: 14rpx;
+  background: var(--color-bg-info);
+  border-radius: var(--radius-md);
 }
 
 .info-item {
-  font-size: 25rpx;
-  color: #5A6B82;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
   line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* 伪元素画图标 */
+.info-item::before {
+  content: '';
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.info-pickup::before {
+  background: var(--color-primary);
+  box-shadow: 0 0 6rpx rgba(42, 172, 226, 0.4);
+}
+
+.info-arrival::before {
+  background: var(--color-warning);
+  box-shadow: 0 0 6rpx rgba(245, 158, 11, 0.4);
+}
+
+.info-checkin::before {
+  background: var(--color-success);
+  box-shadow: 0 0 6rpx rgba(16, 185, 129, 0.4);
+}
+
+.info-room::before {
+  background: var(--color-purple);
+  box-shadow: 0 0 6rpx rgba(124, 58, 237, 0.4);
 }
 
 .card-footer {
-  margin-top: 22rpx;
+  margin-top: 24rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #EDF1F7;
+  border-top: 1rpx solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .card-actions {
-  margin-top: 22rpx;
+  margin-top: 24rpx;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18rpx;
+  gap: var(--spacing-xl);
 }
 
 .action-btn {
-  height: 72rpx;
-  border-radius: 18rpx;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  height: 76rpx;
+  border-radius: var(--radius-md);
   font-size: 26rpx;
   font-weight: 700;
-  line-height: 72rpx;
+  line-height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast);
+}
+
+.action-btn::after {
+  border: none !important;
 }
 
 .action-btn.reject {
-  color: #EF4444;
-  background: #FEF2F2;
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+  border: 1rpx solid rgba(239, 68, 68, 0.15);
 }
 
 .action-btn.confirm {
   color: #ffffff;
-  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
+  box-shadow: var(--shadow-primary);
 }
 
 .action-btn:active {
-  opacity: 0.82;
+  opacity: 0.85;
 }
 
 .footer-muted {
-  color: #94A3B8;
+  color: var(--color-text-tertiary);
   font-size: 24rpx;
+  font-weight: 500;
 }
 
-.tap-dot {
-  width: 14rpx;
-  height: 14rpx;
-  border-radius: 50%;
-  background: #D8E1EC;
+.chevron {
+  width: 12rpx;
+  height: 12rpx;
+  border-right: 3rpx solid var(--color-decor);
+  border-top: 3rpx solid var(--color-decor);
+  transform: rotate(45deg);
 }

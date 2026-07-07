@@ -1,33 +1,86 @@
 <page-container title="我的数据" subtitle="接单、评价、请假综合统计">
-  <view class="range-tabs">
-    <view wx:for="{{rangeTabs}}" wx:key="key" class="range-tab {{range === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchRange">{{item.text}}</view>
+  <view class="tab-scroll-wrap anim-fade-in">
+    <view class="tab-capsule-group tab-capsule-three">
+      <view wx:for="{{rangeTabs}}" wx:key="key" class="tab-capsule {{range === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchRange">{{item.text}}</view>
+    </view>
   </view>
-  <view class="stat-grid">
-    <stat-card label="接单数" value="{{stats.orderCount || 0}}" tone="blue" url="/pages/butler/orders/index" bind:tap="openStat" />
-    <stat-card label="完成单数" value="{{stats.completedOrderCount || 0}}" tone="green" url="/pages/butler/orders/index?tab=completed" bind:tap="openStat" />
-    <stat-card label="服务客人数" value="{{stats.guestCount || 0}}" tone="cyan" action="records" bind:tap="openStat" />
-    <stat-card label="拒单次数" value="{{stats.rejectCount || 0}}" tone="red" url="/pages/butler/orders/index?tab=rejected" bind:tap="openStat" />
-    <stat-card label="平均评分" value="{{stats.averageScore || 0}}" tone="orange" action="reviews" bind:tap="openStat" />
-    <stat-card label="评价次数" value="{{stats.reviewCount || 0}}" tone="blue" action="reviews" bind:tap="openStat" />
+
+  <view class="stat-grid anim-fade-in anim-stagger-1">
+    <stat-card label="接单数" value="{{stats.orderCount || 0}}" unit="单" tone="blue" url="/pages/butler/orders/index" bind:tap="openStat" />
+    <stat-card label="完成单数" value="{{stats.completedOrderCount || 0}}" unit="单" tone="green" url="/pages/butler/orders/index?tab=completed" bind:tap="openStat" />
+    <stat-card label="服务客人" value="{{stats.guestCount || 0}}" unit="人" tone="cyan" action="records" bind:tap="openStat" />
+    <stat-card label="拒单次数" value="{{stats.rejectCount || 0}}" unit="次" tone="red" url="/pages/butler/orders/index?tab=rejected" bind:tap="openStat" />
+    <stat-card label="平均评分" value="{{stats.averageScore || '0.0'}}" unit="分" tone="orange" action="reviews" bind:tap="openStat" />
+    <stat-card label="评价次数" value="{{stats.reviewCount || 0}}" unit="次" tone="blue" action="reviews" bind:tap="openStat" />
   </view>
-  <view id="records-anchor"></view>
-  <section-card title="最近接单明细">
-    <view wx:for="{{records}}" wx:key="id" class="mini-row clickable-row" data-order-id="{{item.orderId}}" data-assignment-id="{{item.id}}" bindtap="openOrder">
-      <view>
-        <view class="row-title">{{item.hotel.name}} · {{item.guestName}}</view>
-        <view class="row-sub">入住人数 {{item.guestCount}} · 评分 {{item.score || '-'}}</view>
+
+  <!-- 柱状图组件 -->
+  <view class="anim-fade-in anim-stagger-2">
+    <section-card title="业务指标对比" subtitle="反映各指标间的直观比例（基于接单上限折算）">
+      <view class="chart-container">
+        <view class="chart-y-axis">
+          <text>峰值</text>
+          <text>底限</text>
+        </view>
+        <view class="chart-bars">
+          <view class="chart-bar-item">
+            <view class="chart-bar-wrap">
+              <view class="chart-bar bar-blue" style="height: {{chartData.orderHeight}}%;"></view>
+            </view>
+            <view class="chart-bar-label">接单数</view>
+            <view class="chart-bar-value">{{stats.orderCount || 0}}</view>
+          </view>
+          <view class="chart-bar-item">
+            <view class="chart-bar-wrap">
+              <view class="chart-bar bar-green" style="height: {{chartData.completedHeight}}%;"></view>
+            </view>
+            <view class="chart-bar-label">已完成</view>
+            <view class="chart-bar-value">{{stats.completedOrderCount || 0}}</view>
+          </view>
+          <view class="chart-bar-item">
+            <view class="chart-bar-wrap">
+              <view class="chart-bar bar-red" style="height: {{chartData.rejectHeight}}%;"></view>
+            </view>
+            <view class="chart-bar-label">已拒单</view>
+            <view class="chart-bar-value">{{stats.rejectCount || 0}}</view>
+          </view>
+        </view>
       </view>
-      <view class="row-status">{{item.statusText}}</view>
-    </view>
-    <empty-state wx:if="{{records.length === 0}}" title="暂无明细" description="完成接待后会生成服务明细" />
-  </section-card>
+    </section-card>
+  </view>
+
+  <view id="records-anchor"></view>
+  <view class="anim-fade-in anim-stagger-3">
+    <section-card title="最近接单明细">
+      <view wx:for="{{records}}" wx:key="id" class="mini-row clickable-row" data-order-id="{{item.orderId}}" data-assignment-id="{{item.id}}" bindtap="openOrder">
+        <view class="mini-row-left">
+          <view class="mini-row-dot"></view>
+          <view>
+            <view class="row-title">{{item.hotel.name}} · {{item.guestName}}</view>
+            <view class="row-sub">入住人数 {{item.guestCount}} · 评分 {{item.score || '-'}}</view>
+          </view>
+        </view>
+        <view class="row-status">{{item.statusText}}</view>
+      </view>
+      <empty-state wx:if="{{records.length === 0}}" scene="data" title="暂无明细" description="完成接待后会生成服务明细" />
+    </section-card>
+  </view>
+
   <view id="reviews-anchor"></view>
-  <section-card title="最近评价">
-    <view wx:for="{{reviews}}" wx:key="id" class="review-card clickable-row" data-order-id="{{item.orderId}}" data-assignment-id="{{item.assignmentId}}" bindtap="openOrder">
-      <view class="row-title">综合评分 {{item.overallScore}}</view>
-      <view class="row-sub">{{item.content || '暂无文字评价'}}</view>
-    </view>
-    <empty-state wx:if="{{reviews.length === 0}}" title="暂无评价" description="收到评价后会展示在这里" />
-  </section-card>
+  <view class="anim-fade-in anim-stagger-4">
+    <section-card title="最近评价">
+      <view wx:for="{{reviews}}" wx:key="id" class="review-card clickable-row" data-order-id="{{item.orderId}}" data-assignment-id="{{item.overallScore ? item.assignmentId : ''}}" bindtap="{{item.orderId ? 'openOrder' : ''}}">
+        <view class="review-top">
+          <view class="row-title score-accent">综合评分 {{item.overallScore}}分</view>
+          <view class="rating-bar-wrap">
+            <view class="rating-bar-inner" style="width: {{item.overallScore * 20}}%;"></view>
+          </view>
+        </view>
+        <view class="row-sub text-quote">“{{item.content || '已默认好评'}}”</view>
+      </view>
+      <empty-state wx:if="{{reviews.length === 0}}" scene="notifications" title="暂无评价" description="收到评价后会展示在这里" />
+    </section-card>
+  </view>
+
   <app-navbar role="butler" active="data" />
 </page-container>

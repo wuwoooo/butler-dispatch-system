@@ -1,4 +1,8 @@
-<view class="stat-card tone-{{tone}} {{url || action ? 'clickable' : ''}}" bindtap="handleTap">
-  <view class="stat-value">{{value}}</view>
+<view class="stat-card tone-{{tone}} {{url || action ? 'clickable' : ''}} {{showDot ? 'dot-enabled' : ''}} {{showDot && value > 0 ? 'has-dot' : ''}}" bindtap="handleTap">
+  <view class="stat-value-wrap">
+    <view class="stat-value">{{value}}</view>
+    <text wx:if="{{unit}}" class="stat-unit">{{unit}}</text>
+  </view>
   <view class="stat-label">{{label}}</view>
+  <view wx:if="{{url || action}}" class="chevron-arrow"></view>
 </view>

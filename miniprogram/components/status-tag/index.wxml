@@ -1,2 +1,1 @@
-<view class="status-tag status-{{tone}}">{{label}}</view>
-
+<view class="status-tag status-{{tone}} size-{{size}}">{{label}}</view>

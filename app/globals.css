@@ -255,6 +255,24 @@ a {
   text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
 }
 
+.login-icp-footer {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  z-index: 10;
+  transform: translateX(-50%);
+  color: rgba(203, 213, 225, 0.72) !important;
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  text-decoration: none !important;
+  transition: color 0.2s ease;
+}
+
+.login-icp-footer:hover {
+  color: #93c5fd !important;
+}
+
 /* ==================== 按钮与表单现代微动 ==================== */
 /* 按钮悬停轻微放大及回弹 */
 .ant-btn {
@@ -1411,4 +1429,3 @@ a {
   font-weight: 600;
   color: var(--text-main);
 }
-

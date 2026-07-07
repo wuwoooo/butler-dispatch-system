@@ -1,22 +1,60 @@
-<page-container title="你好，{{user.name || '调配员'}}" subtitle="{{today}}" hero="{{true}}">
-  <view slot="hero" class="hero-note">今日调配重点：待分配、拒单补派、请假审核</view>
-  <view class="stat-grid">
-    <stat-card label="待分配" value="{{cards.pendingDispatch || 0}}" tone="blue" />
-    <stat-card label="待接单" value="{{cards.pendingConfirm || 0}}" tone="orange" />
-    <stat-card label="部分拒单" value="{{cards.partialRejected || 0}}" tone="red" />
-    <stat-card label="待审请假" value="{{cards.pendingLeaves || 0}}" tone="orange" />
-    <stat-card label="空闲管家" value="{{cards.idleButlers || 0}}" tone="green" />
-    <stat-card label="接待中" value="{{cards.workingButlers || 0}}" tone="cyan" />
-  </view>
-  <view class="block-title">优先处理订单</view>
-  <order-card wx:for="{{orders}}" wx:key="id" item="{{item}}" bind:tap="openOrder" />
-  <empty-state wx:if="{{orders.length === 0}}" title="暂无待处理订单" description="当前没有需要立即调配的订单" />
-  <view class="shortcut-grid">
-    <view wx:for="{{shortcuts}}" wx:key="title" class="shortcut-card" data-url="{{item.url}}" bindtap="openShortcut">
-      <view class="shortcut-title">{{item.title}}</view>
-      <view class="shortcut-desc">{{item.desc}}</view>
+<page-container hero="{{true}}">
+  <!-- 自定义左右分栏的高级 Hero 内容 -->
+  <view slot="hero" class="hero-split-layout anim-fade-in">
+    <!-- 左侧文字信息列 -->
+    <view class="hero-main-info">
+      <view class="hero-greet-line">
+        <text class="hero-greet-title">你好，</text>
+        <text class="hero-username">{{user.name || '调配员'}}</text>
+      </view>
+      <view class="hero-date-line">{{today}}</view>
+      
+      <!-- 控制组 -->
+      <view class="hero-controls-row">
+        <view class="status-pill-glass">
+          <view class="status-indicator-dot"></view>
+          <text>调度中心运行中</text>
+        </view>
+        <button class="refresh-circle-btn {{refreshing ? 'is-refreshing' : ''}}" disabled="{{refreshing}}" bindtap="handleRefresh">
+          <view class="refresh-icon-spin"></view>
+        </button>
+      </view>
+    </view>
+
+    <!-- 右侧实体化艺术拍立得相框 -->
+    <view class="hero-polaroid-aside">
+      <view class="polaroid-card">
+        <image class="polaroid-photo" src="/assets/images/profile-hero.png" mode="aspectFill" />
+        <view class="polaroid-caption">高效协同</view>
+      </view>
     </view>
   </view>
-  <app-navbar role="dispatcher" active="home" />
-</page-container>
 
+  <view class="stat-grid anim-fade-in anim-stagger-1">
+    <stat-card label="待分配" value="{{cards.pendingDispatch || 0}}" unit="单" tone="blue" />
+    <stat-card label="待接单" value="{{cards.pendingConfirm || 0}}" unit="单" tone="orange" />
+    <stat-card label="部分拒单" value="{{cards.partialRejected || 0}}" unit="单" tone="red" />
+    <stat-card label="待审请假" value="{{cards.pendingLeaves || 0}}" unit="单" tone="orange" />
+    <stat-card label="空闲管家" value="{{cards.idleButlers || 0}}" unit="人" tone="green" />
+    <stat-card label="接待中" value="{{cards.workingButlers || 0}}" unit="人" tone="cyan" />
+  </view>
+
+  <view class="block-title anim-fade-in anim-stagger-2">优先处理订单</view>
+  <view class="anim-fade-in anim-stagger-3">
+    <order-card wx:for="{{orders}}" wx:key="id" item="{{item}}" bind:tap="openOrder" />
+    <empty-state wx:if="{{orders.length === 0}}" scene="orders" title="暂无待处理订单" description="当前没有需要立即调配的订单" />
+  </view>
+
+  <view class="block-title anim-fade-in anim-stagger-4">快捷操作</view>
+  <view class="shortcut-grid anim-fade-in anim-stagger-5">
+    <view wx:for="{{shortcuts}}" wx:key="title" class="shortcut-card" data-url="{{item.url}}" bindtap="openShortcut">
+      <view class="shortcut-icon icon-theme-{{item.tone}}">
+        <view class="shortcut-icon-inner"></view>
+      </view>
+      <view class="shortcut-info">
+        <view class="shortcut-title">{{item.title}}</view>
+        <view class="shortcut-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+</page-container>

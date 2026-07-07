@@ -1,9 +1,13 @@
-<view class="notification {{item.isRead ? 'read' : ''}}" bindtap="handleTap">
+<view class="notification {{item.isRead ? 'read' : ''}} anim-fade-in" bindtap="handleTap">
   <view wx:if="{{!item.isRead}}" class="dot"></view>
-  <view class="content">
-    <view class="title">{{item.title}}</view>
-    <view class="text">{{item.content}}</view>
-    <view class="time">{{time}}</view>
+  <view class="notification-body">
+    <view class="noti-icon noti-icon-{{iconType}}">
+      <view class="noti-icon-inner"></view>
+    </view>
+    <view class="content">
+      <view class="title">{{item.title}}</view>
+      <view class="text">{{item.content}}</view>
+      <view class="time">{{time}}</view>
+    </view>
   </view>
 </view>
-

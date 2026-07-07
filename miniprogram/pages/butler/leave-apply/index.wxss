@@ -1,25 +1,52 @@
+@import "../../../styles/shared.wxss";
+
 /* 管家请假申请 */
 .picker {
   height: 84rpx;
-  padding: 0 28rpx;
-  border-radius: 24rpx;
-  background: #F0F4FA;
-  color: #1A2332;
+  padding: 0 var(--spacing-xl);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-input);
   font-size: 28rpx;
   line-height: 84rpx;
-  transition: background 0.2s ease;
+  transition: all var(--duration-fast);
+}
+
+.picker.placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.picker.has-value {
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 .picker:active {
-  background: #E6ECF5;
+  background: var(--color-border-light);
+}
+
+/* textarea 包装容器 */
+.textarea-container {
+  position: relative;
+  width: 100%;
 }
 
 .textarea {
   width: 100%;
-  min-height: 200rpx;
-  padding: 24rpx;
-  border-radius: 24rpx;
-  background: #F0F4FA;
+  min-height: 220rpx;
+  padding: 24rpx 24rpx 50rpx; /* 留出底部空间给字数统计 */
+  border-radius: var(--radius-md);
+  background: var(--color-bg-input);
   font-size: 28rpx;
   line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.char-count {
+  position: absolute;
+  right: 24rpx;
+  bottom: 16rpx;
+  font-size: 20rpx;
+  color: var(--color-text-tertiary);
+  font-weight: 700;
+  pointer-events: none;
 }

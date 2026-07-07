@@ -14,8 +14,12 @@ Page({
         tabs,
         active: "pending",
         groups: {},
-        items: []
+        items: [],
+        loading: true
     },
+    // 增加时间戳用于防抖防连击
+    lastConfirmTime: 0,
+    lastRejectTime: 0,
     onLoad(options) {
         if (tabs.some((item) => item.key === options.tab)) {
             this.setData({ active: options.tab });
@@ -28,6 +32,7 @@ Page({
         this.load().finally(() => wx.stopPullDownRefresh());
     },
     async load() {
+        this.setData({ loading: true });
         try {
             const data = await (0, order_1.getButlerOrders)();
             const groups = data.groups || {};
@@ -35,6 +40,9 @@ Page({
         }
         catch (_a) {
             // request 层已提示错误。
+        }
+        finally {
+            this.setData({ loading: false });
         }
     },
     switchTab(event) {
@@ -48,6 +56,10 @@ Page({
         });
     },
     confirm(event) {
+        const now = Date.now();
+        if (now - this.lastConfirmTime < 1000)
+            return;
+        this.lastConfirmTime = now;
         const detail = event.detail || {};
         wx.showModal({
             title: "确认接单",
@@ -63,6 +75,10 @@ Page({
         });
     },
     reject(event) {
+        const now = Date.now();
+        if (now - this.lastRejectTime < 1000)
+            return;
+        this.lastRejectTime = now;
         const detail = event.detail || {};
         wx.showActionSheet({
             itemList: constants_1.rejectReasons,

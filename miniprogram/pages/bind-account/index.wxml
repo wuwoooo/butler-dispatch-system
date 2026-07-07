@@ -9,7 +9,7 @@
       <view class="label">用户名 / 手机号</view>
       <view class="input-wrap">
         <text class="input-icon">👤</text>
-        <input class="input" placeholder="请输入系统账号" value="{{username}}" bindinput="onUsername" />
+        <input class="input" placeholder="请输入用户名或手机号" value="{{username}}" bindinput="onUsername" />
       </view>
     </view>
     <view class="field">

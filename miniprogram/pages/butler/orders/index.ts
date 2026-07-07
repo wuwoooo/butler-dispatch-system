@@ -14,8 +14,12 @@ Page({
     tabs,
     active: "pending",
     groups: {} as AnyRecord,
-    items: [] as AnyRecord[]
+    items: [] as AnyRecord[],
+    loading: true
   },
+  // 增加时间戳用于防抖防连击
+  lastConfirmTime: 0,
+  lastRejectTime: 0,
   onLoad(options: AnyRecord) {
     if (tabs.some((item) => item.key === options.tab)) {
       this.setData({ active: options.tab });
@@ -28,12 +32,15 @@ Page({
     this.load().finally(() => wx.stopPullDownRefresh());
   },
   async load() {
+    this.setData({ loading: true });
     try {
       const data = await getButlerOrders();
       const groups = data.groups || {};
       this.setData({ groups, items: groups[this.data.active] || [] });
     } catch {
       // request 层已提示错误。
+    } finally {
+      this.setData({ loading: false });
     }
   },
   switchTab(event: AnyRecord) {
@@ -47,20 +54,28 @@ Page({
     });
   },
   confirm(event: AnyRecord) {
+    const now = Date.now();
+    if (now - this.lastConfirmTime < 1000) return;
+    this.lastConfirmTime = now;
+
     const detail = event.detail || {};
     wx.showModal({
       title: "确认接单",
       content: `确认接受订单 ${detail.orderNo || ""}？`,
       confirmColor: "#2AACE2",
       success: async (res: AnyRecord) => {
-        if (!res.confirm) return;
-        await confirmOrder(detail.assignmentId);
-        wx.showToast({ title: "已接单", icon: "success" });
-        this.load();
+         if (!res.confirm) return;
+         await confirmOrder(detail.assignmentId);
+         wx.showToast({ title: "已接单", icon: "success" });
+         this.load();
       }
     });
   },
   reject(event: AnyRecord) {
+    const now = Date.now();
+    if (now - this.lastRejectTime < 1000) return;
+    this.lastRejectTime = now;
+
     const detail = event.detail || {};
     wx.showActionSheet({
       itemList: rejectReasons,

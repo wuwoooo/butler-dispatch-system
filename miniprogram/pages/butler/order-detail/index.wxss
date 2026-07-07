@@ -1,41 +1,113 @@
+@import "../../../styles/shared.wxss";
+
 /* 管家订单详情 */
 .status-line {
-  margin: 12rpx 32rpx 20rpx;
+  margin: 12rpx var(--spacing-2xl) var(--spacing-lg);
   display: flex;
-  gap: 12rpx;
+  gap: var(--spacing-sm);
 }
 
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24rpx;
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid #EDF1F7;
-}
-
-.detail-row:last-child {
-  border-bottom: 0;
-}
-
-.row-label {
-  min-width: 160rpx;
-  color: #5A6B82;
-  font-size: 26rpx;
-}
-
-.row-value {
-  flex: 1;
-  text-align: right;
-  color: #1A2332;
-  font-size: 27rpx;
-  font-weight: 600;
+.row-dot-decor {
+  width: 10rpx;
+  height: 10rpx;
+  background: var(--color-primary);
+  border-radius: 50%;
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+  box-shadow: 0 0 6rpx var(--color-primary);
 }
 
 .action-gap {
-  margin-bottom: 16rpx;
+  margin-bottom: var(--spacing-md);
 }
 
 .action-gap:last-child {
   margin-bottom: 0;
+}
+
+/* ── 流程时间线组件 ── */
+.timeline-card {
+  margin: var(--spacing-md) var(--spacing-2xl) var(--spacing-lg);
+  padding: 30rpx;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+}
+
+.timeline-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding: 10rpx 10rpx 0;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.timeline-node {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: var(--color-bg-page);
+  color: var(--color-text-tertiary);
+  font-size: 24rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4rpx solid var(--color-border-light);
+  transition: all var(--duration-normal) var(--ease-spring);
+}
+
+.timeline-text {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-normal);
+}
+
+.timeline-line {
+  height: 6rpx;
+  background: var(--color-border-light);
+  flex: 1;
+  margin-top: -34rpx;
+  z-index: 1;
+  transition: background var(--duration-normal);
+  border-radius: 3rpx;
+}
+
+/* 激活与完成状态 */
+.timeline-step.completed .timeline-node {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.timeline-step.completed .timeline-text {
+  color: var(--color-primary-deep);
+}
+
+.timeline-step.active .timeline-node {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 4rpx 12rpx rgba(42, 172, 226, 0.4);
+  transform: scale(1.15);
+}
+
+.timeline-step.active .timeline-text {
+  color: var(--color-text-primary);
+  font-weight: 800;
+}
+
+.timeline-line.completed {
+  background: var(--color-primary);
 }

@@ -1,9 +1,23 @@
 <page-container title="管家状态" subtitle="查看管家接待状态与账号状态">
-  <view class="search">
-    <input placeholder="搜索管家姓名 / 手机号" value="{{keyword}}" bindinput="setKeyword" />
+  <view class="search-bar anim-fade-in">
+    <view class="search-input-wrap">
+      <view class="search-icon"></view>
+      <input class="search-input" placeholder="输入管家姓名/手机号实时检索" value="{{keyword}}" bindinput="setKeyword" />
+    </view>
   </view>
-  <butler-card wx:for="{{items}}" wx:key="id" item="{{item}}" bind:tap="open" />
-  <empty-state wx:if="{{items.length === 0}}" title="暂无管家" description="当前没有匹配的管家" buttonText="刷新" bind:refresh="load" />
+
+  <view class="tab-scroll-wrap anim-fade-in">
+    <view class="tab-capsule-group tab-capsule-four">
+      <view wx:for="{{statusTabs}}" wx:key="key" class="tab-capsule {{activeStatus === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchStatus">{{item.text}}</view>
+    </view>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <butler-card wx:for="{{items}}" wx:key="id" class="anim-fade-in anim-stagger-{{index % 5 + 1}}" item="{{item}}" bind:tap="open" />
+    <empty-state wx:if="{{items.length === 0}}" scene="butlers" title="无匹配管家" description="在当前状态和关键词下未找到任何管家信息" buttonText="刷新" bind:refresh="load" />
+  </block>
+
+  <loading-state wx:else mode="skeleton" skeletonRows="3" />
+
   <app-navbar role="dispatcher" active="butlers" />
 </page-container>
-

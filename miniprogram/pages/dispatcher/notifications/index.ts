@@ -27,7 +27,12 @@ Page({
     }
     this.load();
   },
+  lastReadAllTime: 0,
   readAll() {
+    const now = Date.now();
+    if (now - this.lastReadAllTime < 1000) return;
+    this.lastReadAllTime = now;
+
     wx.showModal({
       title: "全部已读",
       content: "确认将所有通知标记为已读？",

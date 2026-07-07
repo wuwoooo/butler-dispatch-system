@@ -1,59 +1,59 @@
+@import "../../../styles/shared.wxss";
+
 /* 管家数据统计 */
-.range-tabs {
-  margin: 12rpx 32rpx 24rpx;
-  display: flex;
-  gap: 0;
-  padding: 6rpx;
-  background: #ffffff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+.tab-scroll-wrap {
+  padding: 12rpx var(--spacing-2xl) var(--spacing-lg);
 }
 
-.range-tab {
+.tab-capsule-three {
+  width: 100%;
+}
+
+.tab-capsule-three .tab-capsule {
   flex: 1;
-  height: 68rpx;
-  border-radius: 20rpx;
   text-align: center;
-  line-height: 68rpx;
-  background: transparent;
-  color: #5A6B82;
-  font-size: 26rpx;
-  font-weight: 500;
-  transition: all 0.25s ease;
-}
-
-.active {
-  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 4rpx 14rpx rgba(42, 172, 226, 0.30);
 }
 
 .stat-grid {
-  margin: 0 32rpx 24rpx;
+  margin: 0 var(--spacing-2xl) var(--spacing-lg);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
+  gap: var(--spacing-md);
 }
 
 .mini-row,
 .review-card {
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #EDF1F7;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1rpx solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20rpx;
+  gap: var(--spacing-md);
+}
+
+.mini-row-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-row-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: var(--color-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .clickable-row {
   position: relative;
-  border-radius: 12rpx;
-  transition: background 0.2s ease;
+  transition: background var(--duration-fast) var(--ease-smooth);
 }
 
 .clickable-row:active {
-  background: #F4F8FC;
+  background: var(--color-primary-lighter);
 }
 
 .mini-row:last-child,
@@ -65,20 +65,142 @@
   display: block;
 }
 
+.review-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-accent {
+  color: var(--color-warning-deep);
+}
+
+.rating-bar-wrap {
+  width: 120rpx;
+  height: 12rpx;
+  background: var(--color-warning-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.rating-bar-inner {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-warning) 0%, var(--color-warning-deep) 100%);
+}
+
+.text-quote {
+  font-style: italic;
+  margin-top: 12rpx;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
 .row-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #1A2332;
+  color: var(--color-text-primary);
 }
 
 .row-sub {
   margin-top: 8rpx;
-  color: #5A6B82;
+  color: var(--color-text-secondary);
   font-size: 24rpx;
 }
 
 .row-status {
-  color: #2AACE2;
+  color: var(--color-primary);
   font-size: 24rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── 简易 CSS 柱状图 ── */
+.chart-container {
+  display: flex;
+  height: 280rpx;
+  padding: var(--spacing-md) 0 10rpx;
+  gap: var(--spacing-md);
+}
+
+.chart-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 20rpx;
+  color: var(--color-text-tertiary);
+  width: 60rpx;
+  padding-bottom: 74rpx;
+  text-align: right;
   font-weight: 600;
+}
+
+.chart-bars {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.chart-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar-wrap {
+  width: 32rpx;
+  height: 160rpx;
+  background: var(--color-bg-page);
+  border-radius: 16rpx 16rpx 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.chart-bar {
+  width: 100%;
+  border-radius: 16rpx 16rpx 0 0;
+  animation: barGrow 0.8s var(--ease-spring) both;
+  transform-origin: bottom;
+}
+
+.bar-blue {
+  background: linear-gradient(to top, var(--color-primary-deep), var(--color-primary));
+}
+
+.bar-green {
+  background: linear-gradient(to top, var(--color-success-deep), var(--color-success));
+}
+
+.bar-red {
+  background: linear-gradient(to top, var(--color-danger-deep), var(--color-danger));
+}
+
+.chart-bar-label {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.chart-bar-value {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+@keyframes barGrow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }

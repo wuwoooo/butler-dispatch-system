@@ -17,7 +17,12 @@ Page({
     range: "month",
     stats: {} as AnyRecord,
     records: [] as AnyRecord[],
-    reviews: [] as AnyRecord[]
+    reviews: [] as AnyRecord[],
+    chartData: {
+      orderHeight: 0,
+      completedHeight: 0,
+      rejectHeight: 0
+    }
   },
   onShow() {
     this.load();
@@ -29,6 +34,14 @@ Page({
       getButlerOrderRecords({ pageSize: 5, ...rangeParams }),
       getButlerReviews(rangeParams)
     ]);
+
+    const max = Math.max(stats.orderCount || 0, stats.completedOrderCount || 0, stats.rejectCount || 0, 1);
+    const chartData = {
+      orderHeight: Math.max(((stats.orderCount || 0) / max) * 100, 8),
+      completedHeight: Math.max(((stats.completedOrderCount || 0) / max) * 100, 8),
+      rejectHeight: Math.max(((stats.rejectCount || 0) / max) * 100, 8)
+    };
+
     this.setData({
       stats,
       records: (records.items || []).map((item: AnyRecord) => ({
@@ -38,7 +51,8 @@ Page({
       reviews: (reviews.items || []).slice(0, 3).map((item: AnyRecord) => ({
         ...item,
         orderId: item.orderId || item.order?.id
-      }))
+      })),
+      chartData
     });
   },
   switchRange(event: AnyRecord) {

@@ -4,10 +4,14 @@
     wx:key="key"
     class="tab-item {{active === item.key ? 'active' : ''}}"
     data-url="{{item.url}}"
+    data-key="{{item.key}}"
     bindtap="handleTap"
   >
     <view class="tab-item-inner">
-      <view class="tab-icon {{item.icon}}"></view>
+      <view class="tab-icon-wrap">
+        <view class="tab-icon {{item.icon}}"></view>
+        <view wx:if="{{item.badge}}" class="tab-badge">{{item.badge > 99 ? '99+' : item.badge}}</view>
+      </view>
       <view class="tab-text">{{item.text}}</view>
     </view>
   </view>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex 自我蒸馏总览</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; color: #172033; background: #f7f8fb; }
+    main { max-width: 1080px; margin: 0 auto; padding: 32px 20px 48px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    h2 { margin-top: 28px; font-size: 18px; }
+    p, li { line-height: 1.7; }
+    .panel { background: #fff; border: 1px solid #e5e8ef; border-radius: 8px; padding: 20px; margin-top: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .metric { background: #fff; border: 1px solid #e5e8ef; border-radius: 8px; padding: 16px; }
+    .metric strong { display: block; font-size: 24px; }
+    a { color: #155eef; text-decoration: none; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border: 1px solid #e5e8ef; padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #f0f3f8; }
+    code { background: #eef2f7; padding: 2px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>管家调配系统 - Codex 自我蒸馏候选总览</h1>
+  <p>本轮依据 PDF 要求完成候选级审计和优化，不修改正式业务代码、不安装正式 skill。</p>
+
+  <section class="grid">
+    <div class="metric"><strong>400</strong>项目文件数（排除 .git/.next/node_modules）</div>
+    <div class="metric"><strong>329</strong>代码与小程序源文件</div>
+    <div class="metric"><strong>43</strong>Markdown/HTML/JSON/CSV/PDF/DB 类产物</div>
+    <div class="metric"><strong>8</strong>用户级可发现 skill</div>
+  </section>
+
+  <section class="panel">
+    <h2>最高优先级</h2>
+    <table>
+      <thead><tr><th>级别</th><th>问题</th><th>本轮产物</th></tr></thead>
+      <tbody>
+        <tr><td>P0</td><td>项目缺少正式 AGENTS.md，历史业务规则只散落在 README、Prisma 注释和代码里。</td><td><a href="09_AGENTS_md_patch_candidate.md">AGENTS.md patch candidate</a></td></tr>
+        <tr><td>P0</td><td>缺少工程产物质量 validator，容易把“写了文件/跑了 dry-run”误判为完成。</td><td><a href="14_validators/product_quality_validator_candidate.mjs">validator candidate</a></td></tr>
+        <tr><td>P1</td><td>Web 管理后台与微信小程序双端修改时，没有跨端验收清单。</td><td><a href="11_new_skill_candidates/butler_dispatch_project_skill_candidate.md">项目 skill candidate</a></td></tr>
+        <tr><td>P1</td><td>多管家派单、状态流转、请假冲突等业务规则需要显式 worker/审查分工。</td><td><a href="12_worker_subagent_candidates/butler_dispatch_worker_candidates.md">worker candidates</a></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>本轮验证</h2>
+    <p>选取 README 的“完成清单式”项目说明作为半真实样本，用新 validator 评分；再给出修复样例，对比前后可验收性。</p>
+    <p><a href="15_real_or_semireal_validation/validation_report.md">查看验证报告</a></p>
+  </section>
+</main>
+</body>
+</html>

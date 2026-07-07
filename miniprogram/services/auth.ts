@@ -4,8 +4,11 @@ export function wechatLogin(code: string, options?: { silent?: boolean }) {
   return http.post("/api/miniprogram/auth/wechat-login", { code }, options);
 }
 
-export function bindAccount(data: { code: string; username: string; password: string }) {
-  return http.post("/api/miniprogram/auth/bind", data);
+export function bindAccount(
+  data: { code: string; username: string; password: string },
+  options?: { silent?: boolean }
+) {
+  return http.post("/api/miniprogram/auth/bind", data, options);
 }
 
 export function getCurrentUser(options?: { silent?: boolean }) {

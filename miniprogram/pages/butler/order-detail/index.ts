@@ -16,8 +16,12 @@ Page({
     order: {} as AnyRecord,
     assignment: {} as AnyRecord,
     sections: [] as AnyRecord[],
-    actions: [] as AnyRecord[]
+    actions: [] as AnyRecord[],
+    currentStep: 0 // 1: 待接单, 2: 准备中, 3: 服务中, 4: 已完成
   },
+  // 增加时间戳防抖防连击
+  lastActionTime: 0,
+  lastRejectTime: 0,
   onLoad(query: AnyRecord) {
     this.setData({ orderId: query.orderId || "", assignmentId: query.assignmentId || "" });
     this.load();
@@ -28,17 +32,34 @@ Page({
       const assignment =
         order.assignments?.find((item: AnyRecord) => item.id === this.data.assignmentId) ||
         {};
+      
+      let currentStep = 0;
+      if (assignment.status === "pending_confirm") {
+        currentStep = 1;
+      } else if (assignment.status === "confirmed") {
+        currentStep = 2;
+      } else if (["picked_guest", "in_service"].includes(assignment.status)) {
+        currentStep = 3;
+      } else if (assignment.status === "completed") {
+        currentStep = 4;
+      }
+
       this.setData({
         order,
         assignment,
         sections: buildSections(order, assignment),
-        actions: buildActions(order, assignment)
+        actions: buildActions(order, assignment),
+        currentStep
       });
     } catch {
       // request 层已提示错误。
     }
   },
   doAction(event: AnyRecord) {
+    const now = Date.now();
+    if (now - this.lastActionTime < 1000) return;
+    this.lastActionTime = now;
+
     const action = event.currentTarget.dataset.action;
     const config: AnyRecord = {
       confirm: { title: "确认接单", content: "确认接受该订单？", api: () => confirmOrder(this.data.assignmentId) },
@@ -50,7 +71,7 @@ Page({
     wx.showModal({
       title: item.title,
       content: item.content,
-      confirmColor: "#2F80ED",
+      confirmColor: "#2AACE2",
       success: async (res: AnyRecord) => {
         if (!res.confirm) return;
         await item.api();
@@ -60,6 +81,10 @@ Page({
     });
   },
   reject() {
+    const now = Date.now();
+    if (now - this.lastRejectTime < 1000) return;
+    this.lastRejectTime = now;
+
     wx.showActionSheet({
       itemList: rejectReasons,
       success: (res: AnyRecord) => {
@@ -96,7 +121,7 @@ function buildSections(order: AnyRecord, assignment: AnyRecord) {
       title: "订单信息",
       rows: [
         ["订单编号", order.orderNo],
-        ["酒店", order.hotel?.name],
+        ["酒店名称", order.hotel?.name],
         ["订单状态", getStatus("order", order.status).text]
       ]
     },
@@ -104,8 +129,8 @@ function buildSections(order: AnyRecord, assignment: AnyRecord) {
       title: "客人信息",
       rows: [
         ["客人姓名", order.guestName],
-        ["客人手机号", maskPhone(order.guestPhone)],
-        ["入住人数", `${order.guestCount || 0}人`]
+        ["联系电话", maskPhone(order.guestPhone)],
+        ["接待人数", `${order.guestCount || 0}人`]
       ]
     },
     {
@@ -113,26 +138,26 @@ function buildSections(order: AnyRecord, assignment: AnyRecord) {
       rows: [
         ["入住日期", formatDateFull(order.checkInDate)],
         ["离店日期", formatDateFull(order.checkOutDate)],
-        ["房型 / 房间", `${order.roomType || "-"} / ${order.roomNo || "-"}`],
-        ["接站类型", pickupTypeMap[order.pickupType] || "-"],
+        ["房间信息", `${order.roomType || "-"} / ${order.roomNo || "-"}`],
+        ["接站方案", pickupTypeMap[order.pickupType] || "-"],
         ["到达时间", formatDateTimeFull(order.arrivalTime)],
-        ["航班/车次", order.flightTrainNo || "-"]
+        ["航班车次", order.flightTrainNo || "-"]
       ]
     },
     {
-      title: "我的分配",
+      title: "任务分配",
       rows: [
-        ["分配状态", getStatus("assignment", assignment.status).text],
-        ["确认时间", formatDateTimeFull(assignment.confirmedAt)],
-        ["接到客人", formatDateTimeFull(assignment.pickedGuestAt)],
+        ["指派状态", getStatus("assignment", assignment.status).text],
+        ["接单时间", formatDateTimeFull(assignment.confirmedAt)],
+        ["接到时间", formatDateTimeFull(assignment.pickedGuestAt)],
         ["完成时间", formatDateTimeFull(assignment.completedAt)]
       ]
     },
     {
-      title: "备注",
+      title: "备注详情",
       rows: [
-        ["特殊需求", order.specialNeeds || "-"],
-        ["订单备注", order.remark || "-"]
+        ["特殊要求", order.specialNeeds || "-"],
+        ["其他备注", order.remark || "-"]
       ]
     }
   ];
@@ -142,7 +167,7 @@ function buildActions(order: AnyRecord, assignment: AnyRecord) {
   if (assignment.status === "pending_confirm") {
     return [
       { text: "确认接单", action: "confirm", tone: "primary" },
-      { text: "拒单", action: "reject", tone: "danger", reject: true }
+      { text: "拒绝指派", action: "reject", tone: "danger", reject: true }
     ];
   }
   if (assignment.status === "confirmed") {

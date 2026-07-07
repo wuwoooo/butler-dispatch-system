@@ -18,7 +18,9 @@
       <view class="title">{{title}}</view>
       <view wx:if="{{subtitle}}" class="subtitle">{{subtitle}}</view>
     </view>
-    <slot name="hero"></slot>
+    <view class="hero-slot-wrap">
+      <slot name="hero"></slot>
+    </view>
   </view>
   <slot></slot>
 </view>

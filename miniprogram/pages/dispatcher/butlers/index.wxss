@@ -1,13 +1,23 @@
-/* 管家列表 */
-.search {
-  margin: 8rpx 32rpx 20rpx;
+@import "../../../styles/shared.wxss";
+
+/* 管家列表额外样式 */
+.search-bar {
+  margin-top: var(--spacing-sm);
 }
 
-.search input {
-  height: 84rpx;
-  padding: 0 28rpx;
-  border-radius: 999rpx;
-  background: #ffffff;
-  font-size: 27rpx;
-  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+.tab-scroll-wrap {
+  padding: 0 var(--spacing-2xl) var(--spacing-lg);
+}
+
+.tab-capsule-four {
+  width: 100%;
+}
+
+.tab-capsule-four .tab-capsule {
+  flex: 1;
+  text-align: center;
+}
+
+.butler-card {
+  margin-bottom: var(--spacing-lg) !important;
 }

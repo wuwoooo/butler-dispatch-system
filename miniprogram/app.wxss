@@ -3,10 +3,82 @@
    品牌色系：天蓝 #2AACE2 → 深蓝 #1B8FD4
    ============================== */
 
+/* ── 设计令牌 (Design Tokens) ── */
 page {
+  /* 品牌色 */
+  --color-primary: #2AACE2;
+  --color-primary-deep: #1B8FD4;
+  --color-primary-darker: #2B5EA7;
+  --color-primary-light: #EAF6FD;
+  --color-primary-lighter: #F0F8FF;
+
+  /* 语义色 */
+  --color-success: #10B981;
+  --color-success-deep: #059669;
+  --color-success-light: #ECFDF5;
+  --color-warning: #F59E0B;
+  --color-warning-deep: #D97706;
+  --color-warning-light: #FFF8EB;
+  --color-danger: #EF4444;
+  --color-danger-deep: #DC2626;
+  --color-danger-light: #FEF2F2;
+  --color-cyan: #0EA5E9;
+  --color-cyan-deep: #0891B2;
+  --color-cyan-light: #ECFEFF;
+  --color-purple: #7C3AED;
+  --color-purple-light: #F5F3FF;
+
+  /* 文字色 */
+  --color-text-primary: #1A2332;
+  --color-text-secondary: #5A6B82;
+  --color-text-tertiary: #94A3B8;
+
+  /* 背景色 */
+  --color-bg-page: #EFF3FA;
+  --color-bg-card: #ffffff;
+  --color-bg-input: #F0F4FA;
+  --color-bg-info: #F8FAFD;
+
+  /* 边框色 */
+  --color-border: #EDF1F7;
+  --color-border-light: #E5EAF2;
+
+  /* 装饰色 */
+  --color-decor: #D8E1EC;
+
+  /* 间距 */
+  --spacing-xs: 8rpx;
+  --spacing-sm: 12rpx;
+  --spacing-md: 16rpx;
+  --spacing-lg: 20rpx;
+  --spacing-xl: 24rpx;
+  --spacing-2xl: 32rpx;
+  --spacing-3xl: 40rpx;
+
+  /* 圆角 */
+  --radius-sm: 12rpx;
+  --radius-md: 18rpx;
+  --radius-lg: 28rpx;
+  --radius-xl: 36rpx;
+  --radius-hero: 48rpx;
+  --radius-full: 999rpx;
+
+  /* 阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+  --shadow-md: 0 4rpx 16rpx rgba(26, 35, 50, 0.06), 0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+  --shadow-lg: 0 4rpx 16rpx rgba(26, 35, 50, 0.06), 0 16rpx 48rpx rgba(26, 35, 50, 0.08);
+  --shadow-primary: 0 8rpx 24rpx rgba(42, 172, 226, 0.30);
+
+  /* 动画 */
+  --duration-fast: 0.15s;
+  --duration-normal: 0.25s;
+  --duration-slow: 0.4s;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
   min-height: 100%;
-  background: #EFF3FA;
-  color: #1A2332;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -34,36 +106,36 @@ button::after {
 /* 页面底色 */
 .page {
   min-height: 100vh;
-  background: #EFF3FA;
+  background: var(--color-bg-page);
 }
 
 /* 安全区底部 */
 .safe-bottom {
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--spacing-2xl) + env(safe-area-inset-bottom));
 }
 
 /* ── 卡片基础 ── */
 .card {
-  background: #ffffff;
-  border-radius: 28rpx;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
   padding: 30rpx;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
-              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth);
 }
 
 .card:active {
   transform: scale(0.985);
-  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ── 辅助文字 ── */
 .muted {
-  color: #5A6B82;
+  color: var(--color-text-secondary);
 }
 
 .danger-text {
-  color: #EF4444;
+  color: var(--color-danger);
 }
 
 /* ── 固定底部操作栏 ── */
@@ -72,10 +144,127 @@ button::after {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: var(--spacing-lg) var(--spacing-lg) calc(var(--spacing-xl) + env(safe-area-inset-bottom));
   background: rgba(239, 243, 250, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 -4rpx 20rpx rgba(26, 35, 50, 0.08);
   z-index: 20;
 }
+
+/* ══════════════════════════════
+   全局动画关键帧
+   ══════════════════════════════ */
+
+/* 列表项入场：淡入+上浮 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 骨架屏流光 */
+@keyframes shimmer {
+  0% {
+    background-position: -600rpx 0;
+  }
+  100% {
+    background-position: 600rpx 0;
+  }
+}
+
+/* 呼吸灯脉冲 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+
+/* 右滑入 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(60rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 加载旋转 */
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 数字弹出 */
+@keyframes countPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 装饰圆呼吸 */
+@keyframes decorBreathe {
+  0%, 100% {
+    opacity: 0.06;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.10;
+    transform: scale(1.05);
+  }
+}
+
+/* 入场弹跳 */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── 通用入场动画辅助类 ── */
+.anim-fade-in {
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) both;
+}
+
+.anim-stagger-1 { animation-delay: 0.04s; }
+.anim-stagger-2 { animation-delay: 0.08s; }
+.anim-stagger-3 { animation-delay: 0.12s; }
+.anim-stagger-4 { animation-delay: 0.16s; }
+.anim-stagger-5 { animation-delay: 0.20s; }
+.anim-stagger-6 { animation-delay: 0.24s; }
+.anim-stagger-7 { animation-delay: 0.28s; }
+.anim-stagger-8 { animation-delay: 0.32s; }

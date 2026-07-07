@@ -25,7 +25,10 @@ Page({
         ]);
         this.setData({
             order,
-            assigned: order.assignments || [],
+            assigned: (order.assignments || []).map((item) => {
+                var _a;
+                return (Object.assign(Object.assign({}, item), { avatar: (((_a = item.butler) === null || _a === void 0 ? void 0 : _a.name) || "?").slice(0, 1) }));
+            }),
             candidates: (available.items || []).map((item) => (Object.assign(Object.assign({}, item), { selected: this.data.selectedIds.includes(item.id) }))),
             sections: buildSections(order),
             canDispatch: ["pending_dispatch", "partial_rejected"].includes(order.status)
@@ -46,7 +49,13 @@ Page({
             candidates: this.data.candidates.map((candidate) => (Object.assign(Object.assign({}, candidate), { selected: selectedIds.includes(candidate.id) })))
         });
     },
+    lastSubmitTime: 0,
+    lastCancelTime: 0,
     submit() {
+        const now = Date.now();
+        if (now - this.lastSubmitTime < 1000)
+            return;
+        this.lastSubmitTime = now;
         if (!this.data.canDispatch) {
             wx.showToast({ title: "请先取消当前待接单派单", icon: "none" });
             return;
@@ -58,6 +67,7 @@ Page({
         wx.showModal({
             title: "提交派单",
             content: `确认派给 ${this.data.selectedIds.length} 名管家？`,
+            confirmColor: "#2AACE2",
             success: async (res) => {
                 if (!res.confirm)
                     return;
@@ -69,11 +79,16 @@ Page({
         });
     },
     cancelAssignment(event) {
+        const now = Date.now();
+        if (now - this.lastCancelTime < 1000)
+            return;
+        this.lastCancelTime = now;
         const assignmentId = event.currentTarget.dataset.id;
         wx.showModal({
             title: "取消派单",
-            content: "取消后订单可重新进入待分配。",
+            content: "取消后订单可重新进入待分配状态，确认取消？",
             confirmText: "确认取消",
+            confirmColor: "#EF4444",
             success: async (res) => {
                 if (!res.confirm)
                     return;
@@ -92,9 +107,9 @@ function buildSections(order) {
             title: "订单信息",
             rows: [
                 ["订单编号", order.orderNo],
-                ["酒店", (_a = order.hotel) === null || _a === void 0 ? void 0 : _a.name],
-                ["状态", (0, status_map_1.getStatus)("order", order.status).text],
-                ["客人", `${order.guestName || "-"} · ${order.guestCount || 0}人`]
+                ["酒店名称", (_a = order.hotel) === null || _a === void 0 ? void 0 : _a.name],
+                ["订单状态", (0, status_map_1.getStatus)("order", order.status).text],
+                ["客人姓名", `${order.guestName || "-"} · ${order.guestCount || 0}人`]
             ]
         },
         {
@@ -102,7 +117,7 @@ function buildSections(order) {
             rows: [
                 ["入住日期", (0, format_1.formatDateFull)(order.checkInDate)],
                 ["离店日期", (0, format_1.formatDateFull)(order.checkOutDate)],
-                ["接站类型", status_map_1.pickupTypeMap[order.pickupType] || "-"],
+                ["接站方案", status_map_1.pickupTypeMap[order.pickupType] || "-"],
                 ["到达时间", (0, format_1.formatDateTimeFull)(order.arrivalTime)]
             ]
         }

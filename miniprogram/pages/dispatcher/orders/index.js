@@ -15,7 +15,8 @@ Page({
         tabs,
         active: "pending_dispatch",
         keyword: "",
-        items: []
+        items: [],
+        loading: true
     },
     onShow() {
         this.load();
@@ -27,12 +28,21 @@ Page({
         this.setData({ keyword: event.detail.value });
     },
     async load() {
-        const data = await (0, order_1.getOrders)({
-            status: this.data.active,
-            guestName: this.data.keyword,
-            pageSize: 50
-        });
-        this.setData({ items: data.items || [] });
+        this.setData({ loading: true });
+        try {
+            const data = await (0, order_1.getOrders)({
+                status: this.data.active,
+                guestName: this.data.keyword,
+                pageSize: 50
+            });
+            this.setData({ items: data.items || [] });
+        }
+        catch (_a) {
+            // 接口错误
+        }
+        finally {
+            this.setData({ loading: false });
+        }
     },
     switchTab(event) {
         this.setData({ active: event.currentTarget.dataset.key });

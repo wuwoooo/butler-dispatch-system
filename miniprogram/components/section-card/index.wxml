@@ -1,11 +1,15 @@
 <view class="section-card">
-  <view wx:if="{{title || subtitle}}" class="section-head">
-    <view>
+  <view wx:if="{{title || subtitle}}" class="section-head {{collapsible ? 'clickable' : ''}}" bindtap="toggleCollapse">
+    <view class="head-left">
       <view wx:if="{{title}}" class="section-title">{{title}}</view>
       <view wx:if="{{subtitle}}" class="section-subtitle">{{subtitle}}</view>
     </view>
-    <slot name="extra"></slot>
+    <view class="section-head-right">
+      <slot name="extra"></slot>
+      <view wx:if="{{collapsible}}" class="collapse-icon {{collapsed ? 'is-collapsed' : ''}}"></view>
+    </view>
   </view>
-  <slot></slot>
+  <view class="section-body {{collapsed ? 'is-hidden' : ''}}">
+    <slot></slot>
+  </view>
 </view>
-

@@ -1,18 +1,38 @@
 <view class="login-page">
-  <view class="login-bg"></view>
-  <view class="brand">
-    <image class="brand-logo" src="/images/logo.png" mode="aspectFit" />
-    <view class="brand-subtitle">管家调配系统 · 高效接待</view>
-  </view>
-  <view class="login-card">
-    <view class="card-title">微信自动登录</view>
-    <view class="card-desc">系统将通过微信身份识别已绑定账号，首次使用请先绑定系统账号。</view>
-    <view wx:if="{{loading}}" class="login-loading">
-      <view class="login-spinner"></view>
-      <text>正在检查登录状态...</text>
+  <!-- 沉浸式渐变发光底色 -->
+  <view class="login-bg-glow"></view>
+
+  <view class="brand-container anim-fade-in">
+    <!-- 圆形发光白族品牌徽章 -->
+    <view class="brand-avatar-wrap">
+      <view class="brand-avatar-glow"></view>
+      <image class="brand-avatar-img" src="/assets/images/profile-hero.png" mode="aspectFill" />
     </view>
-    <primary-button text="重新登录" bind:tap="handleRetry" />
-    <view class="secondary" bindtap="handleBind">首次使用，绑定系统账号 →</view>
+
+    <view class="brand-title">阿鹏哥旅游</view>
+    <view class="brand-subtitle">管家调配系统 · 智能调度中心</view>
   </view>
-  <view class="footer">阿鹏哥旅游 · 管家调配系统</view>
+
+  <!-- 登录状态识别区 -->
+  <view class="login-interactive-area anim-fade-in anim-stagger-1">
+    <!-- 自动登录加载态（毛玻璃胶囊） -->
+    <view wx:if="{{loading}}" class="loader-glass-panel">
+      <view class="loader-ring-spin"></view>
+      <text class="loader-text">微信账号识别中...</text>
+    </view>
+
+    <!-- 登录被拒/失败/重试态的玻璃卡片 -->
+    <view wx:else class="control-glass-card anim-fade-in">
+      <view class="card-tip">未自动检测到绑定身份</view>
+      <view class="action-btn-gap">
+        <primary-button text="重新识别微信账号" tone="primary" bind:tap="handleRetry" />
+      </view>
+      <button class="bind-secondary-btn" bindtap="handleBind">首次使用，绑定系统账号</button>
+    </view>
+  </view>
+
+  <view class="footer-info anim-fade-in anim-stagger-2">
+    <text class="footer-desc">专业 · 协同 · 快速 · 安心</text>
+    <text class="footer-copy">© 2026 阿鹏哥旅游. All Rights Reserved.</text>
+  </view>
 </view>

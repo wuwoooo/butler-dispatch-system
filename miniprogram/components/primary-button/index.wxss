@@ -1,24 +1,32 @@
-/* 主按钮 */
 .primary-button {
-  width: 100%;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
   height: 92rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-full);
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.primary-button::after {
+  border: none !important;
 }
 
 .primary-button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .button-primary {
-  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
-  box-shadow: 0 8rpx 24rpx rgba(42, 172, 226, 0.30);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
+  box-shadow: var(--shadow-primary);
 }
 
 .button-primary:active {
@@ -26,26 +34,63 @@
 }
 
 .button-success {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-deep) 100%);
   box-shadow: 0 8rpx 24rpx rgba(16, 185, 129, 0.25);
 }
 
 .button-danger {
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-deep) 100%);
   box-shadow: 0 8rpx 24rpx rgba(239, 68, 68, 0.25);
 }
 
 .button-ghost {
-  color: #2AACE2;
-  background: #EAF6FD;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
   box-shadow: none;
 }
 
 .button-ghost:active {
-  background: #D5EEFC;
+  background: var(--color-primary-lighter);
 }
 
 .is-disabled {
-  opacity: 0.50;
+  opacity: 0.55;
   pointer-events: none;
+}
+
+.is-loading {
+  cursor: wait;
+}
+
+/* 按钮内部的 spinner */
+.btn-spinner {
+  width: 28rpx;
+  height: 28rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  margin-right: var(--spacing-sm);
+  animation: rotate 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.button-ghost .btn-spinner {
+  border-color: rgba(42, 172, 226, 0.25);
+  border-top-color: var(--color-primary);
+}
+
+/* 按压时的微小高光圈（伪元素） */
+.primary-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+  pointer-events: none;
+}
+
+.primary-button:active::after {
+  opacity: 1;
 }

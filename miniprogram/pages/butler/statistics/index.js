@@ -13,7 +13,12 @@ Page({
         range: "month",
         stats: {},
         records: [],
-        reviews: []
+        reviews: [],
+        chartData: {
+            orderHeight: 0,
+            completedHeight: 0,
+            rejectHeight: 0
+        }
     },
     onShow() {
         this.load();
@@ -25,13 +30,20 @@ Page({
             (0, butler_1.getButlerOrderRecords)(Object.assign({ pageSize: 5 }, rangeParams)),
             (0, butler_1.getButlerReviews)(rangeParams)
         ]);
+        const max = Math.max(stats.orderCount || 0, stats.completedOrderCount || 0, stats.rejectCount || 0, 1);
+        const chartData = {
+            orderHeight: Math.max(((stats.orderCount || 0) / max) * 100, 8),
+            completedHeight: Math.max(((stats.completedOrderCount || 0) / max) * 100, 8),
+            rejectHeight: Math.max(((stats.rejectCount || 0) / max) * 100, 8)
+        };
         this.setData({
             stats,
             records: (records.items || []).map((item) => (Object.assign(Object.assign({}, item), { statusText: item.completed ? "已完成" : (0, status_map_1.getStatus)("assignment", item.status).text }))),
             reviews: (reviews.items || []).slice(0, 3).map((item) => {
                 var _a;
                 return (Object.assign(Object.assign({}, item), { orderId: item.orderId || ((_a = item.order) === null || _a === void 0 ? void 0 : _a.id) }));
-            })
+            }),
+            chartData
         });
     },
     switchRange(event) {

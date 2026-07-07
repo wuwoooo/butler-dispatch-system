@@ -78,6 +78,27 @@ export async function notifyRoleUsers(
   );
 }
 
+export async function markDispatchNotificationReadForOrder(
+  recipientId: string,
+  orderId: string,
+  client: DbClient = prisma,
+  readAt = new Date()
+) {
+  return client.notification.updateMany({
+    where: {
+      recipientId,
+      type: "dispatch_assigned",
+      targetType: "ServiceOrder",
+      targetId: orderId,
+      isRead: false
+    },
+    data: {
+      isRead: true,
+      readAt
+    }
+  });
+}
+
 function toJson(value: unknown): Prisma.InputJsonValue | undefined {
   if (value === undefined) {
     return undefined;

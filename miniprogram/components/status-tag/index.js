@@ -5,7 +5,8 @@ Component({
     properties: {
         type: { type: String, value: "order" },
         value: { type: String, value: "" },
-        text: { type: String, value: "" }
+        text: { type: String, value: "" },
+        size: { type: String, value: "md" } // sm | md
     },
     data: {
         label: "",

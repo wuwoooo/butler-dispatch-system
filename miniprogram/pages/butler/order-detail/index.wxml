@@ -1,17 +1,50 @@
 <page-container title="{{order.hotel.name || '订单详情'}}" subtitle="订单号：{{order.orderNo}}">
-  <view class="status-line">
+  <!-- 流程时间线组件 -->
+  <view wx:if="{{currentStep > 0}}" class="timeline-card anim-fade-in">
+    <view class="timeline-steps">
+      <view class="timeline-step {{currentStep >= 1 ? 'completed' : ''}} {{currentStep === 1 ? 'active' : ''}}">
+        <view class="timeline-node">1</view>
+        <view class="timeline-text">待接单</view>
+      </view>
+      <view class="timeline-line {{currentStep >= 2 ? 'completed' : ''}}"></view>
+      <view class="timeline-step {{currentStep >= 2 ? 'completed' : ''}} {{currentStep === 2 ? 'active' : ''}}">
+        <view class="timeline-node">2</view>
+        <view class="timeline-text">准备中</view>
+      </view>
+      <view class="timeline-line {{currentStep >= 3 ? 'completed' : ''}}"></view>
+      <view class="timeline-step {{currentStep >= 3 ? 'completed' : ''}} {{currentStep === 3 ? 'active' : ''}}">
+        <view class="timeline-node">3</view>
+        <view class="timeline-text">服务中</view>
+      </view>
+      <view class="timeline-line {{currentStep >= 4 ? 'completed' : ''}}"></view>
+      <view class="timeline-step {{currentStep >= 4 ? 'completed' : ''}} {{currentStep === 4 ? 'active' : ''}}">
+        <view class="timeline-node">4</view>
+        <view class="timeline-text">已完成</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="status-line anim-fade-in anim-stagger-1">
     <status-tag type="order" value="{{order.status}}" />
     <status-tag wx:if="{{assignment.status}}" type="assignment" value="{{assignment.status}}" />
   </view>
 
-  <section-card wx:for="{{sections}}" wx:key="title" title="{{item.title}}">
+  <section-card
+    wx:for="{{sections}}"
+    wx:key="title"
+    class="anim-fade-in anim-stagger-{{index + 2}}"
+    title="{{item.title}}"
+  >
     <view wx:for="{{item.rows}}" wx:key="0" wx:for-item="row" class="detail-row">
-      <view class="row-label">{{row[0]}}</view>
+      <view class="row-label">
+        <view class="row-dot-decor"></view>
+        <text>{{row[0]}}</text>
+      </view>
       <view class="row-value">{{row[1] || '-'}}</view>
     </view>
   </section-card>
 
-  <view wx:if="{{actions.length}}" class="fixed-action">
+  <view wx:if="{{actions.length}}" class="fixed-action anim-fade-in anim-stagger-5">
     <view wx:for="{{actions}}" wx:key="action" class="action-gap">
       <primary-button
         wx:if="{{!item.reject}}"

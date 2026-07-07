@@ -1,11 +1,11 @@
 /* 区块卡片 */
 .section-card {
-  margin: 20rpx 32rpx;
+  margin: 20rpx var(--spacing-2xl);
   padding: 30rpx;
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
-              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
 .section-head {
@@ -15,27 +15,76 @@
   margin-bottom: 22rpx;
 }
 
+.section-head.clickable:active {
+  opacity: 0.72;
+}
+
+.head-left {
+  flex: 1;
+  min-width: 0;
+}
+
 .section-title {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--spacing-sm);
   font-size: 30rpx;
   font-weight: 800;
-  color: #1A2332;
+  color: var(--color-text-primary);
 }
 
-/* 左侧品牌渐变竖条 */
+/* 左侧品牌渐变竖条加宽 */
 .section-title::before {
   content: '';
-  width: 6rpx;
-  height: 28rpx;
-  border-radius: 3rpx;
-  background: linear-gradient(180deg, #2AACE2, #1B8FD4);
+  width: 8rpx;
+  height: 30rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-deep));
   flex-shrink: 0;
 }
 
 .section-subtitle {
   margin-top: 6rpx;
   font-size: 24rpx;
-  color: #5A6B82;
+  color: var(--color-text-secondary);
+}
+
+.section-head-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+/* CSS 绘制的 V 形箭头 */
+.collapse-icon {
+  width: 24rpx;
+  height: 24rpx;
+  position: relative;
+  display: inline-block;
+  transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+.collapse-icon::before {
+  content: '';
+  position: absolute;
+  left: 6rpx;
+  top: 4rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-left: 3rpx solid var(--color-text-tertiary);
+  border-bottom: 3rpx solid var(--color-text-tertiary);
+  transform: rotate(-45deg);
+}
+
+.is-collapsed {
+  transform: rotate(-90deg);
+}
+
+.section-body {
+  transition: opacity var(--duration-normal) var(--ease-smooth);
+}
+
+.section-body.is-hidden {
+  display: none;
 }

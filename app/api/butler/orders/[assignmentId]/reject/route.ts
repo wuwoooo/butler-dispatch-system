@@ -1,6 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
-import { notifyRoleUsers } from "@/lib/notification";
+import {
+  markDispatchNotificationReadForOrder,
+  notifyRoleUsers
+} from "@/lib/notification";
 import { refreshButlerStatus, updateOrderStatusAfterReject } from "@/lib/order-status";
 import { prisma } from "@/lib/prisma";
 import { getRequestMeta, requireApiRoles } from "@/lib/request";
@@ -48,11 +51,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         throw new ApiError("ASSIGNMENT_STATUS_NOT_ALLOWED", "只有待确认状态可以拒单", 422);
       }
 
+      const rejectedAt = new Date();
+
       await tx.orderButlerAssignment.update({
         where: { id: assignmentId },
         data: {
           status: "rejected",
-          rejectedAt: new Date(),
+          rejectedAt,
           rejectReason: body.rejectReason
         }
       });
@@ -93,6 +98,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         remark: "管家拒单",
         ...meta
       });
+      await markDispatchNotificationReadForOrder(user.id, before.orderId, tx, rejectedAt);
 
       await notifyRoleUsers(
         ["dispatcher"],

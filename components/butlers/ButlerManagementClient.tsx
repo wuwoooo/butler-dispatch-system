@@ -530,30 +530,33 @@ export function ButlerManagementClient() {
 
   function resetPassword() {
     if (!detail) return;
-    let password = "";
     modal.confirm({
-      title: "重置管家账号密码",
-      content: (
-        <Input.Password
-          placeholder="请输入至少 8 位的新密码"
-          onChange={(event) => {
-            password = event.target.value;
-          }}
-        />
-      ),
-      okText: "确认",
+      title: "确认重置管家账号密码",
+      content: `确认将管家“${detail.name}”的账号密码重置为系统自动生成的 6 位数字密码？`,
+      okText: "确认重置",
       cancelText: "取消",
       onOk: async () => {
-        if (password.length < 8) {
-          message.error("新密码至少 8 位");
-          throw new Error("invalid password");
-        }
         try {
-          await request(`/api/butlers/${detail.id}/account/reset-password`, {
-            method: "POST",
-            body: JSON.stringify({ newPassword: password })
+          const result = await request<{ id: string; newPassword: string }>(
+            `/api/butlers/${detail.id}/account/reset-password`,
+            {
+              method: "POST"
+            }
+          );
+          modal.success({
+            title: "管家账号密码已重置",
+            content: (
+              <Descriptions bordered column={1} size="small">
+                <Descriptions.Item label="管家">{detail.name}</Descriptions.Item>
+                <Descriptions.Item label="登录账号">
+                  {detail.user?.username ?? "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="新密码">
+                  {result.newPassword}
+                </Descriptions.Item>
+              </Descriptions>
+            )
           });
-          message.success("密码已重置");
         } catch (error) {
           message.error(error instanceof Error ? error.message : "重置失败");
           throw error;

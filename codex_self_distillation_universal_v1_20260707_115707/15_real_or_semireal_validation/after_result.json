@@ -1,0 +1,8 @@
+{
+  "score": 90,
+  "status": "pass",
+  "failedItems": [
+    "非空话"
+  ],
+  "note": "通过阈值，但仍建议继续减少泛泛表达。"
+}

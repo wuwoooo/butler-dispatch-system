@@ -7,15 +7,26 @@ Component({
     },
     data: {
         avatar: "?",
-        reasonText: ""
+        reasonText: "",
+        statusRing: "default" // available | on_leave | default
     },
     observers: {
         item(item) {
+            if (!item)
+                return;
+            let statusRing = "default";
+            if (item.status === "available") {
+                statusRing = "available";
+            }
+            else if (item.status === "on_leave") {
+                statusRing = "on_leave";
+            }
             this.setData({
-                avatar: ((item === null || item === void 0 ? void 0 : item.name) || "?").slice(0, 1),
-                reasonText: Array.isArray(item === null || item === void 0 ? void 0 : item.unavailableReasons)
+                avatar: (item.name || "?").slice(0, 1),
+                reasonText: Array.isArray(item.unavailableReasons)
                     ? item.unavailableReasons.join("、")
-                    : ""
+                    : "",
+                statusRing
             });
         }
     },

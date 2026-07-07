@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "管家首页",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "page-container": "/components/page-container/index",
     "stat-card": "/components/stat-card/index",
@@ -8,4 +9,3 @@
     "empty-state": "/components/empty-state/index"
   }
 }
-

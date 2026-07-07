@@ -15,7 +15,8 @@ Page({
     tabs,
     active: "pending_dispatch",
     keyword: "",
-    items: [] as AnyRecord[]
+    items: [] as AnyRecord[],
+    loading: true
   },
   onShow() {
     this.load();
@@ -27,12 +28,19 @@ Page({
     this.setData({ keyword: event.detail.value });
   },
   async load() {
-    const data = await getOrders({
-      status: this.data.active,
-      guestName: this.data.keyword,
-      pageSize: 50
-    });
-    this.setData({ items: data.items || [] });
+    this.setData({ loading: true });
+    try {
+      const data = await getOrders({
+        status: this.data.active,
+        guestName: this.data.keyword,
+        pageSize: 50
+      });
+      this.setData({ items: data.items || [] });
+    } catch {
+      // 接口错误
+    } finally {
+      this.setData({ loading: false });
+    }
   },
   switchTab(event: AnyRecord) {
     this.setData({ active: event.currentTarget.dataset.key });
@@ -43,4 +51,3 @@ Page({
     wx.navigateTo({ url: `/pages/dispatcher/dispatch-detail/index?orderId=${detail.orderId}` });
   }
 });
-

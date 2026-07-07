@@ -1,31 +1,53 @@
 <page-container title="{{order.hotel.name || '派单详情'}}" subtitle="订单号：{{order.orderNo}}">
-  <view class="status-line"><status-tag type="order" value="{{order.status}}" /></view>
-  <section-card wx:for="{{sections}}" wx:key="title" title="{{item.title}}">
+  <view class="status-line anim-fade-in"><status-tag type="order" value="{{order.status}}" /></view>
+  
+  <section-card
+    wx:for="{{sections}}"
+    wx:key="title"
+    class="anim-fade-in anim-stagger-{{index + 1}}"
+    title="{{item.title}}"
+  >
     <view wx:for="{{item.rows}}" wx:key="0" wx:for-item="row" class="detail-row">
-      <view class="row-label">{{row[0]}}</view>
+      <view class="row-label">
+        <view class="row-dot-decor"></view>
+        <text>{{row[0]}}</text>
+      </view>
       <view class="row-value">{{row[1] || '-'}}</view>
     </view>
   </section-card>
-  <section-card title="已分配管家">
-    <view wx:for="{{assigned}}" wx:key="id" class="assigned-row">
-      <view class="assigned-main">
-        <view>{{item.butler.name}}</view>
-        <status-tag type="assignment" value="{{item.status}}" />
+
+  <view class="anim-fade-in anim-stagger-3">
+    <section-card title="已分配管家">
+      <view wx:for="{{assigned}}" wx:key="id" class="assigned-row">
+        <view class="assigned-main">
+          <view class="assigned-avatar">{{item.avatar}}</view>
+          <view class="assigned-info">
+            <view class="assigned-name">{{item.butler.name}}</view>
+            <view class="assigned-tag-wrap">
+              <status-tag type="assignment" value="{{item.status}}" size="sm" />
+            </view>
+          </view>
+        </view>
+        <button
+          wx:if="{{item.status === 'pending_confirm'}}"
+          class="cancel-dispatch-btn"
+          data-id="{{item.id}}"
+          bindtap="cancelAssignment"
+        >
+          取消派单
+        </button>
       </view>
-      <button
-        wx:if="{{item.status === 'pending_confirm'}}"
-        class="cancel-dispatch-btn"
-        data-id="{{item.id}}"
-        bindtap="cancelAssignment"
-      >
-        取消派单
-      </button>
-    </view>
-    <empty-state wx:if="{{assigned.length === 0}}" title="尚未分配管家" description="请选择可用管家进行派单" />
-  </section-card>
-  <view wx:if="{{canDispatch}}" class="block-title">选择管家</view>
-  <butler-card wx:if="{{canDispatch}}" wx:for="{{candidates}}" wx:key="id" item="{{item}}" selectable="{{true}}" selected="{{item.selected}}" bind:tap="toggleButler" />
-  <view wx:if="{{canDispatch}}" class="fixed-action">
-    <primary-button text="提交派单" bind:tap="submit" />
+      <empty-state wx:if="{{assigned.length === 0}}" scene="butlers" title="尚未分配管家" description="当前订单暂无派单管家，请选择可用人手进行派单" />
+    </section-card>
+  </view>
+
+  <view wx:if="{{canDispatch}}" class="block-title anim-fade-in anim-stagger-4">选择可用管家</view>
+  
+  <view wx:if="{{canDispatch}}" class="candidates-list anim-fade-in anim-stagger-5">
+    <butler-card wx:for="{{candidates}}" wx:key="id" item="{{item}}" selectable="{{true}}" selected="{{item.selected}}" bind:tap="toggleButler" />
+  </view>
+
+  <view wx:if="{{canDispatch}}" class="fixed-action anim-fade-in anim-stagger-5">
+    <primary-button text="确认并提交派单" bind:tap="submit" />
   </view>
 </page-container>

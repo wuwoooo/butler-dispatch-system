@@ -1,4 +1,4 @@
-<button class="primary-button button-{{tone}} {{disabled ? 'is-disabled' : ''}}" bindtap="handleTap">
-  {{text}}
+<button class="primary-button button-{{tone}} {{disabled || loading ? 'is-disabled' : ''}} {{loading ? 'is-loading' : ''}}" bindtap="handleTap">
+  <view wx:if="{{loading}}" class="btn-spinner"></view>
+  <text class="btn-text">{{loading ? '处理中...' : text}}</text>
 </button>
-

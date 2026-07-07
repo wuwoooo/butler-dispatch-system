@@ -24,7 +24,12 @@ Page({
       }))
     });
   },
+  lastCancelTime: 0,
   cancel(event: AnyRecord) {
+    const now = Date.now();
+    if (now - this.lastCancelTime < 1000) return;
+    this.lastCancelTime = now;
+
     const id = event.currentTarget.dataset.id;
     wx.showModal({
       title: "撤销请假",

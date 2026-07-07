@@ -1,7 +1,8 @@
-<view class="empty-state">
-  <view class="empty-icon">◎</view>
+<view class="empty-state anim-fade-in">
+  <view class="empty-icon-wrap icon-{{scene}}">
+    <view class="icon-inner"></view>
+  </view>
   <view class="empty-title">{{title}}</view>
   <view class="empty-description">{{description}}</view>
   <button wx:if="{{buttonText}}" class="empty-button" bindtap="handleTap">{{buttonText}}</button>
 </view>
-

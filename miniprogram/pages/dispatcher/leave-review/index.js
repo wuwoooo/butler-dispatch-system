@@ -14,7 +14,8 @@ Page({
     data: {
         tabs,
         active: "pending",
-        items: []
+        items: [],
+        loading: true
     },
     onShow() {
         this.load();
@@ -23,21 +24,36 @@ Page({
         this.load().finally(() => wx.stopPullDownRefresh());
     },
     async load() {
-        const data = await (0, leave_1.getLeaves)({ status: this.data.active });
-        this.setData({
-            items: (data.items || []).map((item) => (Object.assign(Object.assign({}, item), { typeText: status_map_1.leaveTypeMap[item.leaveType] || "-", startText: (0, format_1.formatDateTimeFull)(item.startAt), endText: (0, format_1.formatDateTimeFull)(item.endAt) })))
-        });
+        this.setData({ loading: true });
+        try {
+            const data = await (0, leave_1.getLeaves)({ status: this.data.active });
+            this.setData({
+                items: (data.items || []).map((item) => (Object.assign(Object.assign({}, item), { typeText: status_map_1.leaveTypeMap[item.leaveType] || "-", startText: (0, format_1.formatDateTimeFull)(item.startAt), endText: (0, format_1.formatDateTimeFull)(item.endAt) })))
+            });
+        }
+        catch (_a) {
+            // 接口提示
+        }
+        finally {
+            this.setData({ loading: false });
+        }
     },
     switchTab(event) {
         this.setData({ active: event.currentTarget.dataset.key });
         this.load();
     },
+    lastApproveTime: 0,
+    lastRejectTime: 0,
     approve(event) {
+        const now = Date.now();
+        if (now - this.lastApproveTime < 1000)
+            return;
+        this.lastApproveTime = now;
         const id = event.currentTarget.dataset.id;
         wx.showModal({
             title: "审核通过",
-            content: "审核通过前后端会再次检查订单冲突，确认通过？",
-            confirmColor: "#22C55E",
+            content: "确认通过该请假申请？审核前会再次自动校核时间冲突。",
+            confirmColor: "#10B981",
             success: async (res) => {
                 if (!res.confirm)
                     return;
@@ -48,6 +64,10 @@ Page({
         });
     },
     reject(event) {
+        const now = Date.now();
+        if (now - this.lastRejectTime < 1000)
+            return;
+        this.lastRejectTime = now;
         const id = event.currentTarget.dataset.id;
         wx.showModal({
             title: "驳回请假",

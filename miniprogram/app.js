@@ -5,7 +5,7 @@ const auth_2 = require("./services/auth");
 const router_1 = require("./utils/router");
 App({
     globalData: {
-        baseURL: "http://192.168.3.205:3001",
+        baseURL: "https://dlapg.com",
         token: "",
         user: null
     },

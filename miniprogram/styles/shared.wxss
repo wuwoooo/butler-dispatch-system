@@ -1,0 +1,502 @@
+/* ══════════════════════════════
+   共享样式 — 跨页面复用
+   使用方式：在页面 wxss 顶部 @import '/styles/shared.wxss';
+   ══════════════════════════════ */
+
+/* ── 表单输入框 ── */
+.input-wrap {
+  display: flex;
+  align-items: center;
+  height: 96rpx;
+  padding: 0 var(--spacing-xl);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-xl);
+  border: 2rpx solid transparent;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.input-wrap:focus-within,
+.input-wrap.focused {
+  border-color: var(--color-primary);
+  background: var(--color-bg-card);
+  box-shadow: 0 0 0 4rpx rgba(42, 172, 226, 0.15);
+}
+
+.input-icon {
+  margin-right: var(--spacing-sm);
+  font-size: 36rpx;
+  flex-shrink: 0;
+  filter: grayscale(0.2);
+}
+
+.input-field {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+}
+
+.input-field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ── 详情行 ── */
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.row-label {
+  width: 160rpx;
+  flex-shrink: 0;
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* 详情行图标 — 通过 ::before 显示，子类定义 content */
+.row-icon {
+  width: 32rpx;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 18rpx;
+  flex-shrink: 0;
+}
+
+.row-value {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
+/* ── 请假卡片 ── */
+.leave-card {
+  margin: var(--spacing-lg) var(--spacing-2xl);
+  padding: 28rpx 30rpx;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+
+.leave-card:active {
+  transform: scale(0.985);
+}
+
+.leave-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.leave-type {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.leave-detail-row {
+  display: flex;
+  margin-top: var(--spacing-sm);
+  font-size: 25rpx;
+  color: var(--color-text-secondary);
+}
+
+.leave-detail-row .detail-label {
+  width: 140rpx;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+}
+
+.leave-reason-block {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+/* ── 搜索栏 ── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 0 var(--spacing-2xl) var(--spacing-lg);
+}
+
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 80rpx;
+  padding: 0 var(--spacing-xl);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  gap: var(--spacing-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-smooth);
+}
+
+.search-input-wrap:focus-within {
+  box-shadow: var(--shadow-md), 0 0 0 3rpx rgba(42, 172, 226, 0.12);
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  position: relative;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+}
+
+/* CSS 绘制的搜索图标 */
+.search-icon::before {
+  content: '';
+  position: absolute;
+  left: 2rpx;
+  top: 2rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.search-icon::after {
+  content: '';
+  position: absolute;
+  right: 4rpx;
+  bottom: 2rpx;
+  width: 10rpx;
+  height: 3rpx;
+  background: currentColor;
+  transform: rotate(45deg);
+  border-radius: 2rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 100%;
+  font-size: 27rpx;
+  color: var(--color-text-primary);
+}
+
+.search-btn {
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 var(--spacing-2xl) !important;
+  box-sizing: border-box;
+  height: 80rpx;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-primary);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.search-btn::after {
+  border: none !important;
+}
+
+.search-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 12rpx rgba(42, 172, 226, 0.20);
+}
+
+/* ── Tab 滑动切换栏 ── */
+.tab-scroll {
+  white-space: nowrap;
+  padding: 0 var(--spacing-2xl) var(--spacing-lg);
+}
+
+.tab-capsule-group {
+  display: inline-flex;
+  gap: var(--spacing-md);
+  padding: 6rpx;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-2xl);
+  height: 64rpx;
+  border-radius: var(--radius-full);
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all var(--duration-normal) var(--ease-smooth);
+  position: relative;
+}
+
+.tab-capsule.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  box-shadow: 0 4rpx 16rpx rgba(42, 172, 226, 0.30);
+  font-weight: 700;
+}
+
+/* ── 快捷入口卡片 ── */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  padding: 0 var(--spacing-2xl);
+  margin-top: var(--spacing-lg);
+}
+
+.shortcut-card {
+  padding: var(--spacing-xl) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.shortcut-card:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 快捷入口图标容器 */
+.shortcut-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 32rpx;
+  position: relative;
+}
+
+.shortcut-icon.icon-blue {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.shortcut-icon.icon-green {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.shortcut-icon.icon-orange {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.shortcut-icon.icon-cyan {
+  background: var(--color-cyan-light);
+  color: var(--color-cyan);
+}
+
+.shortcut-icon.icon-purple {
+  background: var(--color-purple-light);
+  color: var(--color-purple);
+}
+
+.shortcut-icon.icon-danger {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.shortcut-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shortcut-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.shortcut-desc {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: var(--color-text-tertiary);
+}
+
+/* 快捷入口纯 CSS 几何图形（非 emoji 方案） */
+.shortcut-icon-inner {
+  position: relative;
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.shortcut-icon-inner::before {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* 订单 & 个人中心 (蓝) */
+.icon-blue .shortcut-icon-inner::before {
+  left: 6rpx;
+  top: 3rpx;
+  width: 20rpx;
+  height: 26rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 3rpx;
+}
+
+/* 请假申请 (橙) */
+.icon-orange .shortcut-icon-inner::before {
+  left: 3rpx;
+  top: 3rpx;
+  width: 26rpx;
+  height: 26rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 50%;
+}
+.icon-orange .shortcut-icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 15rpx;
+  top: 8rpx;
+  width: 3rpx;
+  height: 10rpx;
+  background: currentColor;
+  transform-origin: top center;
+  box-shadow: 4rpx 4rpx 0 currentColor; /* 模拟时钟指针 */
+}
+
+/* 请假记录 (绿) */
+.icon-green .shortcut-icon-inner::before {
+  left: 6rpx;
+  top: 3rpx;
+  width: 20rpx;
+  height: 26rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 3rpx;
+  background: currentColor;
+}
+
+/* 我的数据 (青) */
+.icon-cyan .shortcut-icon-inner::before {
+  left: 4rpx;
+  bottom: 4rpx;
+  width: 6rpx;
+  height: 18rpx;
+  background: currentColor;
+  border-radius: 2rpx;
+  box-shadow: 9rpx -6rpx 0 currentColor, 18rpx -12rpx 0 currentColor;
+}
+
+/* 消息通知 (紫) */
+.icon-purple .shortcut-icon-inner::before {
+  left: 9rpx;
+  top: 4rpx;
+  width: 14rpx;
+  height: 18rpx;
+  border: 3rpx solid currentColor;
+  border-bottom: 0;
+  border-radius: 7rpx 7rpx 0 0;
+}
+.icon-purple .shortcut-icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 6rpx;
+  bottom: 6rpx;
+  width: 20rpx;
+  height: 3rpx;
+  background: currentColor;
+}
+
+/* ── 白族特色品质服务/调度卡 ── */
+.quality-card {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  background: linear-gradient(135deg, var(--color-primary-lighter) 0%, #ffffff 100%);
+  border-radius: var(--radius-lg);
+  padding: 24rpx 30rpx;
+  margin: var(--spacing-xl) var(--spacing-2xl) 0;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  border: 1rpx solid rgba(42, 172, 226, 0.12);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.quality-card:active {
+  transform: scale(0.985);
+  box-shadow: var(--shadow-sm);
+}
+
+.quality-img {
+  width: 130rpx;
+  height: 130rpx;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 10rpx rgba(26, 35, 50, 0.08);
+  border: 2rpx solid #ffffff;
+}
+
+.quality-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.quality-tag {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-sm);
+  align-self: flex-start;
+}
+
+.quality-title {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-top: 8rpx;
+}
+
+.quality-desc {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+  margin-top: 4rpx;
+}
+
+.quality-sub {
+  font-size: 20rpx;
+  color: var(--color-primary-deep);
+  font-weight: 700;
+  margin-top: 8rpx;
+  letter-spacing: 1rpx;
+}
+
+

@@ -11,10 +11,16 @@ Component({
     data: {
         view: {}
     },
+    // 增加时间戳用于防连击
+    lastConfirmTime: 0,
+    lastRejectTime: 0,
     observers: {
         item(item) {
             const order = (item === null || item === void 0 ? void 0 : item.order) || item || {};
             const hotel = order.hotel || item.hotel || {};
+            const roomType = order.roomType || item.roomType || "";
+            const roomNo = order.roomNo || item.roomNo || "";
+            const roomText = [roomType, roomNo].filter(Boolean).join(" / ");
             this.setData({
                 view: {
                     id: item.id,
@@ -30,7 +36,9 @@ Component({
                     checkOut: (0, format_1.formatDate)(order.checkOutDate || item.checkOutDate),
                     orderStatus: order.status || item.orderStatus || item.status,
                     assignmentStatus: item.order ? item.status : "",
-                    roomNo: order.roomNo || item.roomNo || ""
+                    roomType,
+                    roomNo,
+                    roomText
                 }
             });
         }
@@ -40,9 +48,17 @@ Component({
             this.triggerEvent("tap", this.data.view);
         },
         handleConfirm() {
+            const now = Date.now();
+            if (now - this.lastConfirmTime < 1000)
+                return;
+            this.lastConfirmTime = now;
             this.triggerEvent("confirm", this.data.view);
         },
         handleReject() {
+            const now = Date.now();
+            if (now - this.lastRejectTime < 1000)
+                return;
+            this.lastRejectTime = now;
             this.triggerEvent("reject", this.data.view);
         }
     }

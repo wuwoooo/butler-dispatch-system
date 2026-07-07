@@ -2,6 +2,8 @@
 
 import { AutoComplete, DatePicker, Form, Input, InputNumber, Modal, Select, Row, Col } from "antd";
 import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
+import { useEffect } from "react";
 import { pickupTypeOptions } from "@/components/status/StatusTags";
 import type { HotelSummary } from "@/types/domain";
 
@@ -14,6 +16,25 @@ type OrderFormModalProps = {
   onCancel: () => void;
   onSubmit: (values: Record<string, unknown>) => Promise<void>;
 };
+
+function getDefaultRoomType(hotel?: HotelSummary) {
+  return hotel?.roomTypes?.find((roomType) => roomType.enabled)?.name;
+}
+
+function getCreateDefaults(hotels: HotelSummary[]) {
+  const hotel = hotels[0];
+
+  return {
+    guestCount: 1,
+    hotelId: hotel?.id,
+    roomType: getDefaultRoomType(hotel),
+    pickupType: pickupTypeOptions[0]?.value
+  };
+}
+
+function getArrivalTimeOnCheckInDate(checkInDate: Dayjs) {
+  return checkInDate.startOf("day");
+}
 
 export function OrderFormModal({
   open,
@@ -34,6 +55,33 @@ export function OrderFormModal({
         label: roomType.name,
         value: roomType.name
       })) ?? [];
+
+  useEffect(() => {
+    if (!open || mode !== "create") {
+      return;
+    }
+
+    const values = form.getFieldsValue();
+    const defaults = getCreateDefaults(hotels);
+    const nextValues: Record<string, unknown> = {};
+
+    if (!values.guestCount) {
+      nextValues.guestCount = defaults.guestCount;
+    }
+    if (!values.hotelId && defaults.hotelId) {
+      nextValues.hotelId = defaults.hotelId;
+    }
+    if (!values.roomType && defaults.roomType) {
+      nextValues.roomType = defaults.roomType;
+    }
+    if (!values.pickupType && defaults.pickupType) {
+      nextValues.pickupType = defaults.pickupType;
+    }
+
+    if (Object.keys(nextValues).length > 0) {
+      form.setFieldsValue(nextValues);
+    }
+  }, [form, hotels, mode, open]);
 
   return (
     <Modal
@@ -62,12 +110,37 @@ export function OrderFormModal({
               : null,
             arrivalTime: order.arrivalTime ? dayjs(String(order.arrivalTime)) : null
           });
+        } else if (mode === "create") {
+          form.setFieldsValue(getCreateDefaults(hotels));
         }
       }}
     >
       <Form
         form={form}
         layout="vertical"
+        onValuesChange={(changedValues) => {
+          if (mode !== "create") {
+            return;
+          }
+
+          if (Object.prototype.hasOwnProperty.call(changedValues, "hotelId")) {
+            const hotel = hotels.find((item) => item.id === changedValues.hotelId);
+            form.setFieldsValue({
+              roomType: getDefaultRoomType(hotel)
+            });
+          }
+
+          if (Object.prototype.hasOwnProperty.call(changedValues, "checkInDate")) {
+            const checkInDate = changedValues.checkInDate as Dayjs | null;
+
+            form.setFieldsValue({
+              checkOutDate: checkInDate ? checkInDate.add(1, "day") : null,
+              arrivalTime: checkInDate
+                ? getArrivalTimeOnCheckInDate(checkInDate)
+                : null
+            });
+          }
+        }}
         onFinish={async (values) => {
           await onSubmit({
             ...values,

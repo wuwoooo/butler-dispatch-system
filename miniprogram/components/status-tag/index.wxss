@@ -2,11 +2,12 @@
 .status-tag {
   display: inline-flex;
   align-items: center;
-  gap: 8rpx;
+  gap: var(--spacing-xs);
   padding: 8rpx 18rpx;
-  border-radius: 999rpx;
+  border-radius: var(--radius-full);
   font-size: 24rpx;
   font-weight: 600;
+  line-height: 1;
 }
 
 /* 小圆点指示器 */
@@ -19,37 +20,55 @@
   flex-shrink: 0;
 }
 
+/* 尺寸变体 */
+.size-sm {
+  padding: 6rpx 14rpx;
+  font-size: 20rpx;
+}
+
+.size-sm::before {
+  width: 8rpx;
+  height: 8rpx;
+}
+
+/* 关键状态圆点的呼吸动画 */
+.status-warning::before,
+.status-info::before {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 色调配置 */
 .status-info {
-  color: #2AACE2;
-  background: #EAF6FD;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .status-warning {
-  color: #D97706;
-  background: #FFF8EB;
+  color: var(--color-warning-deep);
+  background: var(--color-warning-light);
 }
 
 .status-danger {
-  color: #EF4444;
-  background: #FEF2F2;
+  color: var(--color-danger);
+  background: var(--color-danger-light);
 }
 
 .status-success {
-  color: #059669;
-  background: #ECFDF5;
+  color: var(--color-success-deep);
+  background: var(--color-success-light);
 }
 
 .status-cyan {
-  color: #0891B2;
-  background: #ECFEFF;
+  color: var(--color-cyan-deep);
+  background: var(--color-cyan-light);
 }
 
 .status-purple {
-  color: #7C3AED;
-  background: #F5F3FF;
+  color: var(--color-purple);
+  background: var(--color-purple-light);
 }
 
 .status-gray {
-  color: #64748B;
-  background: #F1F5F9;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-input);
 }

@@ -1,6 +1,6 @@
-<view class="order-card" bindtap="handleTap">
+<view class="order-card anim-fade-in" bindtap="handleTap">
   <view class="order-top">
-    <view>
+    <view class="title-section">
       <view class="hotel-name">{{view.hotelName}}</view>
       <view class="order-no">订单号：{{view.orderNo}}</view>
     </view>
@@ -8,10 +8,10 @@
   </view>
   <view class="guest-line">{{view.guestName}} · {{view.guestCount}}人</view>
   <view class="info-grid">
-    <view class="info-item">接站：{{view.pickupType}}</view>
-    <view class="info-item">到达：{{view.arrivalTime}}</view>
-    <view class="info-item">入住：{{view.checkIn}} 至 {{view.checkOut}}</view>
-    <view class="info-item">房间：{{view.roomNo || '-'}}</view>
+    <view class="info-item info-pickup">接站：{{view.pickupType}}</view>
+    <view class="info-item info-arrival">到达：{{view.arrivalTime}}</view>
+    <view class="info-item info-checkin" style="grid-column: span 2;">入住：{{view.checkIn}} 至 {{view.checkOut}}</view>
+    <view class="info-item info-room">房间：{{view.roomText || '-'}}</view>
   </view>
   <view wx:if="{{showActions && view.assignmentStatus === 'pending_confirm'}}" class="card-actions">
     <button class="action-btn reject" catchtap="handleReject">拒单</button>
@@ -19,6 +19,6 @@
   </view>
   <view class="card-footer">
     <view class="footer-muted">点击查看详情</view>
-    <view class="tap-dot"></view>
+    <view class="chevron"></view>
   </view>
 </view>

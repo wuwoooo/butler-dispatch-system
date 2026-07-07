@@ -1,52 +1,234 @@
 /* 空状态 */
 .empty-state {
-  margin: 60rpx 32rpx;
+  margin: 60rpx var(--spacing-2xl);
   padding: 60rpx 36rpx;
   text-align: center;
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.05);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-sm);
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth) both;
 }
 
-.empty-icon {
-  width: 120rpx;
-  height: 120rpx;
-  margin: 0 auto 24rpx;
+.empty-icon-wrap {
+  width: 140rpx;
+  height: 140rpx;
+  margin: 0 auto 32rpx;
   border-radius: 50%;
-  background: #EAF6FD;
-  color: #2AACE2;
-  font-size: 60rpx;
-  line-height: 120rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bounceIn 0.6s var(--ease-spring) both 0.15s;
 }
 
+/* 场景化图标的共享与特殊样式 */
+.icon-inner {
+  position: relative;
+  width: 60rpx;
+  height: 60rpx;
+}
+
+/* ── 默认 (Default) ── */
+.icon-default {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+.icon-default .icon-inner::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24rpx;
+  height: 24rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+}
+.icon-default .icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 4rpx);
+  transform: translateX(-50%);
+  width: 4rpx;
+  height: 4rpx;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+/* ── 订单 (Orders) ── */
+.icon-orders {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+.icon-orders .icon-inner::before {
+  content: '';
+  position: absolute;
+  left: 12rpx;
+  top: 6rpx;
+  width: 36rpx;
+  height: 44rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 6rpx;
+}
+.icon-orders .icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 22rpx;
+  top: 22rpx;
+  width: 16rpx;
+  height: 8rpx;
+  border-left: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+  transform: rotate(-45deg);
+}
+
+/* ── 通知 (Notifications) ── */
+.icon-notifications {
+  background: var(--color-warning-light);
+  color: var(--color-warning-deep);
+}
+.icon-notifications .icon-inner::before {
+  content: '';
+  position: absolute;
+  left: 18rpx;
+  top: 10rpx;
+  width: 24rpx;
+  height: 28rpx;
+  border: 4rpx solid currentColor;
+  border-bottom: 0;
+  border-radius: 12rpx 12rpx 0 0;
+}
+.icon-notifications .icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 14rpx;
+  bottom: 12rpx;
+  width: 32rpx;
+  height: 6rpx;
+  background: currentColor;
+  border-radius: 3rpx;
+  box-shadow: 10rpx 8rpx 0 currentColor; /* 底部的铃铛摆锤和圈 */
+}
+
+/* ── 管家 (Butlers) ── */
+.icon-butlers {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+.icon-butlers .icon-inner::before {
+  content: '';
+  position: absolute;
+  left: 20rpx;
+  top: 8rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+}
+.icon-butlers .icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  bottom: 8rpx;
+  width: 40rpx;
+  height: 18rpx;
+  border: 4rpx solid currentColor;
+  border-bottom: 0;
+  border-radius: 16rpx 16rpx 0 0;
+}
+
+/* ── 数据 (Data) ── */
+.icon-data {
+  background: var(--color-cyan-light);
+  color: var(--color-cyan-deep);
+}
+.icon-data .icon-inner::before {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  bottom: 6rpx;
+  width: 8rpx;
+  height: 24rpx;
+  background: currentColor;
+  border-radius: 4rpx;
+  box-shadow: 14rpx -12rpx 0 currentColor, 28rpx -6rpx 0 currentColor;
+}
+.icon-data .icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 6rpx;
+  bottom: 2rpx;
+  right: 6rpx;
+  height: 4rpx;
+  background: currentColor;
+  border-radius: 2rpx;
+}
+
+/* ── 请假 (Leave) ── */
+.icon-leave {
+  background: var(--color-success-light);
+  color: var(--color-success-deep);
+}
+.icon-leave .icon-inner::before {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  top: 10rpx;
+  right: 10rpx;
+  bottom: 6rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 6rpx;
+}
+.icon-leave .icon-inner::after {
+  content: '';
+  position: absolute;
+  left: 16rpx;
+  top: 4rpx;
+  width: 4rpx;
+  height: 10rpx;
+  background: currentColor;
+  border-radius: 2rpx;
+  box-shadow: 20rpx 0 0 currentColor;
+}
+
+/* 文字与按钮 */
 .empty-title {
   font-size: 30rpx;
-  font-weight: 700;
-  color: #1A2332;
+  font-weight: 800;
+  color: var(--color-text-primary);
 }
 
 .empty-description {
-  margin-top: 12rpx;
+  margin-top: 16rpx;
   font-size: 25rpx;
-  color: #5A6B82;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
 }
 
 .empty-button {
   display: inline-flex;
-  margin-top: 32rpx;
-  padding: 0 36rpx;
-  height: 68rpx;
-  border-radius: 999rpx;
+  width: auto !important;
+  margin: 36rpx auto 0 !important;
+  padding: 0 var(--spacing-xl) !important;
+  height: 72rpx;
+  border-radius: var(--radius-full);
   align-items: center;
   justify-content: center;
-  background: #EAF6FD;
-  color: #2AACE2;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   font-size: 26rpx;
   font-weight: 700;
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.empty-button::after {
+  border: none !important;
 }
 
 .empty-button:active {
-  background: #D5EEFC;
+  background: var(--color-primary-lighter);
   transform: scale(0.97);
+  box-shadow: none;
 }

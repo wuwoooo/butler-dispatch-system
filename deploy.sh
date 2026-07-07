@@ -177,13 +177,26 @@ sudo chown -R "\${APP_USER}:\${APP_USER}" "\${RELEASE_DIR}"
 sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npm ci"
 
 if [ "\${RUN_MIGRATIONS}" = "1" ]; then
-  sudo mysql <<'SQL'
+  set +e
+  migration_status="\$(sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npx prisma migrate status" 2>&1)"
+  migration_status_code=\$?
+  set -e
+  printf '%s\n' "\${migration_status}"
+
+  if printf '%s\n' "\${migration_status}" | grep -q "Database schema is up to date"; then
+    echo "No pending Prisma migrations. Skipping prisma migrate deploy."
+  else
+    if [ "\${migration_status_code}" -ne 0 ]; then
+      echo "Prisma migrate status reported pending migrations or a schema state requiring deploy." >&2
+    fi
+    sudo mysql <<'SQL'
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP, REFERENCES ON butler_dispatch.* TO 'butler_app'@'localhost';
 FLUSH PRIVILEGES;
 SQL
-  migration_grants_enabled=1
-  sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npx prisma migrate deploy"
-  revoke_runtime_grants
+    migration_grants_enabled=1
+    sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npx prisma migrate deploy"
+    revoke_runtime_grants
+  fi
 fi
 
 sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npm run build"

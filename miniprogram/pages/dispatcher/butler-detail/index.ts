@@ -5,6 +5,7 @@ Page({
   data: {
     id: "",
     butler: {} as AnyRecord,
+    avatar: "?",
     rows: [] as AnyRecord[],
     assignments: [] as AnyRecord[]
   },
@@ -16,6 +17,7 @@ Page({
     const butler = await getButlerDetail(this.data.id);
     this.setData({
       butler,
+      avatar: (butler.name || "?").slice(0, 1),
       rows: [
         ["姓名", butler.name],
         ["手机号", butler.phone],
@@ -32,4 +34,3 @@ Page({
     });
   }
 });
-

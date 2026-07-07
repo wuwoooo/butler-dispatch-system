@@ -3,9 +3,11 @@ Component({
     properties: {
         label: { type: String, value: "" },
         value: { type: null, value: 0 },
-        tone: { type: String, value: "blue" },
+        tone: { type: String, value: "blue" }, // blue | green | orange | red | cyan
         url: { type: String, value: "" },
-        action: { type: String, value: "" }
+        action: { type: String, value: "" },
+        showDot: { type: Boolean, value: false },
+        unit: { type: String, value: "" }
     },
     methods: {
         handleTap() {

@@ -1,15 +1,73 @@
 <page-container title="个人中心" subtitle="账号信息与登录状态">
-  <view class="profile-card">
-    <view class="avatar">{{avatar}}</view>
-    <view class="name">{{user.name || '-'}}</view>
-    <view class="role">调配员账号</view>
+  <view class="profile-card anim-fade-in">
+    <!-- 右下角品牌插画融合 -->
+    <image class="profile-card-decor" src="/assets/images/profile-hero.png" mode="aspectFill" />
+    
+    <view class="profile-card-content">
+      <view class="avatar-wrap-profile">
+        <view class="avatar-glow"></view>
+        <view class="avatar">{{avatar}}</view>
+      </view>
+      <view class="profile-info">
+        <view class="name">{{user.name || '-'}}</view>
+        <view class="role-tag">调配员账号</view>
+      </view>
+    </view>
   </view>
-  <section-card title="账号信息">
-    <view class="row"><text>用户名</text><text>{{user.username || '-'}}</text></view>
-    <view class="row"><text>角色</text><text>{{roleText}}</text></view>
-    <view class="row"><text>小程序绑定</text><text>已绑定</text></view>
-  </section-card>
-  <button class="change-password" bindtap="goChangePassword">修改密码</button>
-  <button class="logout" bindtap="logout">退出登录</button>
+
+  <!-- 品质调配保障卡 -->
+  <view class="quality-card anim-fade-in anim-stagger-1">
+    <image class="quality-img" src="/assets/images/profile-hero.png" mode="aspectFit" />
+    <view class="quality-info">
+      <view class="quality-tag">调配控制</view>
+      <view class="quality-title">高效协同，品质保障</view>
+      <view class="quality-desc">阿鹏哥旅游系统服务调度中心</view>
+      <view class="quality-sub">智能调度 · 快捷派单 · 实时监控</view>
+    </view>
+  </view>
+
+  <view class="anim-fade-in anim-stagger-2">
+    <section-card title="账号信息">
+      <view class="detail-row">
+        <view class="row-label">
+          <view class="row-dot-decor"></view>
+          <text>用户名</text>
+        </view>
+        <view class="row-value">{{user.username || '-'}}</view>
+      </view>
+      <view class="detail-row">
+        <view class="row-label">
+          <view class="row-dot-decor"></view>
+          <text>账号角色</text>
+        </view>
+        <view class="row-value">{{roleText}}</view>
+      </view>
+      <view class="detail-row">
+        <view class="row-label">
+          <view class="row-dot-decor"></view>
+          <text>调配档案</text>
+        </view>
+        <view class="row-value">系统调度核心</view>
+      </view>
+      <view class="detail-row">
+        <view class="row-label">
+          <view class="row-dot-decor"></view>
+          <text>终端状态</text>
+        </view>
+        <view class="row-value">小程序端·已授权</view>
+      </view>
+    </section-card>
+  </view>
+
+  <view class="action-buttons anim-fade-in anim-stagger-3">
+    <button class="change-password" bindtap="goChangePassword">修改登录密码</button>
+    <button class="logout" bindtap="logout">退出当前账号</button>
+  </view>
+
+  <view class="app-version anim-fade-in anim-stagger-4">
+    <text>阿鹏哥管家调配系统 v1.2.5</text>
+    <text class="copyright">© 2026 阿鹏哥旅游. All Rights Reserved.</text>
+  </view>
+
   <app-navbar role="dispatcher" active="profile" />
 </page-container>

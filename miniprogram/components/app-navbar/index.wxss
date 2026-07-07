@@ -5,13 +5,15 @@
   right: 0;
   bottom: 0;
   z-index: 50;
-  height: calc(160rpx + env(safe-area-inset-bottom));
+  height: calc(128rpx + env(safe-area-inset-bottom));
   padding: 0 0 env(safe-area-inset-bottom);
   display: flex;
   justify-content: space-around;
-  border-top: 1rpx solid #E5EAF2;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 -2rpx 10rpx rgba(26, 35, 50, 0.04);
+  border-top: 1rpx solid var(--color-border-light);
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 -2rpx 12rpx rgba(26, 35, 50, 0.04);
 }
 
 .tab-item {
@@ -19,8 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 160rpx;
-  color: #94A3B8;
+  height: 128rpx;
+  color: var(--color-text-tertiary);
   font-size: 22rpx;
   position: relative;
   min-width: 0;
@@ -34,16 +36,26 @@
   justify-content: center;
 }
 
+.tab-icon-wrap {
+  position: relative;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .tab-icon {
   width: 42rpx;
   height: 42rpx;
   position: relative;
+  transition: transform var(--duration-normal) var(--ease-spring);
 }
 
 .tab-text {
-  margin-top: 6rpx;
-  min-height: 30rpx;
-  line-height: 30rpx;
+  margin-top: 4rpx;
+  min-height: 28rpx;
+  line-height: 28rpx;
   white-space: nowrap;
 }
 
@@ -168,18 +180,44 @@
 }
 
 .active {
-  color: #2AACE2;
+  color: var(--color-primary);
   font-weight: 700;
+}
+
+.active .tab-icon {
+  transform: scale(1.15);
+  animation: bounceIn var(--duration-normal) var(--ease-spring);
 }
 
 .active::before {
   content: '';
   position: absolute;
-  top: 4rpx;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 44rpx;
-  height: 4rpx;
-  border-radius: 999rpx;
-  background: #2AACE2;
+  width: 56rpx;
+  height: 6rpx;
+  border-bottom-left-radius: 4rpx;
+  border-bottom-right-radius: 4rpx;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-deep));
+}
+
+/* 角标样式 */
+.tab-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -12rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 6rpx;
+  border-radius: var(--radius-full);
+  background: var(--color-danger);
+  color: #ffffff;
+  font-size: 18rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 6rpx rgba(239, 68, 68, 0.4);
+  z-index: 10;
 }

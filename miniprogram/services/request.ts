@@ -8,13 +8,31 @@ type RequestOptions = {
   silent?: boolean;
 };
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly code?: string,
+    readonly statusCode?: number
+  ) {
+    super(message);
+  }
+}
+
 export function getBaseURL() {
-  return getApp().globalData?.baseURL || "http://localhost:3000";
+  return getApp().globalData?.baseURL || "https://dlapg.com";
 }
 
 export function request<T = any>(url: string, options: RequestOptions = {}): Promise<T> {
   const token = getToken();
   const showLoading = options.loading !== false && !options.silent;
+  let loadingClosed = false;
+
+  const hideRequestLoading = () => {
+    if (showLoading && !loadingClosed) {
+      wx.hideLoading();
+      loadingClosed = true;
+    }
+  };
 
   if (showLoading) {
     wx.showLoading({ title: "加载中", mask: true });
@@ -34,11 +52,12 @@ export function request<T = any>(url: string, options: RequestOptions = {}): Pro
         const isBindUrl = url.includes("/auth/bind");
         if (res.statusCode === 401 && !isBindUrl) {
           clearSession();
+          hideRequestLoading();
           if (!options.silent) {
-            wx.showToast({ title: "登录已失效，请重新登录", icon: "none" });
+            wx.showToast({ title: "登录已失效，请重新登录", icon: "none", duration: 2500 });
           }
           wx.reLaunch({ url: "/pages/login/index" });
-          reject(new Error("UNAUTHORIZED"));
+          reject(new ApiRequestError("登录已失效，请重新登录", "UNAUTHORIZED", res.statusCode));
           return;
         }
 
@@ -48,22 +67,22 @@ export function request<T = any>(url: string, options: RequestOptions = {}): Pro
         }
 
         const message = body?.error?.message || body?.message || "请求失败";
+        hideRequestLoading();
         if (!options.silent) {
-          wx.showToast({ title: message, icon: "none" });
+          wx.showToast({ title: message, icon: "none", duration: 2500 });
         }
-        reject(new Error(message));
+        reject(new ApiRequestError(message, body?.error?.code, res.statusCode));
       },
       fail: () => {
         const message = "网络异常，请稍后重试";
+        hideRequestLoading();
         if (!options.silent) {
-          wx.showToast({ title: message, icon: "none" });
+          wx.showToast({ title: message, icon: "none", duration: 2500 });
         }
-        reject(new Error(message));
+        reject(new ApiRequestError(message, "NETWORK_ERROR"));
       },
       complete: () => {
-        if (showLoading) {
-          wx.hideLoading();
-        }
+        hideRequestLoading();
       }
     });
   });

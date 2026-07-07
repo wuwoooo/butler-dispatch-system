@@ -96,10 +96,6 @@ export const accountListQuerySchema = z.object({
     .transform((value) => (value === undefined ? undefined : value === "true"))
 });
 
-export const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, "新密码至少 8 个字符").max(128)
-});
-
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "请输入原密码").max(128, "原密码过长"),
@@ -133,7 +129,7 @@ export const wechatLoginSchema = z.object({
 });
 
 export const miniProgramBindSchema = wechatLoginSchema.extend({
-  username: z.string().min(1, "请输入系统账号").max(64),
+  username: z.string().trim().min(1, "请输入系统账号").max(64),
   password: z.string().min(1, "请输入密码").max(128)
 });
 

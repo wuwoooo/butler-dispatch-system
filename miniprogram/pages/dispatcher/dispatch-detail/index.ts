@@ -28,7 +28,10 @@ Page({
     ]);
     this.setData({
       order,
-      assigned: order.assignments || [],
+      assigned: (order.assignments || []).map((item: AnyRecord) => ({
+        ...item,
+        avatar: (item.butler?.name || "?").slice(0, 1)
+      })),
       candidates: (available.items || []).map((item: AnyRecord) => ({
         ...item,
         selected: this.data.selectedIds.includes(item.id)
@@ -52,7 +55,13 @@ Page({
       }))
     });
   },
+  lastSubmitTime: 0,
+  lastCancelTime: 0,
   submit() {
+    const now = Date.now();
+    if (now - this.lastSubmitTime < 1000) return;
+    this.lastSubmitTime = now;
+
     if (!this.data.canDispatch) {
       wx.showToast({ title: "请先取消当前待接单派单", icon: "none" });
       return;
@@ -65,6 +74,7 @@ Page({
     wx.showModal({
       title: "提交派单",
       content: `确认派给 ${this.data.selectedIds.length} 名管家？`,
+      confirmColor: "#2AACE2",
       success: async (res: AnyRecord) => {
         if (!res.confirm) return;
         await dispatchOrder(this.data.orderId, this.data.selectedIds);
@@ -75,11 +85,16 @@ Page({
     });
   },
   cancelAssignment(event: AnyRecord) {
+    const now = Date.now();
+    if (now - this.lastCancelTime < 1000) return;
+    this.lastCancelTime = now;
+
     const assignmentId = event.currentTarget.dataset.id;
     wx.showModal({
       title: "取消派单",
-      content: "取消后订单可重新进入待分配。",
+      content: "取消后订单可重新进入待分配状态，确认取消？",
       confirmText: "确认取消",
+      confirmColor: "#EF4444",
       success: async (res: AnyRecord) => {
         if (!res.confirm) return;
         await cancelDispatchAssignment(this.data.orderId, assignmentId, "小程序取消待接单派单");
@@ -97,9 +112,9 @@ function buildSections(order: AnyRecord) {
       title: "订单信息",
       rows: [
         ["订单编号", order.orderNo],
-        ["酒店", order.hotel?.name],
-        ["状态", getStatus("order", order.status).text],
-        ["客人", `${order.guestName || "-"} · ${order.guestCount || 0}人`]
+        ["酒店名称", order.hotel?.name],
+        ["订单状态", getStatus("order", order.status).text],
+        ["客人姓名", `${order.guestName || "-"} · ${order.guestCount || 0}人`]
       ]
     },
     {
@@ -107,7 +122,7 @@ function buildSections(order: AnyRecord) {
       rows: [
         ["入住日期", formatDateFull(order.checkInDate)],
         ["离店日期", formatDateFull(order.checkOutDate)],
-        ["接站类型", pickupTypeMap[order.pickupType] || "-"],
+        ["接站方案", pickupTypeMap[order.pickupType] || "-"],
         ["到达时间", formatDateTimeFull(order.arrivalTime)]
       ]
     }
