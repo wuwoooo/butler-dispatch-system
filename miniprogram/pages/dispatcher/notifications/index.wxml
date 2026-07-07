@@ -1,0 +1,6 @@
+<page-container title="消息通知" subtitle="派单、请假、服务进度提醒">
+  <button class="read-all" bindtap="readAll">全部已读</button>
+  <notification-item wx:for="{{items}}" wx:key="id" item="{{item}}" bind:tap="open" />
+  <empty-state wx:if="{{items.length === 0}}" title="暂无通知" description="当前没有新的系统消息" buttonText="刷新" bind:refresh="load" />
+</page-container>
+

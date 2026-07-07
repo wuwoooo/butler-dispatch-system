@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "管家状态",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "page-container": "/components/page-container/index",
+    "butler-card": "/components/butler-card/index",
+    "empty-state": "/components/empty-state/index",
+    "app-navbar": "/components/app-navbar/index"
+  }
+}
+

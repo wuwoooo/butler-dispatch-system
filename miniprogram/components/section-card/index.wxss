@@ -1,0 +1,41 @@
+/* 区块卡片 */
+.section-card {
+  margin: 20rpx 32rpx;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #1A2332;
+}
+
+/* 左侧品牌渐变竖条 */
+.section-title::before {
+  content: '';
+  width: 6rpx;
+  height: 28rpx;
+  border-radius: 3rpx;
+  background: linear-gradient(180deg, #2AACE2, #1B8FD4);
+  flex-shrink: 0;
+}
+
+.section-subtitle {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #5A6B82;
+}

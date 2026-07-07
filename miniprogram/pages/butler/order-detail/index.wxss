@@ -1,0 +1,41 @@
+/* 管家订单详情 */
+.status-line {
+  margin: 12rpx 32rpx 20rpx;
+  display: flex;
+  gap: 12rpx;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #EDF1F7;
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.row-label {
+  min-width: 160rpx;
+  color: #5A6B82;
+  font-size: 26rpx;
+}
+
+.row-value {
+  flex: 1;
+  text-align: right;
+  color: #1A2332;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.action-gap {
+  margin-bottom: 16rpx;
+}
+
+.action-gap:last-child {
+  margin-bottom: 0;
+}

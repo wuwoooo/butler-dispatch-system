@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "登录",
+  "usingComponents": {
+    "primary-button": "/components/primary-button/index"
+  }
+}
+

@@ -1,0 +1,77 @@
+/* 管家首页 */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 24rpx;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-grid {
+  margin: 24rpx 32rpx 28rpx;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.block-title {
+  margin: 38rpx 32rpx 12rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1A2332;
+}
+
+.shortcut-grid {
+  margin: 24rpx 32rpx 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.shortcut-card {
+  padding: 30rpx;
+  min-height: 148rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+.shortcut-card:active {
+  transform: scale(0.97);
+}
+
+.shortcut-card::after {
+  content: '';
+  position: absolute;
+  right: 26rpx;
+  top: 30rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #D8E1EC;
+}
+
+.shortcut-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #1A2332;
+}
+
+.shortcut-desc {
+  margin-top: 12rpx;
+  color: #5A6B82;
+  font-size: 24rpx;
+  line-height: 1.5;
+}

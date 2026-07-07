@@ -1,0 +1,95 @@
+/* 页面容器 */
+.page-container {
+  min-height: 100vh;
+  padding-bottom: calc(192rpx + env(safe-area-inset-bottom));
+  background: #EFF3FA;
+}
+
+.hero-head {
+  padding: 100rpx 36rpx 56rpx;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 60%, #2B5EA7 100%);
+  border-bottom-left-radius: 36rpx;
+  border-bottom-right-radius: 36rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 装饰性背景圆 */
+.hero-head::before {
+  content: '';
+  position: absolute;
+  top: -60rpx;
+  right: -40rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hero-head::after {
+  content: '';
+  position: absolute;
+  bottom: -40rpx;
+  left: -30rpx;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.plain-head {
+  padding: 100rpx 36rpx 24rpx;
+}
+
+.title-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.title-wrap.has-back {
+  padding-left: 64rpx;
+}
+
+.back-button {
+  position: absolute;
+  left: 28rpx;
+  width: 52rpx;
+  height: 52rpx;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.back-button:active {
+  background: rgba(26, 35, 50, 0.08);
+}
+
+.hero-head .back-button:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.back-icon {
+  width: 20rpx;
+  height: 20rpx;
+  border-left: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+  transform: rotate(45deg);
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin-top: 12rpx;
+  font-size: 27rpx;
+  opacity: 0.88;
+}

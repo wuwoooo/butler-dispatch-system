@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "个人中心",
+  "usingComponents": {
+    "page-container": "/components/page-container/index",
+    "section-card": "/components/section-card/index",
+    "app-navbar": "/components/app-navbar/index"
+  }
+}
+

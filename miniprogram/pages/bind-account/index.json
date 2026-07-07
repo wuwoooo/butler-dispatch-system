@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "绑定账号",
+  "usingComponents": {
+    "primary-button": "/components/primary-button/index"
+  }
+}
+

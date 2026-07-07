@@ -1,0 +1,13 @@
+<view class="butler-card {{selected ? 'selected' : ''}} {{item.available === false ? 'disabled' : ''}}" bindtap="handleTap">
+  <view class="avatar">{{avatar}}</view>
+  <view class="content">
+    <view class="top-line">
+      <view class="name">{{item.name}}</view>
+      <status-tag type="butler" value="{{item.status || 'available'}}" />
+    </view>
+    <view class="meta">{{item.phone || '-'}} · 评分 {{item.averageScore || '0.00'}}</view>
+    <view wx:if="{{item.vehicleInfo}}" class="meta">车型：{{item.vehicleInfo}}</view>
+    <view wx:if="{{reasonText}}" class="reason">{{reasonText}}</view>
+  </view>
+  <view wx:if="{{selectable}}" class="check">{{selected ? '✓' : ''}}</view>
+</view>

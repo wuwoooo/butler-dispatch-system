@@ -1,0 +1,4 @@
+<view class="stat-card tone-{{tone}} {{url || action ? 'clickable' : ''}}" bindtap="handleTap">
+  <view class="stat-value">{{value}}</view>
+  <view class="stat-label">{{label}}</view>
+</view>

@@ -1,0 +1,55 @@
+/* 通知卡片 */
+.notification {
+  position: relative;
+  margin: 20rpx 32rpx;
+  padding: 28rpx 30rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+  border-left: 4rpx solid #2AACE2;
+  transition: transform 0.2s ease;
+}
+
+.notification:active {
+  transform: scale(0.985);
+}
+
+.read {
+  opacity: 0.62;
+  border-left-color: transparent;
+}
+
+.dot {
+  position: absolute;
+  left: 20rpx;
+  top: 36rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #2AACE2;
+  box-shadow: 0 0 8rpx rgba(42, 172, 226, 0.40);
+}
+
+.content {
+  padding-left: 16rpx;
+}
+
+.title {
+  font-size: 29rpx;
+  font-weight: 700;
+  color: #1A2332;
+}
+
+.text {
+  margin-top: 10rpx;
+  color: #5A6B82;
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.time {
+  margin-top: 14rpx;
+  color: #94A3B8;
+  font-size: 22rpx;
+}

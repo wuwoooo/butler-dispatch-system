@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "消息通知",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "page-container": "/components/page-container/index",
+    "notification-item": "/components/notification-item/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}
+

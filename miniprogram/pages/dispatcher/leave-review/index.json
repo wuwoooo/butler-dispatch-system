@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "请假审核",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "page-container": "/components/page-container/index",
+    "status-tag": "/components/status-tag/index",
+    "empty-state": "/components/empty-state/index",
+    "app-navbar": "/components/app-navbar/index"
+  }
+}
+

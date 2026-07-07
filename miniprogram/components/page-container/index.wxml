@@ -1,0 +1,24 @@
+<view class="page-container">
+  <view
+    class="{{hero ? 'hero-head' : 'plain-head'}}"
+    style="padding-top: {{headTop}}rpx;"
+  >
+    <view
+      wx:if="{{canGoBack}}"
+      class="back-button"
+      style="top: {{backTop}}rpx;"
+      bindtap="goBack"
+    >
+      <view class="back-icon"></view>
+    </view>
+    <view
+      class="title-wrap {{canGoBack ? 'has-back' : ''}}"
+      style="padding-right: {{titleRightInset}}rpx;"
+    >
+      <view class="title">{{title}}</view>
+      <view wx:if="{{subtitle}}" class="subtitle">{{subtitle}}</view>
+    </view>
+    <slot name="hero"></slot>
+  </view>
+  <slot></slot>
+</view>

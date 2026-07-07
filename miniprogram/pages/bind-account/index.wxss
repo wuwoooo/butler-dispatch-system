@@ -1,0 +1,123 @@
+/* 绑定账号页 */
+.bind-page {
+  min-height: 100vh;
+  background: #EFF3FA;
+}
+
+.hero {
+  padding: 120rpx 40rpx 130rpx;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 60%, #2B5EA7 100%);
+  border-bottom-left-radius: 48rpx;
+  border-bottom-right-radius: 48rpx;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 装饰性圆形 */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60rpx;
+  right: -40rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40rpx;
+  left: -30rpx;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.hero-logo {
+  width: 200rpx;
+  height: 100rpx;
+  margin-bottom: 20rpx;
+  filter: brightness(0) invert(1);
+  position: relative;
+  z-index: 1;
+}
+
+.title {
+  font-size: 44rpx;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.subtitle {
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  opacity: 0.88;
+  position: relative;
+  z-index: 1;
+}
+
+.bind-card {
+  margin: -80rpx 36rpx 0;
+  padding: 40rpx;
+  border-radius: 32rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 16rpx 48rpx rgba(26, 35, 50, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+.field {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A2332;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  height: 92rpx;
+  padding: 0 24rpx;
+  border-radius: 24rpx;
+  background: #F0F4FA;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrap:focus-within {
+  background: #EAF0F8;
+  box-shadow: 0 0 0 4rpx rgba(42, 172, 226, 0.15);
+}
+
+.input-icon {
+  width: 48rpx;
+  font-size: 32rpx;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  height: 100%;
+  padding: 0 12rpx;
+  background: transparent;
+  font-size: 28rpx;
+  color: #1A2332;
+}
+
+.hint {
+  margin: 36rpx 40rpx;
+  color: #94A3B8;
+  font-size: 24rpx;
+  text-align: center;
+}

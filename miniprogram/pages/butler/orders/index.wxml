@@ -1,0 +1,22 @@
+<page-container title="我的订单" subtitle="按接待状态查看任务">
+  <scroll-view class="tabs" scroll-x>
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{active === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="switchTab"
+    >{{item.text}}</view>
+  </scroll-view>
+  <order-card
+    wx:for="{{items}}"
+    wx:key="id"
+    item="{{item}}"
+    showActions="{{active === 'pending'}}"
+    bind:tap="openDetail"
+    bind:confirm="confirm"
+    bind:reject="reject"
+  />
+  <empty-state wx:if="{{items.length === 0}}" title="暂无订单" description="当前状态下没有订单任务" buttonText="刷新" bind:refresh="load" />
+  <app-navbar role="butler" active="orders" />
+</page-container>

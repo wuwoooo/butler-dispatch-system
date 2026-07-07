@@ -1,0 +1,22 @@
+<page-container title="你好，{{user.name || '调配员'}}" subtitle="{{today}}" hero="{{true}}">
+  <view slot="hero" class="hero-note">今日调配重点：待分配、拒单补派、请假审核</view>
+  <view class="stat-grid">
+    <stat-card label="待分配" value="{{cards.pendingDispatch || 0}}" tone="blue" />
+    <stat-card label="待接单" value="{{cards.pendingConfirm || 0}}" tone="orange" />
+    <stat-card label="部分拒单" value="{{cards.partialRejected || 0}}" tone="red" />
+    <stat-card label="待审请假" value="{{cards.pendingLeaves || 0}}" tone="orange" />
+    <stat-card label="空闲管家" value="{{cards.idleButlers || 0}}" tone="green" />
+    <stat-card label="接待中" value="{{cards.workingButlers || 0}}" tone="cyan" />
+  </view>
+  <view class="block-title">优先处理订单</view>
+  <order-card wx:for="{{orders}}" wx:key="id" item="{{item}}" bind:tap="openOrder" />
+  <empty-state wx:if="{{orders.length === 0}}" title="暂无待处理订单" description="当前没有需要立即调配的订单" />
+  <view class="shortcut-grid">
+    <view wx:for="{{shortcuts}}" wx:key="title" class="shortcut-card" data-url="{{item.url}}" bindtap="openShortcut">
+      <view class="shortcut-title">{{item.title}}</view>
+      <view class="shortcut-desc">{{item.desc}}</view>
+    </view>
+  </view>
+  <app-navbar role="dispatcher" active="home" />
+</page-container>
+

@@ -1,0 +1,22 @@
+<page-container title="你好，{{user.name || butler.name || '管家'}}" subtitle="{{today}}" hero="{{true}}">
+  <view slot="hero" class="status-pill">当前状态：{{butlerStatusText}}</view>
+
+  <view class="stat-grid">
+    <stat-card label="今日任务" value="{{cards.todayTaskCount || 0}}" tone="blue" url="/pages/butler/orders/index" bind:tap="openShortcut" />
+    <stat-card label="待接单" value="{{cards.pendingCount || 0}}" tone="orange" url="/pages/butler/orders/index?tab=pending" bind:tap="openShortcut" />
+    <stat-card label="准备接待" value="{{cards.readyCount || 0}}" tone="cyan" url="/pages/butler/orders/index?tab=confirmedWaiting" bind:tap="openShortcut" />
+    <stat-card label="未读消息" value="{{cards.unreadCount || 0}}" tone="red" url="/pages/butler/notifications/index" bind:tap="openShortcut" />
+  </view>
+
+  <view class="block-title">当前重点任务</view>
+  <order-card wx:if="{{currentTask}}" item="{{currentTask}}" bind:tap="openTask" />
+  <empty-state wx:else title="暂无进行中的接待" description="当前没有需要立即处理的订单" />
+
+  <view class="shortcut-grid">
+    <view wx:for="{{shortcuts}}" wx:key="title" class="shortcut-card" data-url="{{item.url}}" bindtap="openShortcut">
+      <view class="shortcut-title">{{item.title}}</view>
+      <view class="shortcut-desc">{{item.desc}}</view>
+    </view>
+  </view>
+  <app-navbar role="butler" active="home" />
+</page-container>

@@ -1,0 +1,15 @@
+<page-container title="个人中心" subtitle="账号信息与登录状态">
+  <view class="profile-card">
+    <view class="avatar">{{avatar}}</view>
+    <view class="name">{{user.name || '-'}}</view>
+    <view class="role">调配员账号</view>
+  </view>
+  <section-card title="账号信息">
+    <view class="row"><text>用户名</text><text>{{user.username || '-'}}</text></view>
+    <view class="row"><text>角色</text><text>{{roleText}}</text></view>
+    <view class="row"><text>小程序绑定</text><text>已绑定</text></view>
+  </section-card>
+  <button class="change-password" bindtap="goChangePassword">修改密码</button>
+  <button class="logout" bindtap="logout">退出登录</button>
+  <app-navbar role="dispatcher" active="profile" />
+</page-container>

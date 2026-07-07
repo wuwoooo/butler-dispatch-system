@@ -1,0 +1,11 @@
+<view class="section-card">
+  <view wx:if="{{title || subtitle}}" class="section-head">
+    <view>
+      <view wx:if="{{title}}" class="section-title">{{title}}</view>
+      <view wx:if="{{subtitle}}" class="section-subtitle">{{subtitle}}</view>
+    </view>
+    <slot name="extra"></slot>
+  </view>
+  <slot></slot>
+</view>
+

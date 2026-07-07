@@ -1,0 +1,13 @@
+<page-container title="订单调配" subtitle="按状态快速处理订单">
+  <view class="search">
+    <input placeholder="搜索客人姓名" value="{{keyword}}" bindinput="setKeyword" confirm-type="search" bindconfirm="load" />
+    <button bindtap="load">搜索</button>
+  </view>
+  <scroll-view class="tabs" scroll-x>
+    <view wx:for="{{tabs}}" wx:key="key" class="tab {{active === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchTab">{{item.text}}</view>
+  </scroll-view>
+  <order-card wx:for="{{items}}" wx:key="id" item="{{item}}" bind:tap="openDetail" />
+  <empty-state wx:if="{{items.length === 0}}" title="暂无订单" description="当前筛选条件下没有订单" buttonText="刷新" bind:refresh="load" />
+  <app-navbar role="dispatcher" active="orders" />
+</page-container>
+

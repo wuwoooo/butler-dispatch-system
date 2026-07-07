@@ -1,0 +1,119 @@
+import { NextRequest } from "next/server";
+import { canAccess } from "@/lib/permissions";
+import { hashPassword } from "@/lib/auth";
+import { generateButlerUsername } from "@/lib/butler-account";
+import { generateButlerCode } from "@/lib/code-generator";
+import { prisma } from "@/lib/prisma";
+import { writeOperationLog } from "@/lib/logger";
+import { getRequestMeta, requireApiRoles, requireApiUser } from "@/lib/request";
+import { errorResponse, handleApiError, successResponse } from "@/lib/response";
+import { butlerWithAccountSelect } from "@/lib/selects";
+import { butlerCreateSchema } from "@/lib/validators";
+
+export async function GET(request: NextRequest) {
+  const { user, response } = await requireApiUser(request);
+
+  if (!user) {
+    return response;
+  }
+
+  if (!canAccess(user, "butlers", "view") && user.roleCode !== "butler") {
+    return errorResponse("FORBIDDEN", "没有权限访问管家数据", 403);
+  }
+
+  try {
+    const where =
+      user.roleCode === "butler"
+        ? { id: user.butlerId ?? "__none__" }
+        : undefined;
+
+    const butlers = await prisma.butler.findMany({
+      where,
+      select: butlerWithAccountSelect,
+      orderBy: { createdAt: "desc" }
+    });
+
+    return successResponse({ items: butlers.map(toButlerPublic) });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const { user, response } = await requireApiRoles(request, [
+    "admin",
+    "dispatcher"
+  ]);
+
+  if (!user) {
+    return response;
+  }
+
+  try {
+    const parsed = butlerCreateSchema.parse(await request.json());
+    const code = await generateButlerCode();
+    const created = await prisma.$transaction(async (tx) => {
+      const butler = await tx.butler.create({
+        data: {
+          name: parsed.name,
+          phone: parsed.phone,
+          gender: parsed.gender,
+          vehicleInfo: parsed.vehicleInfo,
+          dispatchEnabled: parsed.dispatchEnabled,
+          status: "available",
+          remark: parsed.remark,
+          code
+        }
+      });
+
+      const role = await tx.role.findUnique({ where: { code: "butler" } });
+      if (!role) throw new Error("BUTLER_ROLE_NOT_FOUND");
+      await tx.user.create({
+        data: {
+          username: await generateButlerUsername(parsed.name, tx),
+          passwordHash: await hashPassword(parsed.accountPassword),
+          name: parsed.name,
+          phone: parsed.phone,
+          roleCode: "butler",
+          roleId: role.id,
+          butlerId: butler.id,
+          status: "active"
+        }
+      });
+
+      return tx.butler.findUniqueOrThrow({
+        where: { id: butler.id },
+        select: butlerWithAccountSelect
+      });
+    });
+
+    await writeOperationLog({
+      operatorId: user.id,
+      operationType: "CREATE_BUTLER",
+      targetType: "Butler",
+      targetId: created.id,
+      afterData: toButlerPublic(created),
+      remark: "创建管家并自动开通账号",
+      ...getRequestMeta(request)
+    });
+
+    return successResponse(toButlerPublic(created), "创建成功", { status: 201 });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+function toButlerPublic<T extends {
+  user: { wechatOpenId: string | null } | null;
+  assignments?: unknown;
+}>(butler: T) {
+  const { user, assignments, ...profile } = butler;
+  const activeAssignments = Array.isArray(assignments) ? assignments : [];
+  if (!user) return { ...profile, activeAssignments, user: null };
+  const { wechatOpenId, ...safeUser } = user;
+  return {
+    ...profile,
+    activeAssignments,
+    user: { ...safeUser, miniProgramBound: Boolean(wechatOpenId) }
+  };
+}

@@ -1,0 +1,47 @@
+<page-container title="修改密码" subtitle="更新当前账号的登录密码">
+  <section-card title="密码信息">
+    <view class="field">
+      <view class="label">原密码</view>
+      <view class="input-wrap">
+        <text class="input-icon">🔒</text>
+        <input
+          class="input"
+          password
+          placeholder="请输入原密码"
+          value="{{currentPassword}}"
+          bindinput="onCurrentPassword"
+        />
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">新密码</view>
+      <view class="input-wrap">
+        <text class="input-icon">🔑</text>
+        <input
+          class="input"
+          password
+          placeholder="至少 8 个字符"
+          value="{{newPassword}}"
+          bindinput="onNewPassword"
+        />
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">确认新密码</view>
+      <view class="input-wrap">
+        <text class="input-icon">✓</text>
+        <input
+          class="input"
+          password
+          placeholder="请再次输入新密码"
+          value="{{confirmPassword}}"
+          bindinput="onConfirmPassword"
+        />
+      </view>
+    </view>
+  </section-card>
+
+  <view class="submit-wrap">
+    <primary-button text="确认修改" bind:tap="handleSubmit" />
+  </view>
+</page-container>

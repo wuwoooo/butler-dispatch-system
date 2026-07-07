@@ -1,0 +1,62 @@
+/* 派单详情 */
+.status-line {
+  margin: 12rpx 32rpx 20rpx;
+}
+
+.detail-row,
+.assigned-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #EDF1F7;
+}
+
+.detail-row:last-child,
+.assigned-row:last-child {
+  border-bottom: 0;
+}
+
+.assigned-main {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.cancel-dispatch-btn {
+  margin: 0;
+  padding: 0 18rpx;
+  height: 52rpx;
+  line-height: 50rpx;
+  border: 1rpx solid #EF4444;
+  border-radius: 10rpx;
+  background: #FFFFFF;
+  color: #EF4444;
+  font-size: 24rpx;
+}
+
+.cancel-dispatch-btn::after {
+  border: 0;
+}
+
+.row-label {
+  min-width: 160rpx;
+  color: #5A6B82;
+  font-size: 26rpx;
+}
+
+.row-value {
+  flex: 1;
+  text-align: right;
+  color: #1A2332;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.block-title {
+  margin: 38rpx 32rpx 12rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1A2332;
+}

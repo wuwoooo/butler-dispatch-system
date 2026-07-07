@@ -1,0 +1,18 @@
+<view class="login-page">
+  <view class="login-bg"></view>
+  <view class="brand">
+    <image class="brand-logo" src="/images/logo.png" mode="aspectFit" />
+    <view class="brand-subtitle">管家调配系统 · 高效接待</view>
+  </view>
+  <view class="login-card">
+    <view class="card-title">微信自动登录</view>
+    <view class="card-desc">系统将通过微信身份识别已绑定账号，首次使用请先绑定系统账号。</view>
+    <view wx:if="{{loading}}" class="login-loading">
+      <view class="login-spinner"></view>
+      <text>正在检查登录状态...</text>
+    </view>
+    <primary-button text="重新登录" bind:tap="handleRetry" />
+    <view class="secondary" bindtap="handleBind">首次使用，绑定系统账号 →</view>
+  </view>
+  <view class="footer">阿鹏哥旅游 · 管家调配系统</view>
+</view>

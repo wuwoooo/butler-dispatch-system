@@ -1,0 +1,79 @@
+/* 统计卡片 */
+.stat-card {
+  padding: 28rpx 28rpx 28rpx 32rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+  border-left: 6rpx solid #2AACE2;
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+.stat-card.clickable:active {
+  transform: scale(0.97);
+}
+
+.stat-card.clickable::after {
+  content: '';
+  position: absolute;
+  right: 26rpx;
+  top: 28rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #D8E1EC;
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #1A2332;
+  letter-spacing: -1rpx;
+}
+
+.stat-label {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #5A6B82;
+}
+
+.tone-blue {
+  border-left-color: #2AACE2;
+}
+
+.tone-blue .stat-value {
+  color: #2AACE2;
+}
+
+.tone-green {
+  border-left-color: #10B981;
+}
+
+.tone-green .stat-value {
+  color: #10B981;
+}
+
+.tone-orange {
+  border-left-color: #F59E0B;
+}
+
+.tone-orange .stat-value {
+  color: #F59E0B;
+}
+
+.tone-red {
+  border-left-color: #EF4444;
+}
+
+.tone-red .stat-value {
+  color: #EF4444;
+}
+
+.tone-cyan {
+  border-left-color: #0EA5E9;
+}
+
+.tone-cyan .stat-value {
+  color: #0EA5E9;
+}

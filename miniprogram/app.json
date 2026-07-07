@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/bind-account/index",
+    "pages/change-password/index",
+    "pages/butler/home/index",
+    "pages/butler/orders/index",
+    "pages/butler/order-detail/index",
+    "pages/butler/leave-apply/index",
+    "pages/butler/leave-records/index",
+    "pages/butler/statistics/index",
+    "pages/butler/notifications/index",
+    "pages/butler/profile/index",
+    "pages/dispatcher/home/index",
+    "pages/dispatcher/orders/index",
+    "pages/dispatcher/dispatch-detail/index",
+    "pages/dispatcher/butlers/index",
+    "pages/dispatcher/butler-detail/index",
+    "pages/dispatcher/leave-review/index",
+    "pages/dispatcher/notifications/index",
+    "pages/dispatcher/profile/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#EFF3FA",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {
+    "app-navbar": "/components/app-navbar/index",
+    "page-container": "/components/page-container/index",
+    "stat-card": "/components/stat-card/index",
+    "order-card": "/components/order-card/index",
+    "butler-card": "/components/butler-card/index",
+    "status-tag": "/components/status-tag/index",
+    "empty-state": "/components/empty-state/index",
+    "loading-state": "/components/loading-state/index",
+    "section-card": "/components/section-card/index",
+    "primary-button": "/components/primary-button/index",
+    "notification-item": "/components/notification-item/index",
+    "form-cell": "/components/form-cell/index"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,58 @@
+/* 调配订单列表 */
+.search {
+  margin: 8rpx 32rpx 20rpx;
+  display: flex;
+  gap: 14rpx;
+}
+
+.search input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  font-size: 27rpx;
+  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+}
+
+.search button {
+  width: 136rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
+  font-weight: 700;
+  font-size: 27rpx;
+  box-shadow: 0 4rpx 14rpx rgba(42, 172, 226, 0.30);
+  transition: all 0.2s ease;
+}
+
+.search button:active {
+  transform: scale(0.95);
+}
+
+.tabs {
+  white-space: nowrap;
+  margin-bottom: 20rpx;
+  padding-left: 32rpx;
+}
+
+.tab {
+  display: inline-flex;
+  margin-right: 16rpx;
+  padding: 16rpx 28rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #5A6B82;
+  font-size: 26rpx;
+  font-weight: 500;
+  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+  transition: all 0.25s ease;
+}
+
+.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
+  font-weight: 700;
+  box-shadow: 0 6rpx 18rpx rgba(42, 172, 226, 0.30);
+}

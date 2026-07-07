@@ -1,0 +1,9 @@
+<view class="notification {{item.isRead ? 'read' : ''}}" bindtap="handleTap">
+  <view wx:if="{{!item.isRead}}" class="dot"></view>
+  <view class="content">
+    <view class="title">{{item.title}}</view>
+    <view class="text">{{item.content}}</view>
+    <view class="time">{{time}}</view>
+  </view>
+</view>
+

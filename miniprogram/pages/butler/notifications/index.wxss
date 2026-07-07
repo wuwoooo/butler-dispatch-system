@@ -1,0 +1,16 @@
+/* 管家通知 */
+.read-all {
+  margin: 12rpx 32rpx 16rpx;
+  height: 76rpx;
+  border-radius: 999rpx;
+  color: #2AACE2;
+  background: #EAF6FD;
+  font-size: 26rpx;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.read-all:active {
+  background: #D5EEFC;
+  transform: scale(0.97);
+}

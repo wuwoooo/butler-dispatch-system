@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "派单详情",
+  "usingComponents": {
+    "page-container": "/components/page-container/index",
+    "section-card": "/components/section-card/index",
+    "status-tag": "/components/status-tag/index",
+    "butler-card": "/components/butler-card/index",
+    "primary-button": "/components/primary-button/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}
+

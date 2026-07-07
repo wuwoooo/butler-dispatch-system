@@ -1,0 +1,33 @@
+<page-container title="我的数据" subtitle="接单、评价、请假综合统计">
+  <view class="range-tabs">
+    <view wx:for="{{rangeTabs}}" wx:key="key" class="range-tab {{range === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchRange">{{item.text}}</view>
+  </view>
+  <view class="stat-grid">
+    <stat-card label="接单数" value="{{stats.orderCount || 0}}" tone="blue" url="/pages/butler/orders/index" bind:tap="openStat" />
+    <stat-card label="完成单数" value="{{stats.completedOrderCount || 0}}" tone="green" url="/pages/butler/orders/index?tab=completed" bind:tap="openStat" />
+    <stat-card label="服务客人数" value="{{stats.guestCount || 0}}" tone="cyan" action="records" bind:tap="openStat" />
+    <stat-card label="拒单次数" value="{{stats.rejectCount || 0}}" tone="red" url="/pages/butler/orders/index?tab=rejected" bind:tap="openStat" />
+    <stat-card label="平均评分" value="{{stats.averageScore || 0}}" tone="orange" action="reviews" bind:tap="openStat" />
+    <stat-card label="评价次数" value="{{stats.reviewCount || 0}}" tone="blue" action="reviews" bind:tap="openStat" />
+  </view>
+  <view id="records-anchor"></view>
+  <section-card title="最近接单明细">
+    <view wx:for="{{records}}" wx:key="id" class="mini-row clickable-row" data-order-id="{{item.orderId}}" data-assignment-id="{{item.id}}" bindtap="openOrder">
+      <view>
+        <view class="row-title">{{item.hotel.name}} · {{item.guestName}}</view>
+        <view class="row-sub">入住人数 {{item.guestCount}} · 评分 {{item.score || '-'}}</view>
+      </view>
+      <view class="row-status">{{item.statusText}}</view>
+    </view>
+    <empty-state wx:if="{{records.length === 0}}" title="暂无明细" description="完成接待后会生成服务明细" />
+  </section-card>
+  <view id="reviews-anchor"></view>
+  <section-card title="最近评价">
+    <view wx:for="{{reviews}}" wx:key="id" class="review-card clickable-row" data-order-id="{{item.orderId}}" data-assignment-id="{{item.assignmentId}}" bindtap="openOrder">
+      <view class="row-title">综合评分 {{item.overallScore}}</view>
+      <view class="row-sub">{{item.content || '暂无文字评价'}}</view>
+    </view>
+    <empty-state wx:if="{{reviews.length === 0}}" title="暂无评价" description="收到评价后会展示在这里" />
+  </section-card>
+  <app-navbar role="butler" active="data" />
+</page-container>

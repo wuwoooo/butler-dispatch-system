@@ -1,0 +1,20 @@
+<page-container title="请假审核" subtitle="处理管家请假申请">
+  <scroll-view class="tabs" scroll-x>
+    <view wx:for="{{tabs}}" wx:key="key" class="tab {{active === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchTab">{{item.text}}</view>
+  </scroll-view>
+  <view wx:for="{{items}}" wx:key="id" class="leave-card">
+    <view class="leave-top">
+      <view class="leave-type">{{item.butler.name}} · {{item.typeText}}</view>
+      <status-tag type="leave" value="{{item.status}}" />
+    </view>
+    <view class="time">{{item.startText}} 至 {{item.endText}}</view>
+    <view class="reason">原因：{{item.reason}}</view>
+    <view wx:if="{{item.status === 'pending'}}" class="actions">
+      <button class="approve" data-id="{{item.id}}" bindtap="approve">通过</button>
+      <button class="reject" data-id="{{item.id}}" bindtap="reject">驳回</button>
+    </view>
+  </view>
+  <empty-state wx:if="{{items.length === 0}}" title="暂无请假记录" description="当前状态下没有需要处理的请假" />
+  <app-navbar role="dispatcher" active="leave" />
+</page-container>
+

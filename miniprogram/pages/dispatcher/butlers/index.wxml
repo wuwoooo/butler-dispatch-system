@@ -1,0 +1,9 @@
+<page-container title="管家状态" subtitle="查看管家接待状态与账号状态">
+  <view class="search">
+    <input placeholder="搜索管家姓名 / 手机号" value="{{keyword}}" bindinput="setKeyword" />
+  </view>
+  <butler-card wx:for="{{items}}" wx:key="id" item="{{item}}" bind:tap="open" />
+  <empty-state wx:if="{{items.length === 0}}" title="暂无管家" description="当前没有匹配的管家" buttonText="刷新" bind:refresh="load" />
+  <app-navbar role="dispatcher" active="butlers" />
+</page-container>
+

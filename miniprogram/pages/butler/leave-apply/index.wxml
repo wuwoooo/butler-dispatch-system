@@ -1,0 +1,30 @@
+<page-container title="请假申请" subtitle="提交前会校验订单时间冲突">
+  <section-card title="请假时间">
+    <form-cell label="开始日期" required>
+      <picker mode="date" bindchange="setStartDate"><view class="picker">{{startDate || '请选择开始日期'}}</view></picker>
+    </form-cell>
+    <form-cell label="开始时间">
+      <picker mode="time" bindchange="setStartTime"><view class="picker">{{startTime || '00:00'}}</view></picker>
+    </form-cell>
+    <form-cell label="结束日期" required>
+      <picker mode="date" bindchange="setEndDate"><view class="picker">{{endDate || '请选择结束日期'}}</view></picker>
+    </form-cell>
+    <form-cell label="结束时间">
+      <picker mode="time" bindchange="setEndTime"><view class="picker">{{endTime || '23:59'}}</view></picker>
+    </form-cell>
+  </section-card>
+  <section-card title="请假信息">
+    <form-cell label="请假类型" required>
+      <picker range="{{leaveTypes}}" range-key="label" value="{{leaveTypeIndex}}" bindchange="setType">
+        <view class="picker">{{leaveTypes[leaveTypeIndex].label}}</view>
+      </picker>
+    </form-cell>
+    <form-cell label="请假原因" required>
+      <textarea class="textarea" placeholder="请填写请假原因" value="{{reason}}" bindinput="setReason" />
+    </form-cell>
+  </section-card>
+  <view class="fixed-action">
+    <primary-button text="提交请假申请" bind:tap="handleSubmit" />
+  </view>
+</page-container>
+

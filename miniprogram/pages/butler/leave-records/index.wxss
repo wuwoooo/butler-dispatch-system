@@ -1,0 +1,71 @@
+/* 管家请假记录 */
+.apply-btn {
+  margin: 12rpx 32rpx 16rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  color: #2AACE2;
+  background: #EAF6FD;
+  font-size: 28rpx;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.apply-btn:active {
+  background: #D5EEFC;
+  transform: scale(0.97);
+}
+
+.leave-card {
+  margin: 20rpx 32rpx;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+}
+
+.leave-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leave-type {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #1A2332;
+}
+
+.time,
+.reason {
+  margin-top: 16rpx;
+  color: #5A6B82;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.reject {
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 20rpx;
+  color: #EF4444;
+  background: #FEF2F2;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.cancel-btn {
+  margin-top: 22rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  color: #EF4444;
+  background: #FEF2F2;
+  font-size: 26rpx;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:active {
+  transform: scale(0.97);
+  background: #FEE2E2;
+}

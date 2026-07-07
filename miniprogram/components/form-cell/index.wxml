@@ -1,0 +1,8 @@
+<view class="form-cell">
+  <view class="form-label">
+    <text wx:if="{{required}}" class="required">*</text>{{label}}
+  </view>
+  <view class="form-control"><slot></slot></view>
+  <view wx:if="{{desc}}" class="form-desc">{{desc}}</view>
+</view>
+

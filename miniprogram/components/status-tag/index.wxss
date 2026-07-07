@@ -1,0 +1,55 @@
+/* 状态标签 */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+/* 小圆点指示器 */
+.status-tag::before {
+  content: '';
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-info {
+  color: #2AACE2;
+  background: #EAF6FD;
+}
+
+.status-warning {
+  color: #D97706;
+  background: #FFF8EB;
+}
+
+.status-danger {
+  color: #EF4444;
+  background: #FEF2F2;
+}
+
+.status-success {
+  color: #059669;
+  background: #ECFDF5;
+}
+
+.status-cyan {
+  color: #0891B2;
+  background: #ECFEFF;
+}
+
+.status-purple {
+  color: #7C3AED;
+  background: #F5F3FF;
+}
+
+.status-gray {
+  color: #64748B;
+  background: #F1F5F9;
+}

@@ -1,0 +1,31 @@
+<page-container title="{{order.hotel.name || '派单详情'}}" subtitle="订单号：{{order.orderNo}}">
+  <view class="status-line"><status-tag type="order" value="{{order.status}}" /></view>
+  <section-card wx:for="{{sections}}" wx:key="title" title="{{item.title}}">
+    <view wx:for="{{item.rows}}" wx:key="0" wx:for-item="row" class="detail-row">
+      <view class="row-label">{{row[0]}}</view>
+      <view class="row-value">{{row[1] || '-'}}</view>
+    </view>
+  </section-card>
+  <section-card title="已分配管家">
+    <view wx:for="{{assigned}}" wx:key="id" class="assigned-row">
+      <view class="assigned-main">
+        <view>{{item.butler.name}}</view>
+        <status-tag type="assignment" value="{{item.status}}" />
+      </view>
+      <button
+        wx:if="{{item.status === 'pending_confirm'}}"
+        class="cancel-dispatch-btn"
+        data-id="{{item.id}}"
+        bindtap="cancelAssignment"
+      >
+        取消派单
+      </button>
+    </view>
+    <empty-state wx:if="{{assigned.length === 0}}" title="尚未分配管家" description="请选择可用管家进行派单" />
+  </section-card>
+  <view wx:if="{{canDispatch}}" class="block-title">选择管家</view>
+  <butler-card wx:if="{{canDispatch}}" wx:for="{{candidates}}" wx:key="id" item="{{item}}" selectable="{{true}}" selected="{{item.selected}}" bind:tap="toggleButler" />
+  <view wx:if="{{canDispatch}}" class="fixed-action">
+    <primary-button text="提交派单" bind:tap="submit" />
+  </view>
+</page-container>

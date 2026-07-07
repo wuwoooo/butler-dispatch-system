@@ -1,0 +1,25 @@
+/* 管家请假申请 */
+.picker {
+  height: 84rpx;
+  padding: 0 28rpx;
+  border-radius: 24rpx;
+  background: #F0F4FA;
+  color: #1A2332;
+  font-size: 28rpx;
+  line-height: 84rpx;
+  transition: background 0.2s ease;
+}
+
+.picker:active {
+  background: #E6ECF5;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 200rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #F0F4FA;
+  font-size: 28rpx;
+  line-height: 1.6;
+}

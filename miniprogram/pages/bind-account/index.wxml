@@ -1,0 +1,25 @@
+<view class="bind-page">
+  <view class="hero">
+    <image class="hero-logo" src="/images/logo.png" mode="aspectFit" />
+    <view class="title">绑定系统账号</view>
+    <view class="subtitle">首次使用请绑定账号，后续可自动登录</view>
+  </view>
+  <view class="bind-card">
+    <view class="field">
+      <view class="label">用户名 / 手机号</view>
+      <view class="input-wrap">
+        <text class="input-icon">👤</text>
+        <input class="input" placeholder="请输入系统账号" value="{{username}}" bindinput="onUsername" />
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">密码</view>
+      <view class="input-wrap">
+        <text class="input-icon">🔒</text>
+        <input class="input" password placeholder="请输入密码" value="{{password}}" bindinput="onPassword" />
+      </view>
+    </view>
+    <primary-button text="绑定并登录" bind:tap="handleSubmit" />
+  </view>
+  <view class="hint">仅管家和调配员账号可使用小程序端。</view>
+</view>

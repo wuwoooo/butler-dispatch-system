@@ -1,0 +1,51 @@
+/* 主按钮 */
+.primary-button {
+  width: 100%;
+  height: 92rpx;
+  border-radius: 999rpx;
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.primary-button:active {
+  transform: scale(0.97);
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
+  box-shadow: 0 8rpx 24rpx rgba(42, 172, 226, 0.30);
+}
+
+.button-primary:active {
+  box-shadow: 0 4rpx 12rpx rgba(42, 172, 226, 0.20);
+}
+
+.button-success {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  box-shadow: 0 8rpx 24rpx rgba(16, 185, 129, 0.25);
+}
+
+.button-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  box-shadow: 0 8rpx 24rpx rgba(239, 68, 68, 0.25);
+}
+
+.button-ghost {
+  color: #2AACE2;
+  background: #EAF6FD;
+  box-shadow: none;
+}
+
+.button-ghost:active {
+  background: #D5EEFC;
+}
+
+.is-disabled {
+  opacity: 0.50;
+  pointer-events: none;
+}

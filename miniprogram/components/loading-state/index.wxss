@@ -1,0 +1,25 @@
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 64rpx;
+  color: #5A6B82;
+  font-size: 26rpx;
+}
+
+.spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 5rpx solid #EAF6FD;
+  border-top-color: #2AACE2;
+  border-radius: 50%;
+  animation: rotate 0.8s linear infinite;
+}
+
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

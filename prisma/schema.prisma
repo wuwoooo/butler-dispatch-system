@@ -1,0 +1,434 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  code        RoleCode @unique
+  name        String   @db.VarChar(64)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  username               String                  @unique @db.VarChar(64)
+  passwordHash           String                  @db.VarChar(255)
+  name                   String                  @db.VarChar(64)
+  phone                  String?                 @unique @db.VarChar(32)
+  roleId                 String
+  roleCode               RoleCode
+  status                 UserStatus              @default(active)
+  hotelId                String?
+  butlerId               String?                 @unique
+  lastLoginAt            DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  /// 小程序登录成功后更新；后台登录使用 lastLoginAt。
+  lastMiniProgramLoginAt DateTime?
+  miniProgramBoundAt     DateTime?
+  remark                 String?                 @db.VarChar(500)
+  /// 一个微信 openid 只能绑定一个系统账号。接口层不会把该字段原样返回给普通用户。
+  wechatOpenId           String?                 @unique @db.VarChar(128)
+  wechatUnionId          String?                 @db.VarChar(128)
+  createdAbnormals       AbnormalRecord[]        @relation("AbnormalCreatedBy")
+  handledAbnormals       AbnormalRecord[]        @relation("AbnormalHandledBy")
+  reviewedLeaves         ButlerLeave[]           @relation("LeaveReviewer")
+  notifications          Notification[]          @relation("UserNotifications")
+  operationLogs          OperationLog[]          @relation("OperatorLogs")
+  assignedAssignments    OrderButlerAssignment[] @relation("AssignmentAssigner")
+  rejectRecords          RejectRecord[]          @relation("RejectCreator")
+  createdOrders          ServiceOrder[]          @relation("CreatedOrders")
+  settledOrders          ServiceOrder[]          @relation("SettledOrders")
+  reviewsGiven           ServiceReview[]         @relation("Reviewer")
+  butler                 Butler?                 @relation("ButlerUser", fields: [butlerId], references: [id])
+  hotel                  Hotel?                  @relation("HotelUsers", fields: [hotelId], references: [id])
+  role                   Role                    @relation(fields: [roleId], references: [id])
+
+  @@index([roleCode])
+  @@index([hotelId])
+  @@index([miniProgramBoundAt])
+  @@index([roleId], map: "User_roleId_fkey")
+}
+
+model Hotel {
+  id           String          @id @default(cuid())
+  code         String          @unique @db.VarChar(64)
+  name         String          @db.VarChar(128)
+  address      String?         @db.VarChar(255)
+  contactName  String?         @db.VarChar(64)
+  contactPhone String?         @db.VarChar(32)
+  phone        String?         @unique @db.VarChar(32)
+  status       HotelStatus     @default(active)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  roomTypes    HotelRoomType[]
+  orders       ServiceOrder[]
+  users        User[]          @relation("HotelUsers")
+}
+
+model HotelRoomType {
+  id        String   @id @default(cuid())
+  hotelId   String
+  code      String?  @db.VarChar(64)
+  name      String   @db.VarChar(64)
+  sort      Int      @default(0)
+  enabled   Boolean  @default(true)
+  remark    String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+
+  @@unique([hotelId, name])
+  @@index([hotelId, enabled])
+}
+
+model Butler {
+  id              String                  @id @default(cuid())
+  code            String                  @unique @db.VarChar(64)
+  name            String                  @db.VarChar(64)
+  phone           String                  @unique @db.VarChar(32)
+  gender          String?                 @db.VarChar(16)
+  status          ButlerStatus            @default(available)
+  remark          String?                 @db.VarChar(500)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  rejectCount     Int                     @default(0)
+  averageScore    Decimal                 @default(0.00) @db.Decimal(3, 2)
+  reviewCount     Int                     @default(0)
+  /// 车辆品牌、型号及座位数等自由文本，例如“别克 GL8（7座）”。
+  vehicleInfo     String?                 @db.VarChar(128)
+  /// 是否允许接收新的派单。当前服务状态由订单和请假自动计算，不能用此字段覆盖。
+  dispatchEnabled Boolean                 @default(true)
+  abnormalRecords AbnormalRecord[]
+  leaves          ButlerLeave[]
+  assignments     OrderButlerAssignment[]
+  rejectRecords   RejectRecord[]
+  reviews         ServiceReview[]
+  user            User?                   @relation("ButlerUser")
+
+  @@index([status])
+}
+
+/// 订单只保存订单维度信息，不保存单个管家字段。
+/// 一个订单可以分配多个管家，必须通过 OrderButlerAssignment 表表达。
+model ServiceOrder {
+  id               String                  @id @default(cuid())
+  orderNo          String                  @unique @db.VarChar(64)
+  hotelId          String
+  createdById      String
+  guestName        String                  @db.VarChar(64)
+  guestPhone       String                  @db.VarChar(32)
+  guestCount       Int                     @default(1)
+  checkInDate      DateTime
+  checkOutDate     DateTime
+  pickupType       PickupType
+  arrivalTime      DateTime
+  arrivalStation   String                  @db.VarChar(128)
+  flightTrainNo    String?                 @db.VarChar(64)
+  destination      String?                 @db.VarChar(128)
+  status           OrderStatus             @default(pending_dispatch)
+  remark           String?                 @db.VarChar(1000)
+  settlementAmount Decimal?                @db.Decimal(12, 2)
+  settlementStatus SettlementStatus        @default(unsettled)
+  settlementRemark String?                 @db.VarChar(500)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  roomNo           String?                 @db.VarChar(64)
+  roomType         String?                 @db.VarChar(64)
+  specialNeeds     String?                 @db.VarChar(1000)
+  settledAt        DateTime?
+  settledById      String?
+  abnormalRecords  AbnormalRecord[]
+  assignments      OrderButlerAssignment[]
+  rejectRecords    RejectRecord[]
+  createdBy        User                    @relation("CreatedOrders", fields: [createdById], references: [id])
+  hotel            Hotel                   @relation(fields: [hotelId], references: [id])
+  settledBy        User?                   @relation("SettledOrders", fields: [settledById], references: [id])
+  reviews          ServiceReview[]
+
+  @@index([hotelId])
+  @@index([status])
+  @@index([arrivalTime])
+  @@index([createdById], map: "ServiceOrder_createdById_fkey")
+  @@index([settledById], map: "ServiceOrder_settledById_fkey")
+}
+
+/// 订单和管家的中间表。
+/// 后续确认、拒单、已接到客人、服务中、完成服务都必须落在这张表的独立状态上。
+model OrderButlerAssignment {
+  id               String           @id @default(cuid())
+  orderId          String
+  butlerId         String
+  status           AssignmentStatus @default(pending_confirm)
+  assignedById     String?
+  assignedAt       DateTime         @default(now())
+  confirmedAt      DateTime?
+  rejectedAt       DateTime?
+  pickedGuestAt    DateTime?
+  serviceStartedAt DateTime?
+  completedAt      DateTime?
+  reassignedAt     DateTime?
+  cancelledAt      DateTime?
+  rejectReason     String?          @db.VarChar(500)
+  remark           String?          @db.VarChar(500)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  assignedBy       User?            @relation("AssignmentAssigner", fields: [assignedById], references: [id])
+  butler           Butler           @relation(fields: [butlerId], references: [id])
+  order            ServiceOrder     @relation(fields: [orderId], references: [id])
+  rejectRecords    RejectRecord[]
+  reviews          ServiceReview[]
+
+  @@unique([orderId, butlerId])
+  @@index([butlerId])
+  @@index([status])
+  @@index([assignedById], map: "OrderButlerAssignment_assignedById_fkey")
+}
+
+/// 管家只能在待确认阶段拒单，且拒单必须填写原因。
+model RejectRecord {
+  id           String                @id @default(cuid())
+  assignmentId String
+  orderId      String
+  butlerId     String
+  reason       String                @db.VarChar(500)
+  createdById  String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  assignment   OrderButlerAssignment @relation(fields: [assignmentId], references: [id])
+  butler       Butler                @relation(fields: [butlerId], references: [id])
+  createdBy    User?                 @relation("RejectCreator", fields: [createdById], references: [id])
+  order        ServiceOrder          @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([butlerId])
+  @@index([assignmentId], map: "RejectRecord_assignmentId_fkey")
+  @@index([createdById], map: "RejectRecord_createdById_fkey")
+}
+
+model ButlerLeave {
+  id           String      @id @default(cuid())
+  butlerId     String
+  leaveType    String      @db.VarChar(64)
+  reason       String      @db.VarChar(500)
+  startAt      DateTime
+  endAt        DateTime
+  status       LeaveStatus @default(pending)
+  reviewerId   String?
+  reviewedAt   DateTime?
+  reviewRemark String?     @db.VarChar(500)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  butler       Butler      @relation(fields: [butlerId], references: [id])
+  reviewer     User?       @relation("LeaveReviewer", fields: [reviewerId], references: [id])
+
+  @@index([butlerId])
+  @@index([status])
+  @@index([startAt, endAt])
+  @@index([reviewerId], map: "ButlerLeave_reviewerId_fkey")
+}
+
+/// 评价对象是“某个订单下的某个管家”，因此必须关联 assignmentId。
+model ServiceReview {
+  id                 String                @id @default(cuid())
+  orderId            String
+  assignmentId       String
+  butlerId           String
+  reviewerId         String
+  reviewerRole       RoleCode
+  score              Int                   @default(5)
+  content            String?               @db.VarChar(1000)
+  tags               Json?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  attitudeScore      Int                   @default(5)
+  communicationScore Int                   @default(5)
+  complaintFlag      Boolean               @default(false)
+  overallScore       Int                   @default(5)
+  punctualityScore   Int                   @default(5)
+  assignment         OrderButlerAssignment @relation(fields: [assignmentId], references: [id])
+  butler             Butler                @relation(fields: [butlerId], references: [id])
+  order              ServiceOrder          @relation(fields: [orderId], references: [id])
+  reviewer           User                  @relation("Reviewer", fields: [reviewerId], references: [id])
+
+  @@unique([assignmentId, reviewerId])
+  @@unique([assignmentId, reviewerRole])
+  @@index([orderId])
+  @@index([butlerId])
+  @@index([reviewerRole])
+  @@index([complaintFlag])
+  @@index([reviewerId], map: "ServiceReview_reviewerId_fkey")
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  recipientId String?
+  title       String    @db.VarChar(128)
+  content     String    @db.VarChar(1000)
+  type        String    @db.VarChar(64)
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  payload     Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  targetId    String?   @db.VarChar(128)
+  targetType  String?   @db.VarChar(64)
+  recipient   User?     @relation("UserNotifications", fields: [recipientId], references: [id])
+
+  @@index([recipientId, isRead])
+  @@index([targetType, targetId])
+}
+
+model OperationLog {
+  id            String   @id @default(cuid())
+  operatorId    String?
+  operationType String   @db.VarChar(64)
+  targetType    String   @db.VarChar(64)
+  targetId      String?  @db.VarChar(128)
+  beforeData    Json?
+  afterData     Json?
+  remark        String?  @db.VarChar(500)
+  ip            String?  @db.VarChar(64)
+  userAgent     String?  @db.VarChar(255)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  operator      User?    @relation("OperatorLogs", fields: [operatorId], references: [id])
+
+  @@index([operatorId])
+  @@index([operationType])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+model SystemDict {
+  id        String   @id @default(cuid())
+  dictType  String   @db.VarChar(64)
+  label     String   @db.VarChar(64)
+  value     String   @db.VarChar(64)
+  sort      Int      @default(0)
+  enabled   Boolean  @default(true)
+  remark    String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([dictType, value])
+  @@index([dictType, enabled])
+}
+
+model AbnormalRecord {
+  id           String         @id @default(cuid())
+  orderId      String?
+  butlerId     String?
+  abnormalType String         @db.VarChar(64)
+  description  String         @db.VarChar(1000)
+  status       AbnormalStatus @default(pending)
+  handledById  String?
+  handledAt    DateTime?
+  handleResult String?        @db.VarChar(1000)
+  createdById  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  butler       Butler?        @relation(fields: [butlerId], references: [id])
+  createdBy    User?          @relation("AbnormalCreatedBy", fields: [createdById], references: [id])
+  handledBy    User?          @relation("AbnormalHandledBy", fields: [handledById], references: [id])
+  order        ServiceOrder?  @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([butlerId])
+  @@index([status])
+  @@index([abnormalType])
+  @@index([createdById], map: "AbnormalRecord_createdById_fkey")
+  @@index([handledById], map: "AbnormalRecord_handledById_fkey")
+}
+
+/// 系统用户角色。Role 表保存可维护角色数据，User.roleCode 用于高频权限判断。
+enum RoleCode {
+  admin
+  hotel_frontdesk
+  dispatcher
+  butler
+  finance
+}
+
+enum UserStatus {
+  active
+  disabled
+}
+
+/// 订单状态：管家确认接单不等于开始服务；只有分配记录进入 picked_guest 后，订单才应进入 in_service。
+enum OrderStatus {
+  pending_dispatch
+  pending_confirm
+  partial_rejected
+  confirmed
+  in_service
+  partial_completed
+  pending_review
+  reviewed
+  completed
+  cancelled
+  abnormal
+}
+
+/// 每个订单下每个管家都有独立状态，不能把状态只放在订单上。
+enum AssignmentStatus {
+  pending_confirm
+  confirmed
+  rejected
+  picked_guest
+  in_service
+  completed
+  abnormal
+  reassigned
+  cancelled
+}
+
+enum PickupType {
+  airport
+  train
+}
+
+/// 管家请假由调配员审核；请假时间不能与已有订单服务时间冲突，业务接口实现时必须校验。
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+  cancelled
+  active
+  finished
+}
+
+enum ButlerStatus {
+  available
+  pending_confirm
+  confirmed_waiting
+  in_service
+  on_leave
+  suspended
+  disabled
+}
+
+enum HotelStatus {
+  active
+  disabled
+}
+
+enum SettlementStatus {
+  unsettled
+  settled
+}
+
+enum AbnormalStatus {
+  pending
+  processing
+  resolved
+  ignored
+}

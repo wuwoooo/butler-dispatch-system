@@ -1,0 +1,81 @@
+/* ==============================
+   全局样式 — 阿鹏哥旅游·管家调配系统
+   品牌色系：天蓝 #2AACE2 → 深蓝 #1B8FD4
+   ============================== */
+
+page {
+  min-height: 100%;
+  background: #EFF3FA;
+  color: #1A2332;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+view,
+text,
+input,
+textarea,
+button {
+  box-sizing: border-box;
+}
+
+button {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1.2;
+}
+
+button::after {
+  border: 0;
+}
+
+/* 页面底色 */
+.page {
+  min-height: 100vh;
+  background: #EFF3FA;
+}
+
+/* 安全区底部 */
+.safe-bottom {
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+/* ── 卡片基础 ── */
+.card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:active {
+  transform: scale(0.985);
+  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.08);
+}
+
+/* ── 辅助文字 ── */
+.muted {
+  color: #5A6B82;
+}
+
+.danger-text {
+  color: #EF4444;
+}
+
+/* ── 固定底部操作栏 ── */
+.fixed-action {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: rgba(239, 243, 250, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 -4rpx 20rpx rgba(26, 35, 50, 0.08);
+  z-index: 20;
+}

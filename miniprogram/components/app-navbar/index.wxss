@@ -1,0 +1,185 @@
+/* 底部导航栏 */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  height: calc(160rpx + env(safe-area-inset-bottom));
+  padding: 0 0 env(safe-area-inset-bottom);
+  display: flex;
+  justify-content: space-around;
+  border-top: 1rpx solid #E5EAF2;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -2rpx 10rpx rgba(26, 35, 50, 0.04);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160rpx;
+  color: #94A3B8;
+  font-size: 22rpx;
+  position: relative;
+  min-width: 0;
+}
+
+.tab-item-inner {
+  height: 96rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-icon {
+  width: 42rpx;
+  height: 42rpx;
+  position: relative;
+}
+
+.tab-text {
+  margin-top: 6rpx;
+  min-height: 30rpx;
+  line-height: 30rpx;
+  white-space: nowrap;
+}
+
+.tab-icon::before,
+.tab-icon::after {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.icon-home::before {
+  left: 10rpx;
+  top: 15rpx;
+  width: 24rpx;
+  height: 20rpx;
+  border: 4rpx solid currentColor;
+  border-top: 0;
+  border-radius: 4rpx;
+}
+
+.icon-home::after {
+  left: 10rpx;
+  top: 8rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border-left: 4rpx solid currentColor;
+  border-top: 4rpx solid currentColor;
+  transform: rotate(45deg);
+  border-radius: 4rpx 0 0 0;
+}
+
+.icon-orders::before {
+  left: 11rpx;
+  top: 7rpx;
+  width: 22rpx;
+  height: 30rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 4rpx;
+}
+
+.icon-orders::after {
+  left: 16rpx;
+  top: 16rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-top: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+}
+
+.icon-leave::before {
+  left: 8rpx;
+  top: 9rpx;
+  width: 28rpx;
+  height: 28rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.icon-leave::after {
+  left: 21rpx;
+  top: 14rpx;
+  width: 10rpx;
+  height: 14rpx;
+  border-left: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+}
+
+.icon-data::before {
+  left: 8rpx;
+  bottom: 7rpx;
+  width: 6rpx;
+  height: 18rpx;
+  background: currentColor;
+  border-radius: 4rpx;
+  box-shadow: 11rpx -8rpx 0 currentColor, 22rpx -15rpx 0 currentColor;
+}
+
+.icon-data::after {
+  left: 7rpx;
+  right: 7rpx;
+  bottom: 5rpx;
+  height: 4rpx;
+  background: currentColor;
+  border-radius: 4rpx;
+}
+
+.icon-profile::before {
+  left: 15rpx;
+  top: 7rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.icon-profile::after {
+  left: 9rpx;
+  top: 27rpx;
+  width: 26rpx;
+  height: 12rpx;
+  border: 4rpx solid currentColor;
+  border-bottom: 0;
+  border-radius: 20rpx 20rpx 0 0;
+}
+
+.icon-butlers::before {
+  left: 8rpx;
+  top: 18rpx;
+  width: 28rpx;
+  height: 18rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 14rpx 14rpx 8rpx 8rpx;
+}
+
+.icon-butlers::after {
+  left: 15rpx;
+  top: 7rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.active {
+  color: #2AACE2;
+  font-weight: 700;
+}
+
+.active::before {
+  content: '';
+  position: absolute;
+  top: 4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44rpx;
+  height: 4rpx;
+  border-radius: 999rpx;
+  background: #2AACE2;
+}

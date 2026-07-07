@@ -1,0 +1,4 @@
+<button class="primary-button button-{{tone}} {{disabled ? 'is-disabled' : ''}}" bindtap="handleTap">
+  {{text}}
+</button>
+

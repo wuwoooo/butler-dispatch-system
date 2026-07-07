@@ -1,0 +1,88 @@
+/* 请假审核 */
+.tabs {
+  white-space: nowrap;
+  margin: 12rpx 0 20rpx;
+  padding-left: 32rpx;
+}
+
+.tab {
+  display: inline-flex;
+  margin-right: 16rpx;
+  padding: 16rpx 28rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #5A6B82;
+  font-size: 26rpx;
+  font-weight: 500;
+  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+  transition: all 0.25s ease;
+}
+
+.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #2AACE2 0%, #1B8FD4 100%);
+  font-weight: 700;
+  box-shadow: 0 6rpx 18rpx rgba(42, 172, 226, 0.30);
+}
+
+.leave-card {
+  margin: 20rpx 32rpx;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(26, 35, 50, 0.06),
+              0 12rpx 32rpx rgba(26, 35, 50, 0.04);
+}
+
+.leave-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.leave-type {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #1A2332;
+}
+
+.time,
+.reason {
+  margin-top: 16rpx;
+  color: #5A6B82;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.actions {
+  margin-top: 24rpx;
+  display: flex;
+  gap: 18rpx;
+}
+
+.approve,
+.reject {
+  flex: 1;
+  height: 76rpx;
+  border-radius: 999rpx;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.approve {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  box-shadow: 0 4rpx 14rpx rgba(16, 185, 129, 0.30);
+}
+
+.reject {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  box-shadow: 0 4rpx 14rpx rgba(239, 68, 68, 0.30);
+}
+
+.approve:active,
+.reject:active {
+  transform: scale(0.97);
+}

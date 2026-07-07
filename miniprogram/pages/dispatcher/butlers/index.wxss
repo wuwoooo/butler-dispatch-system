@@ -1,0 +1,13 @@
+/* 管家列表 */
+.search {
+  margin: 8rpx 32rpx 20rpx;
+}
+
+.search input {
+  height: 84rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  font-size: 27rpx;
+  box-shadow: 0 2rpx 8rpx rgba(26, 35, 50, 0.06);
+}

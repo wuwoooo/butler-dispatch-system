@@ -1,0 +1,16 @@
+<page-container title="请假记录" subtitle="查看审核进度和历史记录">
+  <button class="apply-btn" bindtap="apply">新增请假申请</button>
+  <view wx:for="{{items}}" wx:key="id" class="leave-card">
+    <view class="leave-top">
+      <view class="leave-type">{{item.typeText}}</view>
+      <status-tag type="leave" value="{{item.status}}" />
+    </view>
+    <view class="time">{{item.startText}} 至 {{item.endText}}</view>
+    <view class="reason">原因：{{item.reason}}</view>
+    <view wx:if="{{item.reviewRemark}}" class="reject">驳回原因：{{item.reviewRemark}}</view>
+    <button wx:if="{{item.status === 'pending'}}" class="cancel-btn" data-id="{{item.id}}" bindtap="cancel">撤销申请</button>
+  </view>
+  <empty-state wx:if="{{items.length === 0}}" title="暂无请假记录" description="需要休息时可以提交请假申请" buttonText="去申请" bind:refresh="apply" />
+  <app-navbar role="butler" active="leave" />
+</page-container>
+
