@@ -1,4 +1,4 @@
-<page-container title="我的数据" subtitle="接单、评价、请假综合统计">
+<page-container title="我的数据">
   <view class="tab-scroll-wrap anim-fade-in">
     <view class="tab-capsule-group tab-capsule-three">
       <view wx:for="{{rangeTabs}}" wx:key="key" class="tab-capsule {{range === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchRange">{{item.text}}</view>
@@ -57,7 +57,7 @@
           <view class="mini-row-dot"></view>
           <view>
             <view class="row-title">{{item.hotel.name}} · {{item.guestName}}</view>
-            <view class="row-sub">入住人数 {{item.guestCount}} · 评分 {{item.score || '-'}}</view>
+            <view class="row-sub">入离 {{item.stayDateText}} · {{item.guestCount}}人 · 评分 {{item.score || '-'}}</view>
           </view>
         </view>
         <view class="row-status">{{item.statusText}}</view>

@@ -255,22 +255,43 @@ a {
   text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
 }
 
-.login-icp-footer {
+.login-beian-footer {
   position: absolute;
   left: 50%;
   bottom: 22px;
   z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 16px;
   transform: translateX(-50%);
+  width: min(100% - 32px, 720px);
+}
+
+.login-beian-link {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   color: rgba(203, 213, 225, 0.72) !important;
   font-size: 12px;
   line-height: 1.6;
   letter-spacing: 0;
   text-decoration: none !important;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
-.login-icp-footer:hover {
+.login-beian-link:hover {
   color: #93c5fd !important;
+}
+
+.login-mps-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 /* ==================== 按钮与表单现代微动 ==================== */

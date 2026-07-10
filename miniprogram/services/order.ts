@@ -23,10 +23,10 @@ export function rejectOrder(assignmentId: string, rejectReason: string) {
   return http.post(`/api/butler/orders/${assignmentId}/reject`, { rejectReason });
 }
 
-export function pickedGuest(assignmentId: string) {
-  return http.post(`/api/butler/orders/${assignmentId}/picked-guest`);
+export function pickedGuest(assignmentId: string, occurredAt?: string) {
+  return http.post(`/api/butler/orders/${assignmentId}/picked-guest`, occurredAt ? { occurredAt } : {});
 }
 
-export function completeOrder(assignmentId: string) {
-  return http.post(`/api/butler/orders/${assignmentId}/complete`);
+export function completeOrder(assignmentId: string, occurredAt?: string) {
+  return http.post(`/api/butler/orders/${assignmentId}/complete`, occurredAt ? { occurredAt } : {});
 }

@@ -84,9 +84,25 @@ export async function updateOrderStatusAfterReject(
   client: DbClient = prisma,
   context?: StatusContext
 ) {
-  return updateOrderStatus(orderId, "partial_rejected", client, {
+  const remainingActiveCount = await client.orderButlerAssignment.count({
+    where: {
+      orderId,
+      status: {
+        in: ["pending_confirm", "confirmed", "picked_guest", "in_service"]
+      }
+    }
+  });
+
+  if (remainingActiveCount > 0) {
+    return updateOrderStatus(orderId, "partial_rejected", client, {
+      ...context,
+      remark: context?.remark ?? "管家拒单后仍有其他有效派单"
+    });
+  }
+
+  return updateOrderStatus(orderId, "pending_dispatch", client, {
     ...context,
-    remark: context?.remark ?? "管家拒单后订单进入部分拒单"
+    remark: context?.remark ?? "全部待确认管家拒单后订单回到待分配"
   });
 }
 

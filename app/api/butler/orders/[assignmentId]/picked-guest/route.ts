@@ -3,11 +3,13 @@ import { NextRequest } from "next/server";
 import { notifyRoleUsers, notifyUsers } from "@/lib/notification";
 import {
   refreshButlerStatus,
+  servingAssignmentStatuses,
   updateOrderStatusAfterPickedGuest
 } from "@/lib/order-status";
 import { prisma } from "@/lib/prisma";
 import { getRequestMeta, requireApiRoles } from "@/lib/request";
 import { errorResponse, handleApiError, successResponse } from "@/lib/response";
+import { butlerServiceActionSchema } from "@/lib/validators";
 
 type RouteContext = {
   params: Promise<{ assignmentId: string }>;
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const meta = getRequestMeta(request);
 
   try {
+    const body = butlerServiceActionSchema.parse(await request.json().catch(() => ({})));
     const { assignmentId } = await context.params;
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.orderButlerAssignment.findUnique({
@@ -49,13 +52,41 @@ export async function POST(request: NextRequest, context: RouteContext) {
         throw new ApiError("ASSIGNMENT_STATUS_NOT_ALLOWED", "只有已确认状态可以点击已接到客人", 422);
       }
 
-      const now = new Date();
+      const servingAssignment = await tx.orderButlerAssignment.findFirst({
+        where: {
+          id: { not: assignmentId },
+          butlerId: before.butlerId,
+          status: { in: servingAssignmentStatuses },
+          order: {
+            status: {
+              notIn: ["cancelled", "abnormal", "pending_review", "reviewed", "completed"]
+            }
+          }
+        },
+        select: {
+          order: {
+            select: {
+              orderNo: true
+            }
+          }
+        }
+      });
+
+      if (servingAssignment) {
+        throw new ApiError(
+          "BUTLER_ALREADY_IN_SERVICE",
+          `当前管家正在接待订单 ${servingAssignment.order.orderNo}，请先完成当前接待后再操作其它订单`,
+          422
+        );
+      }
+
+      const occurredAt = body.occurredAt ? new Date(body.occurredAt) : new Date();
       await tx.orderButlerAssignment.update({
         where: { id: assignmentId },
         data: {
           status: "picked_guest",
-          pickedGuestAt: now,
-          serviceStartedAt: now
+          pickedGuestAt: occurredAt,
+          serviceStartedAt: occurredAt
         }
       });
 

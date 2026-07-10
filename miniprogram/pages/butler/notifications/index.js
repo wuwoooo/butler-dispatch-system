@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const notification_1 = require("../../../services/notification");
+const notification_navigation_1 = require("../../../utils/notification-navigation");
 Page({
     data: {
         items: []
@@ -18,8 +19,9 @@ Page({
     async open(event) {
         const item = event.detail;
         await (0, notification_1.readNotification)(item.id);
-        if (item.targetType === "ServiceOrder" && item.targetId) {
-            wx.navigateTo({ url: `/pages/butler/order-detail/index?orderId=${item.targetId}` });
+        const url = (0, notification_navigation_1.resolveNotificationUrl)(item, "butler");
+        if (url) {
+            wx.navigateTo({ url });
             return;
         }
         this.load();

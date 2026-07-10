@@ -119,11 +119,10 @@ export function OrderFormModal({
         form={form}
         layout="vertical"
         onValuesChange={(changedValues) => {
-          if (mode !== "create") {
-            return;
-          }
-
-          if (Object.prototype.hasOwnProperty.call(changedValues, "hotelId")) {
+          if (
+            mode === "create" &&
+            Object.prototype.hasOwnProperty.call(changedValues, "hotelId")
+          ) {
             const hotel = hotels.find((item) => item.id === changedValues.hotelId);
             form.setFieldsValue({
               roomType: getDefaultRoomType(hotel)
@@ -134,7 +133,9 @@ export function OrderFormModal({
             const checkInDate = changedValues.checkInDate as Dayjs | null;
 
             form.setFieldsValue({
-              checkOutDate: checkInDate ? checkInDate.add(1, "day") : null,
+              ...(mode === "create"
+                ? { checkOutDate: checkInDate ? checkInDate.add(1, "day") : null }
+                : {}),
               arrivalTime: checkInDate
                 ? getArrivalTimeOnCheckInDate(checkInDate)
                 : null
@@ -150,20 +151,20 @@ export function OrderFormModal({
           });
         }}
       >
-        <div
-          style={{
-            marginBottom: 16,
-            padding: "10px 12px",
-            borderRadius: 8,
-            background: "rgba(59, 130, 246, 0.08)",
-            color: "#475569",
-            fontSize: 13
-          }}
-        >
-          {mode === "create"
-            ? "订单编号在保存后由系统自动生成，无需人工填写。"
-            : `当前订单编号：${String(order?.orderNo ?? "-")}`}
-        </div>
+        {mode === "edit" ? (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "10px 12px",
+              borderRadius: 8,
+              background: "rgba(59, 130, 246, 0.08)",
+              color: "#475569",
+              fontSize: 13
+            }}
+          >
+            当前订单编号：{String(order?.orderNo ?? "-")}
+          </div>
+        ) : null}
         <Row gutter={[16, 0]}>
           <Col span={12}>
             <Form.Item

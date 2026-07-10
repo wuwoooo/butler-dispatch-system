@@ -6,6 +6,26 @@ export const editableBusinessDictTypes = [
 
 export type EditableBusinessDictType = (typeof editableBusinessDictTypes)[number];
 
+export const defaultBusinessDictItems: Array<{
+  dictType: EditableBusinessDictType;
+  label: string;
+  value: string;
+  sort: number;
+}> = [
+  { dictType: "leave_type", label: "事假", value: "personal", sort: 1 },
+  { dictType: "leave_type", label: "病假", value: "sick", sort: 2 },
+  { dictType: "leave_type", label: "休息", value: "rest", sort: 3 },
+  { dictType: "leave_type", label: "其他", value: "other", sort: 4 },
+  { dictType: "reject_reason", label: "时间冲突", value: "time_conflict", sort: 1 },
+  { dictType: "reject_reason", label: "身体原因", value: "health_reason", sort: 2 },
+  { dictType: "reject_reason", label: "临时有事", value: "temporary_matter", sort: 3 },
+  { dictType: "reject_reason", label: "其他", value: "other", sort: 4 },
+  { dictType: "review_tag", label: "准时", value: "ontime", sort: 1 },
+  { dictType: "review_tag", label: "热情", value: "warm", sort: 2 },
+  { dictType: "review_tag", label: "细心", value: "careful", sort: 3 },
+  { dictType: "review_tag", label: "沟通顺畅", value: "smooth_communication", sort: 4 }
+];
+
 export const businessDictTypeMeta: Record<
   EditableBusinessDictType,
   {

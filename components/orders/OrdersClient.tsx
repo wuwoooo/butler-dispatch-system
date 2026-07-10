@@ -162,13 +162,20 @@ export function OrdersClient() {
     const url = editingOrder ? `/api/orders/${editingOrder.id}` : "/api/orders";
     const method = editingOrder ? "PUT" : "POST";
 
-    await request(url, {
-      method,
-      body: JSON.stringify(values)
-    });
-    message.success(editingOrder ? "订单已更新" : "订单已创建");
-    setModalState({ open: false, mode: "create", order: null });
-    await loadOrders();
+    try {
+      await request(url, {
+        method,
+        body: JSON.stringify(values)
+      });
+      message.success(editingOrder ? "订单已更新" : "订单已创建");
+      setModalState({ open: false, mode: "create", order: null });
+      await loadOrders();
+    } catch (error) {
+      modal.error({
+        title: editingOrder ? "更新订单失败" : "创建订单失败",
+        content: error instanceof Error ? error.message : "保存订单失败"
+      });
+    }
   }
 
   async function openDetail(orderId: string) {

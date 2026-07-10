@@ -34,6 +34,13 @@ const dispatchableStatuses = [
   "partial_rejected",
   "pending_confirm"
 ];
+const blockingSameOrderAssignmentStatuses = [
+  "pending_confirm",
+  "confirmed",
+  "picked_guest",
+  "in_service",
+  "reassigned"
+];
 export function DispatchClient() {
   const { message, modal } = App.useApp();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
@@ -105,7 +112,8 @@ export function DispatchClient() {
   const existingAssignmentByButlerId = useMemo(() => {
     const entries =
       currentOrder?.assignments?.flatMap((assignment): Array<[string, OrderAssignmentRecord]> =>
-        assignment.butler?.id && assignment.status !== "cancelled"
+        assignment.butler?.id &&
+        blockingSameOrderAssignmentStatuses.includes(assignment.status)
           ? [[assignment.butler.id, assignment]]
           : []
       ) ?? [];

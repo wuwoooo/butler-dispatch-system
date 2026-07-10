@@ -1,5 +1,5 @@
 import { confirmOrder, getButlerOrders, rejectOrder } from "../../../services/order";
-import { rejectReasons } from "../../../utils/constants";
+import { getBusinessDictItems } from "../../../services/business-dict";
 
 const tabs = [
   { key: "pending", text: "待接单" },
@@ -15,6 +15,7 @@ Page({
     active: "pending",
     groups: {} as AnyRecord,
     items: [] as AnyRecord[],
+    rejectReasons: [] as string[],
     loading: true
   },
   // 增加时间戳用于防抖防连击
@@ -24,6 +25,7 @@ Page({
     if (tabs.some((item) => item.key === options.tab)) {
       this.setData({ active: options.tab });
     }
+    this.loadRejectReasons();
   },
   onShow() {
     this.load();
@@ -41,6 +43,14 @@ Page({
       // request 层已提示错误。
     } finally {
       this.setData({ loading: false });
+    }
+  },
+  async loadRejectReasons() {
+    try {
+      const data = await getBusinessDictItems("reject_reason");
+      this.setData({ rejectReasons: (data.items || []).map((item) => item.label) });
+    } catch {
+      this.setData({ rejectReasons: [] });
     }
   },
   switchTab(event: AnyRecord) {
@@ -77,6 +87,12 @@ Page({
     this.lastRejectTime = now;
 
     const detail = event.detail || {};
+    const rejectReasons = this.data.rejectReasons;
+    if (rejectReasons.length === 0) {
+      wx.showToast({ title: "暂无可用拒单原因", icon: "none" });
+      return;
+    }
+
     wx.showActionSheet({
       itemList: rejectReasons,
       success: (res: AnyRecord) => {

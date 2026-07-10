@@ -32,14 +32,14 @@ export type ButlerOrderTimeConflict = {
 
 /**
  * 订单占用管家的时间段统一按入住服务窗口计算：
- * 从“到达时间”和“入住日期”中较早者开始，到“离店日期”结束。
+ * 从“到达时间”和“入住日期”中较早者开始，到“离店日期”当天结束。
  * 离店日期是订单必填字段；如果录入值不晚于开始时间，调用方应在订单校验层拦截。
  */
 export function getOrderServiceWindow(order: OrderWindowSource): TimeWindow {
   const startAt = new Date(
     Math.min(order.arrivalTime.getTime(), order.checkInDate.getTime())
   );
-  const endAt = order.checkOutDate;
+  const endAt = getOrderServiceEndOfDay(order);
 
   return { startAt, endAt };
 }

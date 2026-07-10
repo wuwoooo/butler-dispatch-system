@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const butler_1 = require("../../../services/butler");
+const format_1 = require("../../../utils/format");
 const status_map_1 = require("../../../utils/status-map");
 const rangeTabs = [
     { key: "month", text: "本月" },
@@ -25,8 +26,11 @@ Page({
     },
     async load() {
         const rangeParams = buildRangeParams(this.data.range);
+        const statsParams = this.data.range === "all"
+            ? { range: "all" }
+            : Object.assign({ range: "custom" }, rangeParams);
         const [stats, records, reviews] = await Promise.all([
-            (0, butler_1.getButlerStatistics)({ range: this.data.range }),
+            (0, butler_1.getButlerStatistics)(statsParams),
             (0, butler_1.getButlerOrderRecords)(Object.assign({ pageSize: 5 }, rangeParams)),
             (0, butler_1.getButlerReviews)(rangeParams)
         ]);
@@ -38,7 +42,7 @@ Page({
         };
         this.setData({
             stats,
-            records: (records.items || []).map((item) => (Object.assign(Object.assign({}, item), { statusText: item.completed ? "已完成" : (0, status_map_1.getStatus)("assignment", item.status).text }))),
+            records: (records.items || []).map((item) => (Object.assign(Object.assign({}, item), { stayDateText: `${(0, format_1.formatDate)(item.checkInDate)} 至 ${(0, format_1.formatDate)(item.checkOutDate)}`, statusText: item.completed ? "已完成" : (0, status_map_1.getStatus)("assignment", item.status).text }))),
             reviews: (reviews.items || []).slice(0, 3).map((item) => {
                 var _a;
                 return (Object.assign(Object.assign({}, item), { orderId: item.orderId || ((_a = item.order) === null || _a === void 0 ? void 0 : _a.id) }));
@@ -80,8 +84,9 @@ function buildRangeParams(range) {
     const start = range === "year"
         ? new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0)
         : new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
+    const end = range === "year"
+        ? new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999)
+        : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     return {
         startTime: start.toISOString(),
         endTime: end.toISOString()

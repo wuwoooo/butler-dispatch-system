@@ -100,6 +100,17 @@ export function AdminShell({
       return;
     }
 
+    const handleNotificationsChanged = () => {
+      fetch("/api/notifications/unread-count")
+        .then((response) => response.json())
+        .then((result) => {
+          if (result.success) {
+            setUnreadCount(result.data.count);
+          }
+        })
+        .catch(() => undefined);
+    };
+
     fetch("/api/notifications/unread-count")
       .then((response) => response.json())
       .then((result) => {
@@ -112,9 +123,11 @@ export function AdminShell({
         }
       })
       .catch(() => undefined);
+    window.addEventListener("notifications:changed", handleNotificationsChanged);
 
     return () => {
       active = false;
+      window.removeEventListener("notifications:changed", handleNotificationsChanged);
     };
   }, [currentUser]);
 

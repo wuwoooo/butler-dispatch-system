@@ -3,6 +3,7 @@ import {
   getButlerReviews,
   getButlerStatistics
 } from "../../../services/butler";
+import { formatDate } from "../../../utils/format";
 import { getStatus } from "../../../utils/status-map";
 
 const rangeTabs = [
@@ -29,8 +30,12 @@ Page({
   },
   async load() {
     const rangeParams = buildRangeParams(this.data.range);
+    const statsParams =
+      this.data.range === "all"
+        ? { range: "all" }
+        : { range: "custom", ...rangeParams };
     const [stats, records, reviews] = await Promise.all([
-      getButlerStatistics({ range: this.data.range }),
+      getButlerStatistics(statsParams),
       getButlerOrderRecords({ pageSize: 5, ...rangeParams }),
       getButlerReviews(rangeParams)
     ]);
@@ -46,6 +51,7 @@ Page({
       stats,
       records: (records.items || []).map((item: AnyRecord) => ({
         ...item,
+        stayDateText: `${formatDate(item.checkInDate)} 至 ${formatDate(item.checkOutDate)}`,
         statusText: item.completed ? "已完成" : getStatus("assignment", item.status).text
       })),
       reviews: (reviews.items || []).slice(0, 3).map((item: AnyRecord) => ({
@@ -93,8 +99,10 @@ function buildRangeParams(range: string) {
     range === "year"
       ? new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0)
       : new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-  const end = new Date(now);
-  end.setHours(23, 59, 59, 999);
+  const end =
+    range === "year"
+      ? new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999)
+      : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
   return {
     startTime: start.toISOString(),

@@ -9,6 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { getRequestMeta, requireApiRoles } from "@/lib/request";
 import { errorResponse, handleApiError, successResponse } from "@/lib/response";
+import { butlerServiceActionSchema } from "@/lib/validators";
 
 type RouteContext = {
   params: Promise<{ assignmentId: string }>;
@@ -28,6 +29,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const meta = getRequestMeta(request);
 
   try {
+    const body = butlerServiceActionSchema.parse(await request.json().catch(() => ({})));
     const { assignmentId } = await context.params;
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.orderButlerAssignment.findUnique({
@@ -54,12 +56,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
         throw new ApiError("ASSIGNMENT_STATUS_NOT_ALLOWED", "当前分配状态不能完成服务", 422);
       }
 
-      const now = new Date();
+      const occurredAt = body.occurredAt ? new Date(body.occurredAt) : new Date();
+      if (before.pickedGuestAt && occurredAt < before.pickedGuestAt) {
+        throw new ApiError("COMPLETED_AT_BEFORE_PICKED_GUEST", "完成时间不能早于接到客人时间", 422);
+      }
+
       await tx.orderButlerAssignment.update({
         where: { id: assignmentId },
         data: {
           status: "completed",
-          completedAt: now
+          completedAt: occurredAt
         }
       });
 

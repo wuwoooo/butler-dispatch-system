@@ -1,4 +1,4 @@
-<page-container title="请假审核" subtitle="处理管家请假申请">
+<page-container title="请假审核">
   <scroll-view class="tab-scroll anim-fade-in" scroll-x enhanced show-scrollbar="{{false}}">
     <view class="tab-capsule-group">
       <view wx:for="{{tabs}}" wx:key="key" class="tab-capsule {{active === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchTab">{{item.text}}</view>

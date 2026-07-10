@@ -26,6 +26,10 @@ type ApiResult<T> =
   | { success: true; data: T; message: string }
   | { success: false; error: { code: string; message: string } };
 
+function notifyUnreadCountChanged() {
+  window.dispatchEvent(new Event("notifications:changed"));
+}
+
 export function NotificationsClient() {
   const { message } = App.useApp();
   const [form] = Form.useForm();
@@ -97,6 +101,7 @@ export function NotificationsClient() {
   async function markRead(id: string) {
     try {
       await request(`/api/notifications/${id}/read`, { method: "POST" });
+      notifyUnreadCountChanged();
       message.success("已标记为已读");
       await loadData();
     } catch (error) {
@@ -107,6 +112,7 @@ export function NotificationsClient() {
   async function readAll() {
     try {
       await request("/api/notifications/read-all", { method: "POST" });
+      notifyUnreadCountChanged();
       message.success("全部通知已标记为已读");
       await loadData(1, pagination.pageSize);
     } catch (error) {

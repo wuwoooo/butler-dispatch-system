@@ -25,7 +25,6 @@ export const unavailableSameOrderStatuses: AssignmentStatus[] = [
   "confirmed",
   "picked_guest",
   "in_service",
-  "rejected",
   "reassigned"
 ];
 
@@ -130,6 +129,24 @@ export async function getOrderDetail(orderId: string, client: DbClient = prisma)
             }
           }
         }
+      },
+      reviews: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          butler: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          reviewer: {
+            select: {
+              id: true,
+              name: true,
+              roleCode: true
+            }
+          }
+        }
       }
     }
   });
@@ -141,17 +158,8 @@ export async function getOrderDetail(orderId: string, client: DbClient = prisma)
   const [operationLogs, notifications] = await Promise.all([
     client.operationLog.findMany({
       where: {
-        targetType: {
-          in: ["ServiceOrder", "OrderButlerAssignment"]
-        },
-        OR: [
-          { targetId: orderId },
-          {
-            targetId: {
-              in: order.assignments.map((assignment) => assignment.id)
-            }
-          }
-        ]
+        targetType: "ServiceOrder",
+        targetId: orderId
       },
       orderBy: { createdAt: "desc" },
       include: {
@@ -310,7 +318,7 @@ export async function getButlerAvailabilityForOrder(
     );
 
     if (sameOrderAssignment) {
-      reasons.push("该订单已有该管家分配记录");
+      reasons.push("该订单已有该管家有效派单");
     }
 
     const conflictingAssignments = butler.assignments.filter((assignment) => {

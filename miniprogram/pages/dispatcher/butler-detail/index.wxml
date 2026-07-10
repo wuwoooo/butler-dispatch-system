@@ -1,4 +1,4 @@
-<page-container title="{{butler.name || '管家详情'}}" subtitle="档案、状态与当前接待">
+<page-container title="{{butler.name || '管家详情'}}">
   <view class="butler-hero-card anim-fade-in">
     <view class="avatar-glow"></view>
     <view class="avatar">{{avatar}}</view>

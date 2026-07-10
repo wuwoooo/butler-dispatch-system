@@ -44,6 +44,21 @@
     </view>
   </section-card>
 
+  <view wx:if="{{reviews.length}}" class="anim-fade-in anim-stagger-5">
+    <section-card title="服务评价">
+      <view wx:for="{{reviews}}" wx:key="id" class="review-row">
+        <view class="review-row-top">
+          <view class="review-score">综合评分 {{item.overallScore}} 分</view>
+          <view class="review-meta">{{item.reviewerRoleText}} · {{item.reviewerName}}</view>
+        </view>
+        <view class="review-sub">服务 {{item.attitudeScore}} · 准时 {{item.punctualityScore}} · 沟通 {{item.communicationScore}}</view>
+        <view wx:if="{{item.tagsText}}" class="review-tags">{{item.tagsText}}</view>
+        <view class="review-content">“{{item.content || '已默认好评'}}”</view>
+        <view class="review-time">{{item.reviewedAtText}}</view>
+      </view>
+    </section-card>
+  </view>
+
   <view wx:if="{{actions.length}}" class="fixed-action anim-fade-in anim-stagger-5">
     <view wx:for="{{actions}}" wx:key="action" class="action-gap">
       <primary-button
@@ -62,3 +77,9 @@
     </view>
   </view>
 </page-container>
+<occurred-at-picker
+  visible="{{occurredAtPicker.visible}}"
+  title="{{occurredAtPicker.title}}"
+  bind:confirm="handleOccurredAtConfirm"
+  bind:cancel="handleOccurredAtCancel"
+/>

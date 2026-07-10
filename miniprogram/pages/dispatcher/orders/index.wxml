@@ -1,4 +1,4 @@
-<page-container title="订单调配" subtitle="按状态快速处理订单">
+<page-container title="订单调配">
   <view class="search-bar anim-fade-in">
     <view class="search-input-wrap">
       <view class="search-icon"></view>

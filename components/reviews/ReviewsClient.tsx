@@ -67,6 +67,18 @@ type ReviewFormValues = {
   complaintFlag?: boolean;
 };
 
+type PendingReviewItem = {
+  key: string;
+  orderId: string;
+  orderNo: string;
+  hotelName: string;
+  guestName: string;
+  butlerId: string;
+  butlerName: string;
+  completedAt?: string | null;
+  orderUpdatedAt: string;
+};
+
 const reviewerRoleOptions = [
   { label: "酒店前台", value: "hotel_frontdesk" },
   { label: "调配员", value: "dispatcher" },
@@ -81,6 +93,20 @@ const roleLabels: Record<string, string> = {
   finance: "财务"
 };
 
+const reviewableOrderStatuses = ["pending_review", "reviewed", "completed"];
+
+const defaultReviewValues = {
+  overallScore: 5,
+  attitudeScore: 5,
+  punctualityScore: 5,
+  communicationScore: 5,
+  complaintFlag: false
+};
+
+function canRoleCreateReview(roleCode?: string | null) {
+  return roleCode === "admin" || roleCode === "dispatcher" || roleCode === "hotel_frontdesk";
+}
+
 export function ReviewsClient() {
   const { message } = App.useApp();
   const [filterForm] = Form.useForm();
@@ -90,11 +116,13 @@ export function ReviewsClient() {
   const [hotels, setHotels] = useState<HotelSummary[]>([]);
   const [butlers, setButlers] = useState<ButlerSummary[]>([]);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [pendingReviews, setPendingReviews] = useState<PendingReviewItem[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 });
   const [detail, setDetail] = useState<ReviewRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("补录评价");
 
   const canCreate =
     currentUser?.roleCode === "admin" ||
@@ -124,23 +152,125 @@ export function ReviewsClient() {
     const me = await request<{ user: CurrentUser }>("/api/auth/me");
     setCurrentUser(me.user);
 
-    const [orderData, hotelData] = await Promise.all([
-      request<{ items: OrderRecord[] }>("/api/orders?page=1&pageSize=100"),
+    const [reviewableOrders, existingRoleReviews, hotelData] = await Promise.all([
+      loadReviewableOrders(),
+      canRoleCreateReview(me.user.roleCode)
+        ? loadReviewsByRole(me.user.roleCode)
+        : Promise.resolve([]),
       me.user.roleCode !== "butler"
         ? request<{ items: HotelSummary[] }>("/api/hotels")
         : Promise.resolve({ items: [] })
     ]);
-    setOrders(
-      orderData.items.filter((order) =>
-        ["pending_review", "reviewed", "completed"].includes(order.status)
-      )
-    );
+    setOrders(reviewableOrders);
+    setPendingReviews(buildPendingReviews(reviewableOrders, existingRoleReviews));
     setHotels(hotelData.items);
 
     if (["admin", "dispatcher", "finance"].includes(me.user.roleCode)) {
       const butlerData = await request<{ items: ButlerSummary[] }>("/api/butlers");
       setButlers(butlerData.items);
     }
+  }
+
+  async function loadReviewableOrders() {
+    const results = await Promise.all(
+      reviewableOrderStatuses.map((status) => loadOrdersByStatus(status))
+    );
+    const orderMap = new Map<string, OrderRecord>();
+
+    for (const result of results) {
+      for (const order of result) {
+        orderMap.set(order.id, order);
+      }
+    }
+
+    return Array.from(orderMap.values()).sort(
+      (left, right) =>
+        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
+    );
+  }
+
+  async function loadOrdersByStatus(status: string) {
+    const pageSize = 100;
+    const firstPage = await request<{
+      items: OrderRecord[];
+      pagination: { page: number; pageSize: number; total: number };
+    }>(`/api/orders?page=1&pageSize=${pageSize}&status=${status}`);
+    const totalPages = Math.ceil(firstPage.pagination.total / pageSize);
+
+    if (totalPages <= 1) {
+      return firstPage.items;
+    }
+
+    const restPages = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) => index + 2).map((page) =>
+        request<{
+          items: OrderRecord[];
+          pagination: { page: number; pageSize: number; total: number };
+        }>(`/api/orders?page=${page}&pageSize=${pageSize}&status=${status}`)
+      )
+    );
+
+    return [firstPage, ...restPages].flatMap((page) => page.items);
+  }
+
+  async function loadReviewsByRole(reviewerRole: string) {
+    const pageSize = 100;
+    const firstPage = await request<{
+      items: ReviewRecord[];
+      pagination: { page: number; pageSize: number; total: number };
+    }>(`/api/reviews?page=1&pageSize=${pageSize}&reviewerRole=${reviewerRole}`);
+    const totalPages = Math.ceil(firstPage.pagination.total / pageSize);
+
+    if (totalPages <= 1) {
+      return firstPage.items;
+    }
+
+    const restPages = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) => index + 2).map((page) =>
+        request<{
+          items: ReviewRecord[];
+          pagination: { page: number; pageSize: number; total: number };
+        }>(`/api/reviews?page=${page}&pageSize=${pageSize}&reviewerRole=${reviewerRole}`)
+      )
+    );
+
+    return [firstPage, ...restPages].flatMap((page) => page.items);
+  }
+
+  function buildPendingReviews(
+    reviewableOrders: OrderRecord[],
+    existingRoleReviews: ReviewRecord[]
+  ) {
+    const reviewedAssignmentIds = new Set(
+      existingRoleReviews.map((review) => review.assignmentId)
+    );
+
+    return reviewableOrders
+      .flatMap((order) =>
+        (order.assignments ?? [])
+          .filter(
+            (assignment) =>
+              assignment.status === "completed" &&
+              !reviewedAssignmentIds.has(assignment.id)
+          )
+          .map((assignment): PendingReviewItem => ({
+            key: `${order.id}-${assignment.id}`,
+            orderId: order.id,
+            orderNo: order.orderNo,
+            hotelName: order.hotel?.name ?? "-",
+            guestName: order.guestName,
+            butlerId: assignment.butler?.id ?? "",
+            butlerName: assignment.butler?.name ?? "-",
+            completedAt: assignment.completedAt,
+            orderUpdatedAt: order.updatedAt
+          }))
+      )
+      .filter((item) => item.butlerId)
+      .sort(
+        (left, right) =>
+          new Date(right.completedAt ?? right.orderUpdatedAt).getTime() -
+          new Date(left.completedAt ?? left.orderUpdatedAt).getTime()
+      );
   }
 
   async function loadReviews(page = pagination.page, pageSize = pagination.pageSize) {
@@ -211,7 +341,7 @@ export function ReviewsClient() {
   const reviewButlerOptions = useMemo(
     () =>
       (selectedOrder?.assignments ?? [])
-        .filter((assignment) => !["rejected", "reassigned", "abnormal"].includes(assignment.status))
+        .filter((assignment) => assignment.status === "completed")
         .map((assignment) => ({
           label: assignment.butler?.name ?? "-",
           value: assignment.butler?.id ?? ""
@@ -233,11 +363,32 @@ export function ReviewsClient() {
       message.success("评价已提交");
       setModalOpen(false);
       setSelectedOrderId(null);
+      setModalTitle("补录评价");
       reviewForm.resetFields();
       await Promise.all([loadBootstrap(), loadReviews()]);
     } catch (error) {
       message.error(error instanceof Error ? error.message : "提交评价失败");
     }
+  }
+
+  function openManualReviewModal() {
+    setModalTitle("补录评价");
+    setSelectedOrderId(null);
+    reviewForm.resetFields();
+    reviewForm.setFieldsValue(defaultReviewValues);
+    setModalOpen(true);
+  }
+
+  function openPendingReviewModal(item: PendingReviewItem) {
+    setModalTitle("提交评价");
+    setSelectedOrderId(item.orderId);
+    reviewForm.resetFields();
+    reviewForm.setFieldsValue({
+      ...defaultReviewValues,
+      orderId: item.orderId,
+      butlerId: item.butlerId
+    });
+    setModalOpen(true);
   }
 
   return (
@@ -255,13 +406,49 @@ export function ReviewsClient() {
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
-                onClick={() => setModalOpen(true)}
+                onClick={openManualReviewModal}
               >
-                新建评价
+                补录评价
               </Button>
             ) : null}
           </Space>
         </Space>
+
+        {canCreate ? (
+          <div className="detail-card-group">
+            <div className="detail-card-title">
+              <i className="fa-solid fa-clipboard-check" /> 待评价订单
+            </div>
+            <SortableTable<PendingReviewItem>
+              rowKey="key"
+              size="small"
+              pagination={false}
+              dataSource={pendingReviews}
+              locale={{ emptyText: "暂无待评价订单" }}
+              columns={[
+                { title: "订单编号", dataIndex: "orderNo", width: 170 },
+                { title: "酒店", dataIndex: "hotelName", width: 180 },
+                { title: "客人", dataIndex: "guestName", width: 110 },
+                { title: "待评价管家", dataIndex: "butlerName", width: 130 },
+                {
+                  title: "服务完成时间",
+                  dataIndex: "completedAt",
+                  width: 180,
+                  render: formatDateTime
+                },
+                {
+                  title: "操作",
+                  width: 100,
+                  render: (_, record) => (
+                    <Button type="link" onClick={() => openPendingReviewModal(record)}>
+                      评价
+                    </Button>
+                  )
+                }
+              ]}
+            />
+          </div>
+        ) : null}
 
         <Form form={filterForm} layout="inline">
           <Form.Item name="orderId">
@@ -399,7 +586,7 @@ export function ReviewsClient() {
         title={
           <span>
             <i className="fa-solid fa-comment-medical" style={{ color: "var(--primary)", marginRight: 8 }} />
-            新建评价
+            {modalTitle}
           </span>
         }
         open={modalOpen}
@@ -410,6 +597,7 @@ export function ReviewsClient() {
         onCancel={() => {
           setModalOpen(false);
           setSelectedOrderId(null);
+          setModalTitle("补录评价");
           reviewForm.resetFields();
         }}
         onOk={() => reviewForm.submit()}
@@ -417,13 +605,7 @@ export function ReviewsClient() {
         <Form<ReviewFormValues>
           form={reviewForm}
           layout="vertical"
-          initialValues={{
-            overallScore: 5,
-            attitudeScore: 5,
-            punctualityScore: 5,
-            communicationScore: 5,
-            complaintFlag: false
-          }}
+          initialValues={defaultReviewValues}
           onFinish={submitReview}
         >
           <Row gutter={16}>

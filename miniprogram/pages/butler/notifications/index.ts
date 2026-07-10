@@ -3,6 +3,7 @@ import {
   readAllNotifications,
   readNotification
 } from "../../../services/notification";
+import { resolveNotificationUrl } from "../../../utils/notification-navigation";
 
 Page({
   data: {
@@ -21,10 +22,12 @@ Page({
   async open(event: AnyRecord) {
     const item = event.detail;
     await readNotification(item.id);
-    if (item.targetType === "ServiceOrder" && item.targetId) {
-      wx.navigateTo({ url: `/pages/butler/order-detail/index?orderId=${item.targetId}` });
+    const url = resolveNotificationUrl(item, "butler");
+    if (url) {
+      wx.navigateTo({ url });
       return;
     }
+
     this.load();
   },
   lastReadAllTime: 0,
@@ -44,4 +47,3 @@ Page({
     });
   }
 });
-

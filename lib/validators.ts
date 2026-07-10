@@ -200,6 +200,11 @@ const dateTimeString = (message: string) =>
     message
   });
 
+/** 管家确认接到客人或完成服务时，可回填实际发生时间。 */
+export const butlerServiceActionSchema = z.object({
+  occurredAt: dateTimeString("操作时间格式不正确").optional()
+});
+
 export const orderListQuerySchema = paginationSchema.extend({
   hotelId: z.string().optional(),
   status: z.enum(orderStatusValues).optional(),
@@ -269,13 +274,11 @@ export const leaveStatusValues = [
   "finished"
 ] as const;
 
-export const leaveTypeValues = ["personal", "sick", "rest", "other"] as const;
-
 export const leaveCreateSchema = z
   .object({
     leaveStartTime: dateTimeString("请假开始时间格式不正确"),
     leaveEndTime: dateTimeString("请假结束时间格式不正确"),
-    leaveType: z.enum(leaveTypeValues, { message: "请选择请假类型" }),
+    leaveType: z.string().min(1, "请选择请假类型").max(64, "请假类型不合法"),
     reason: z.string().min(1, "请假原因不能为空").max(500)
   })
   .superRefine((value, ctx) => {
@@ -309,7 +312,7 @@ export const leaveListQuerySchema = paginationSchema.extend({
   butlerName: z.string().max(64).optional(),
   butlerPhone: z.string().max(32).optional(),
   status: z.enum(leaveStatusValues).optional(),
-  leaveType: z.enum(leaveTypeValues).optional(),
+  leaveType: z.string().max(64).optional(),
   leaveStartTime: z.string().optional(),
   leaveEndTime: z.string().optional(),
   createdStartTime: z.string().optional(),

@@ -6,6 +6,7 @@
     "stat-card": "/components/stat-card/index",
     "order-card": "/components/order-card/index",
     "app-navbar": "/components/app-navbar/index",
-    "empty-state": "/components/empty-state/index"
+    "empty-state": "/components/empty-state/index",
+    "occurred-at-picker": "/components/occurred-at-picker/index"
   }
 }

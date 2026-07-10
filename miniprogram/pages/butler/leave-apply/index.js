@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const leave_1 = require("../../../services/leave");
-const constants_1 = require("../../../utils/constants");
+const business_dict_1 = require("../../../services/business-dict");
 const validators_1 = require("../../../utils/validators");
 Page({
     data: {
-        leaveTypes: constants_1.leaveTypes,
+        leaveTypes: [],
         leaveTypeIndex: -1, // 默认 -1 代表未选择
         startDate: "",
         startTime: "",
@@ -13,6 +13,21 @@ Page({
         endTime: "",
         reason: "",
         submitting: false
+    },
+    onLoad() {
+        this.loadLeaveTypes();
+    },
+    async loadLeaveTypes() {
+        try {
+            const data = await (0, business_dict_1.getBusinessDictItems)("leave_type");
+            this.setData({
+                leaveTypes: data.items || [],
+                leaveTypeIndex: -1
+            });
+        }
+        catch (_a) {
+            this.setData({ leaveTypes: [], leaveTypeIndex: -1 });
+        }
     },
     setStartDate(event) {
         this.setData({ startDate: event.detail.value });
@@ -66,7 +81,7 @@ Page({
                     await (0, leave_1.submitLeave)({
                         leaveStartTime: start,
                         leaveEndTime: end,
-                        leaveType: constants_1.leaveTypes[this.data.leaveTypeIndex].value,
+                        leaveType: this.data.leaveTypes[this.data.leaveTypeIndex].value,
                         reason: this.data.reason
                     });
                     wx.showToast({ title: "已提交", icon: "success" });

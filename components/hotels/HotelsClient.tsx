@@ -134,20 +134,7 @@ function HotelEditorModal({
         initialValues={initialValues}
         onFinish={onSubmit}
       >
-        {mode === "create" ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "10px 12px",
-              borderRadius: 8,
-              background: "rgba(59, 130, 246, 0.08)",
-              color: "#475569",
-              fontSize: 13
-            }}
-          >
-            系统编码将在保存后由系统自动生成，创建时不需要填写。
-          </div>
-        ) : (
+        {mode === "edit" ? (
           <Form.Item
             label="系统编码"
             name="code"
@@ -155,7 +142,7 @@ function HotelEditorModal({
           >
             <Input placeholder="仅在需要对接外部系统时填写或修改" />
           </Form.Item>
-        )}
+        ) : null}
         <Form.Item label="酒店名称" name="name" rules={[{ required: true, message: "请输入酒店名称" }]}>
           <Input />
         </Form.Item>
@@ -230,20 +217,7 @@ function RoomTypeEditorModal({
           >
             <Input placeholder="仅在需要对接外部系统时填写或修改" />
           </Form.Item>
-        ) : (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "10px 12px",
-              borderRadius: 8,
-              background: "rgba(59, 130, 246, 0.08)",
-              color: "#475569",
-              fontSize: 13
-            }}
-          >
-            系统编码将在保存后按酒店自动生成，创建时不需要填写。
-          </div>
-        )}
+        ) : null}
         <Form.Item label="房型名称" name="name" rules={[{ required: true, message: "请输入房型名称" }]}>
           <Input />
         </Form.Item>

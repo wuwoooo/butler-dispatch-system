@@ -5,9 +5,9 @@ import {
   pickedGuest,
   rejectOrder
 } from "../../../services/order";
+import { getBusinessDictItems } from "../../../services/business-dict";
 import { formatDateFull, formatDateTimeFull, maskPhone } from "../../../utils/format";
-import { getStatus, pickupTypeMap } from "../../../utils/status-map";
-import { rejectReasons } from "../../../utils/constants";
+import { getStatus, pickupTypeMap, roleMap } from "../../../utils/status-map";
 
 Page({
   data: {
@@ -16,15 +16,28 @@ Page({
     order: {} as AnyRecord,
     assignment: {} as AnyRecord,
     sections: [] as AnyRecord[],
+    reviews: [] as AnyRecord[],
     actions: [] as AnyRecord[],
+    rejectReasons: [] as string[],
+    occurredAtPicker: { visible: false, title: "" },
     currentStep: 0 // 1: 待接单, 2: 准备中, 3: 服务中, 4: 已完成
   },
   // 增加时间戳防抖防连击
   lastActionTime: 0,
   lastRejectTime: 0,
+  occurredAtPickerResolver: null as ((occurredAt: string | null) => void) | null,
   onLoad(query: AnyRecord) {
     this.setData({ orderId: query.orderId || "", assignmentId: query.assignmentId || "" });
+    this.loadRejectReasons();
     this.load();
+  },
+  async loadRejectReasons() {
+    try {
+      const data = await getBusinessDictItems("reject_reason");
+      this.setData({ rejectReasons: (data.items || []).map((item) => item.label) });
+    } catch {
+      this.setData({ rejectReasons: [] });
+    }
   },
   async load() {
     try {
@@ -48,6 +61,7 @@ Page({
         order,
         assignment,
         sections: buildSections(order, assignment),
+        reviews: buildReviews(order.reviews || [], assignment.id),
         actions: buildActions(order, assignment),
         currentStep
       });
@@ -55,7 +69,7 @@ Page({
       // request 层已提示错误。
     }
   },
-  doAction(event: AnyRecord) {
+  async doAction(event: AnyRecord) {
     const now = Date.now();
     if (now - this.lastActionTime < 1000) return;
     this.lastActionTime = now;
@@ -63,18 +77,26 @@ Page({
     const action = event.currentTarget.dataset.action;
     const config: AnyRecord = {
       confirm: { title: "确认接单", content: "确认接受该订单？", api: () => confirmOrder(this.data.assignmentId) },
-      picked: { title: "已接到客人", content: "确认已接到自己负责的客人后，订单将进入接待中状态。", api: () => pickedGuest(this.data.assignmentId) },
-      complete: { title: "完成服务", content: "确认自己负责的客人已离店并完成服务？", api: () => completeOrder(this.data.assignmentId) }
+      picked: { title: "已接到客人", content: "确认已接到自己负责的客人后，订单将进入接待中状态。", api: (occurredAt: string) => pickedGuest(this.data.assignmentId, occurredAt) },
+      complete: { title: "完成服务", content: "确认自己负责的客人已离店并完成服务？", api: (occurredAt: string) => completeOrder(this.data.assignmentId, occurredAt) }
     };
     const item = config[action];
     if (!item) return;
+    const warning = buildEarlyActionWarning(action, this.data.order);
     wx.showModal({
-      title: item.title,
-      content: item.content,
+      title: warning?.title || item.title,
+      content: warning?.content || item.content,
       confirmColor: "#2AACE2",
+      confirmText: warning ? "仍要操作" : "确定",
       success: async (res: AnyRecord) => {
         if (!res.confirm) return;
-        await item.api();
+        if (["picked", "complete"].includes(action)) {
+          const occurredAt = await this.chooseOccurredAt(action === "picked" ? "选择接到时间" : "选择完成时间");
+          if (!occurredAt) return;
+          await item.api(occurredAt);
+        } else {
+          await item.api();
+        }
         wx.showToast({ title: "操作成功", icon: "success" });
         this.load();
       }
@@ -84,6 +106,12 @@ Page({
     const now = Date.now();
     if (now - this.lastRejectTime < 1000) return;
     this.lastRejectTime = now;
+
+    const rejectReasons = this.data.rejectReasons;
+    if (rejectReasons.length === 0) {
+      wx.showToast({ title: "暂无可用拒单原因", icon: "none" });
+      return;
+    }
 
     wx.showActionSheet({
       itemList: rejectReasons,
@@ -112,10 +140,42 @@ Page({
         wx.navigateBack();
       }
     });
+  },
+  chooseOccurredAt(title: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.occurredAtPickerResolver = resolve;
+      this.setData({ occurredAtPicker: { visible: true, title } });
+    });
+  },
+  handleOccurredAtConfirm(event: AnyRecord) {
+    const resolve = this.occurredAtPickerResolver;
+    this.occurredAtPickerResolver = null;
+    this.setData({ occurredAtPicker: { visible: false, title: "" } });
+    resolve?.(event.detail?.occurredAt || null);
+  },
+  handleOccurredAtCancel() {
+    const resolve = this.occurredAtPickerResolver;
+    this.occurredAtPickerResolver = null;
+    this.setData({ occurredAtPicker: { visible: false, title: "" } });
+    resolve?.(null);
   }
 });
 
 function buildSections(order: AnyRecord, assignment: AnyRecord) {
+  const assignmentRows = [
+    ["指派状态", getStatus("assignment", assignment.status).text],
+    ["接单时间", formatDateTimeFull(assignment.confirmedAt)],
+    ["接到时间", formatDateTimeFull(assignment.pickedGuestAt)],
+    ["完成时间", formatDateTimeFull(assignment.completedAt)]
+  ];
+
+  if (assignment.status === "rejected") {
+    assignmentRows.push(
+      ["拒单时间", formatDateTimeFull(assignment.rejectedAt)],
+      ["拒单理由", assignment.rejectReason || "-"]
+    );
+  }
+
   return [
     {
       title: "订单信息",
@@ -146,12 +206,7 @@ function buildSections(order: AnyRecord, assignment: AnyRecord) {
     },
     {
       title: "任务分配",
-      rows: [
-        ["指派状态", getStatus("assignment", assignment.status).text],
-        ["接单时间", formatDateTimeFull(assignment.confirmedAt)],
-        ["接到时间", formatDateTimeFull(assignment.pickedGuestAt)],
-        ["完成时间", formatDateTimeFull(assignment.completedAt)]
-      ]
+      rows: assignmentRows
     },
     {
       title: "备注详情",
@@ -177,4 +232,41 @@ function buildActions(order: AnyRecord, assignment: AnyRecord) {
     return [{ text: "确认客人离店，完成服务", action: "complete", tone: "primary" }];
   }
   return [];
+}
+
+function buildReviews(reviews: AnyRecord[], assignmentId: string) {
+  return reviews
+    .filter((item) => item.assignmentId === assignmentId)
+    .map((item) => ({
+      ...item,
+      reviewerRoleText: roleMap[item.reviewerRole] || item.reviewerRole || "-",
+      reviewerName: item.reviewer?.name || "-",
+      reviewedAtText: formatDateTimeFull(item.createdAt),
+      tagsText: Array.isArray(item.tags) ? item.tags.join("、") : ""
+    }));
+}
+
+function buildEarlyActionWarning(action: string, order: AnyRecord) {
+  if (action === "picked" && isBefore(order.arrivalTime)) {
+    return {
+      title: "到达时间未到",
+      content: `当前时间早于客人到达时间（${formatDateTimeFull(order.arrivalTime)}）。请确认已实际接到客人后再继续，是否仍要标记为“已接到客人”？`
+    };
+  }
+
+  if (action === "complete" && isBefore(order.checkOutDate)) {
+    return {
+      title: "离店时间未到",
+      content: `当前时间早于客人离店时间（${formatDateTimeFull(order.checkOutDate)}）。请确认客人已实际离店且服务完成，是否仍要标记为“已完成接待”？`
+    };
+  }
+
+  return null;
+}
+
+function isBefore(value?: string | Date | null) {
+  if (!value) return false;
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return false;
+  return Date.now() < date.getTime();
 }

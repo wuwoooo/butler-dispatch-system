@@ -1,4 +1,4 @@
-<page-container title="请假记录" subtitle="查看审核进度和历史记录">
+<page-container title="请假记录">
   <button class="apply-btn anim-fade-in" bindtap="apply">＋ 新增请假申请</button>
 
   <view wx:for="{{items}}" wx:key="id" class="leave-card anim-fade-in anim-stagger-{{index % 5 + 1}}">

@@ -40,8 +40,10 @@
 
   <view class="block-title anim-fade-in anim-stagger-2">当前重点任务</view>
   <view class="anim-fade-in anim-stagger-3">
-    <order-card wx:if="{{currentTask}}" item="{{currentTask}}" bind:tap="openTask" />
-    <empty-state wx:else scene="orders" title="暂无进行中的接待" description="当前没有需要立即处理的订单" />
+    <block wx:if="{{currentTasks.length > 0}}">
+      <order-card wx:for="{{currentTasks}}" wx:key="id" item="{{item}}" bind:tap="openTask" />
+    </block>
+    <empty-state wx:else scene="orders" title="暂无重点任务" description="当前没有待确认、准备接待或正在接待的订单" />
   </view>
 
   <view class="block-title anim-fade-in anim-stagger-4">快捷操作</view>
@@ -58,3 +60,9 @@
   </view>
 </page-container>
 <app-navbar role="butler" active="home" />
+<occurred-at-picker
+  visible="{{occurredAtPicker.visible}}"
+  title="{{occurredAtPicker.title}}"
+  bind:confirm="handleOccurredAtConfirm"
+  bind:cancel="handleOccurredAtCancel"
+/>

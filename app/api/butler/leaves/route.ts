@@ -10,6 +10,7 @@ import { notifyRoleUsers } from "@/lib/notification";
 import { prisma } from "@/lib/prisma";
 import { getRequestMeta, requireApiRoles } from "@/lib/request";
 import { errorResponse, handleApiError, successResponse } from "@/lib/response";
+import { isEnabledBusinessDictValue } from "@/lib/system-dicts";
 import { butlerLeaveQuerySchema, leaveCreateSchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
@@ -100,6 +101,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = leaveCreateSchema.parse(await request.json());
+    const isEnabledLeaveType = await isEnabledBusinessDictValue("leave_type", body.leaveType);
+    if (!isEnabledLeaveType) {
+      return errorResponse("LEAVE_TYPE_DISABLED", "请选择有效的请假类型", 422);
+    }
+
     const startAt = new Date(body.leaveStartTime);
     const endAt = new Date(body.leaveEndTime);
 

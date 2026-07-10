@@ -23,9 +23,9 @@ function confirmOrder(assignmentId) {
 function rejectOrder(assignmentId, rejectReason) {
     return request_1.http.post(`/api/butler/orders/${assignmentId}/reject`, { rejectReason });
 }
-function pickedGuest(assignmentId) {
-    return request_1.http.post(`/api/butler/orders/${assignmentId}/picked-guest`);
+function pickedGuest(assignmentId, occurredAt) {
+    return request_1.http.post(`/api/butler/orders/${assignmentId}/picked-guest`, occurredAt ? { occurredAt } : {});
 }
-function completeOrder(assignmentId) {
-    return request_1.http.post(`/api/butler/orders/${assignmentId}/complete`);
+function completeOrder(assignmentId, occurredAt) {
+    return request_1.http.post(`/api/butler/orders/${assignmentId}/complete`, occurredAt ? { occurredAt } : {});
 }

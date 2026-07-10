@@ -4,10 +4,8 @@ import { Button, Descriptions, Empty, Space, Timeline } from "antd";
 import {
   AssignmentStatusTag,
   OrderStatusTag,
-  PickupTypeTag,
-  getRoleLabel
+  PickupTypeTag
 } from "@/components/status/StatusTags";
-import { getOperationTypeLabel } from "@/lib/display";
 import type { OrderAssignmentRecord, OrderRecord } from "@/types/domain";
 import { formatDate, formatDateTime, maskPhone } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
@@ -22,6 +20,67 @@ type OrderDetailViewProps = {
 
 type RejectRecordItem = NonNullable<OrderRecord["rejectRecords"]>[number];
 type NotificationItem = NonNullable<OrderRecord["notifications"]>[number];
+type OperationLogItem = NonNullable<OrderRecord["operationLogs"]>[number];
+
+const operationActionLabels: Record<string, string> = {
+  CREATE_ORDER: "创建订单",
+  UPDATE_ORDER: "修改订单",
+  DISPATCH_ORDER: "派单",
+  REASSIGN_ORDER: "改派",
+  ORDER_REVIEW_STATUS_CHANGE: "完成评价",
+  UPDATE_SETTLEMENT_STATUS: "修改结算状态"
+};
+
+function getOrderActivityLabel(log: OperationLogItem) {
+  if (log.operationType !== "ORDER_STATUS_CHANGE") {
+    return operationActionLabels[log.operationType] ?? "处理订单";
+  }
+
+  const remark = log.remark ?? "";
+
+  if (remark.includes("派单")) {
+    return "派单";
+  }
+  if (remark.includes("确认")) {
+    return "确认接单";
+  }
+  if (remark.includes("拒单")) {
+    return "拒单";
+  }
+  if (remark.includes("接到客人") || remark.includes("服务中")) {
+    return "已接到客人";
+  }
+  if (remark.includes("完成")) {
+    return "完成服务";
+  }
+  if (remark.includes("取消")) {
+    return "取消派单";
+  }
+
+  return "更新订单状态";
+}
+
+function buildOrderActivityLogs(logs: OperationLogItem[]) {
+  return logs.filter((log) => {
+    if (log.operationType !== "ORDER_STATUS_CHANGE") {
+      return true;
+    }
+
+    const action = getOrderActivityLabel(log);
+    const createdAt = new Date(log.createdAt).getTime();
+
+    return !logs.some((item) => {
+      if (item.id === log.id || item.operationType === "ORDER_STATUS_CHANGE") {
+        return false;
+      }
+
+      const sameAction = getOrderActivityLabel(item) === action;
+      const nearby = Math.abs(new Date(item.createdAt).getTime() - createdAt) <= 120000;
+
+      return sameAction && nearby;
+    });
+  });
+}
 
 export function OrderDetailView({
   order,
@@ -33,6 +92,8 @@ export function OrderDetailView({
   if (!order) {
     return <Empty description="暂无订单详情" />;
   }
+
+  const activityLogs = buildOrderActivityLogs(order.operationLogs || []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -140,6 +201,10 @@ export function OrderDetailView({
               render: (_, record) => formatDateTime(record.completedAt)
             },
             {
+              title: "拒单时间",
+              render: (_, record) => formatDateTime(record.rejectedAt)
+            },
+            {
               title: "拒单原因",
               render: (_, record) => record.rejectReason || "-"
             },
@@ -243,13 +308,13 @@ export function OrderDetailView({
         <div className="detail-card-title">
           <i className="fa-solid fa-clock-rotate-left" /> 操作日志
         </div>
-        {!order.operationLogs || order.operationLogs.length === 0 ? (
+        {activityLogs.length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无操作日志" />
         ) : (
           <Timeline
             mode="start"
             className="modern-timeline"
-            items={order.operationLogs.map((item) => ({
+            items={activityLogs.map((item) => ({
               title: formatDateTime(item.createdAt),
               content: (
                 <span>
@@ -257,18 +322,8 @@ export function OrderDetailView({
                     {item.operator?.name || "系统"}
                   </strong>{" "}
                   <span style={{ color: "var(--primary)", fontWeight: 600 }}>
-                    {getOperationTypeLabel(item.operationType)}
+                    {getOrderActivityLabel(item)}
                   </span>
-                  {item.operator?.roleCode ? (
-                    <span style={{ color: "var(--text-muted)", marginLeft: 8 }}>
-                      [{getRoleLabel(item.operator.roleCode)}]
-                    </span>
-                  ) : null}
-                  {item.remark ? (
-                    <span style={{ color: "var(--text-muted)", marginLeft: 8 }}>
-                      ({item.remark})
-                    </span>
-                  ) : null}
                 </span>
               )
             }))}

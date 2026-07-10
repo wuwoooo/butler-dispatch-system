@@ -1,4 +1,4 @@
-<page-container title="个人中心" subtitle="账号信息与登录状态">
+<page-container title="个人中心">
   <view class="profile-card anim-fade-in">
     <!-- 右下角品牌插画融合 -->
     <image class="profile-card-decor" src="/assets/images/profile-hero.png" mode="aspectFill" />

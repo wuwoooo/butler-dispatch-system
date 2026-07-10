@@ -1,10 +1,10 @@
 import { submitLeave } from "../../../services/leave";
-import { leaveTypes } from "../../../utils/constants";
+import { getBusinessDictItems } from "../../../services/business-dict";
 import { ensureEndAfterStart, requireField } from "../../../utils/validators";
 
 Page({
   data: {
-    leaveTypes,
+    leaveTypes: [] as AnyRecord[],
     leaveTypeIndex: -1, // 默认 -1 代表未选择
     startDate: "",
     startTime: "",
@@ -12,6 +12,20 @@ Page({
     endTime: "",
     reason: "",
     submitting: false
+  },
+  onLoad() {
+    this.loadLeaveTypes();
+  },
+  async loadLeaveTypes() {
+    try {
+      const data = await getBusinessDictItems("leave_type");
+      this.setData({
+        leaveTypes: data.items || [],
+        leaveTypeIndex: -1
+      });
+    } catch {
+      this.setData({ leaveTypes: [], leaveTypeIndex: -1 });
+    }
   },
   setStartDate(event: AnyRecord) {
     this.setData({ startDate: event.detail.value });
@@ -60,7 +74,7 @@ Page({
           await submitLeave({
             leaveStartTime: start,
             leaveEndTime: end,
-            leaveType: leaveTypes[this.data.leaveTypeIndex].value,
+            leaveType: this.data.leaveTypes[this.data.leaveTypeIndex].value,
             reason: this.data.reason
           });
           wx.showToast({ title: "已提交", icon: "success" });

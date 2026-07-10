@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const order_1 = require("../../../services/order");
-const constants_1 = require("../../../utils/constants");
+const business_dict_1 = require("../../../services/business-dict");
 const tabs = [
     { key: "pending", text: "待接单" },
     { key: "confirmedWaiting", text: "准备接待" },
@@ -15,6 +15,7 @@ Page({
         active: "pending",
         groups: {},
         items: [],
+        rejectReasons: [],
         loading: true
     },
     // 增加时间戳用于防抖防连击
@@ -24,6 +25,7 @@ Page({
         if (tabs.some((item) => item.key === options.tab)) {
             this.setData({ active: options.tab });
         }
+        this.loadRejectReasons();
     },
     onShow() {
         this.load();
@@ -43,6 +45,15 @@ Page({
         }
         finally {
             this.setData({ loading: false });
+        }
+    },
+    async loadRejectReasons() {
+        try {
+            const data = await (0, business_dict_1.getBusinessDictItems)("reject_reason");
+            this.setData({ rejectReasons: (data.items || []).map((item) => item.label) });
+        }
+        catch (_a) {
+            this.setData({ rejectReasons: [] });
         }
     },
     switchTab(event) {
@@ -80,10 +91,15 @@ Page({
             return;
         this.lastRejectTime = now;
         const detail = event.detail || {};
+        const rejectReasons = this.data.rejectReasons;
+        if (rejectReasons.length === 0) {
+            wx.showToast({ title: "暂无可用拒单原因", icon: "none" });
+            return;
+        }
         wx.showActionSheet({
-            itemList: constants_1.rejectReasons,
+            itemList: rejectReasons,
             success: (res) => {
-                const preset = constants_1.rejectReasons[res.tapIndex] || "";
+                const preset = rejectReasons[res.tapIndex] || "";
                 this.inputRejectReason(detail.assignmentId, preset === "其他" ? "" : preset);
             }
         });

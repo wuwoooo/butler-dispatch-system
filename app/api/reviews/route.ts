@@ -241,6 +241,7 @@ export async function POST(request: NextRequest) {
           payload: {
             reviewId: review.id,
             orderId: order.id,
+            assignmentId: assignment.id,
             butlerId: body.butlerId
           }
         },

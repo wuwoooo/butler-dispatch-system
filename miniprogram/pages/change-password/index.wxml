@@ -1,4 +1,4 @@
-<page-container title="修改密码" subtitle="更新当前账号的登录密码">
+<page-container title="修改密码">
   <section-card title="密码信息">
     <view class="field">
       <view class="label">原密码</view>

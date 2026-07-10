@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { OrderStatus, Prisma, PrismaClient } from "@prisma/client";
 import { buildOrderScopeWhere } from "@/lib/orders";
 import { prisma } from "@/lib/prisma";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -10,6 +10,12 @@ type DashboardQuery = {
   endDate?: string;
   hotelId?: string;
 };
+
+const settlementEligibleOrderStatuses: OrderStatus[] = [
+  "pending_review",
+  "reviewed",
+  "completed"
+];
 
 function startOfToday() {
   const date = new Date();
@@ -209,6 +215,9 @@ export async function getDashboardStatistics(
     client.serviceOrder.count({
       where: {
         ...scope,
+        status: {
+          in: settlementEligibleOrderStatuses
+        },
         settlementStatus: "unsettled"
       }
     }),

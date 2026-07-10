@@ -1,4 +1,4 @@
-<page-container title="请假申请" subtitle="提交前会校验订单时间冲突">
+<page-container title="请假申请">
   <view class="anim-fade-in anim-stagger-1">
     <section-card title="请假时间">
       <form-cell label="开始日期" required>

@@ -68,13 +68,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
         existingAssignments.map((assignment) => [assignment.butlerId, assignment])
       );
       const createdAssignments: string[] = [];
+      const assignmentIdByButlerId = new Map<string, string>();
       const unavailableMessages: string[] = [];
+      const reassignableSameOrderStatuses = ["cancelled", "rejected"];
 
       for (const butlerId of selectedIds) {
         const existing = existingByButlerId.get(butlerId);
 
-        if (existing && existing.status !== "cancelled") {
-          unavailableMessages.push(`管家已存在分配历史，不能重复分配`);
+        if (existing && !reassignableSameOrderStatuses.includes(existing.status)) {
+          unavailableMessages.push("管家已存在有效派单，不能重复分配");
           continue;
         }
 
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       for (const butlerId of selectedIds) {
         const existing = existingByButlerId.get(butlerId);
 
-        if (existing?.status === "cancelled") {
+        if (existing && reassignableSameOrderStatuses.includes(existing.status)) {
           const reactivated = await tx.orderButlerAssignment.update({
             where: { id: existing.id },
             data: {
@@ -120,6 +122,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
             }
           });
           createdAssignments.push(reactivated.id);
+          assignmentIdByButlerId.set(butlerId, reactivated.id);
         } else {
           const created = await tx.orderButlerAssignment.create({
             data: {
@@ -134,6 +137,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
             }
           });
           createdAssignments.push(created.id);
+          assignmentIdByButlerId.set(butlerId, created.id);
         }
       }
 
@@ -170,7 +174,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
               targetId: id,
               payload: {
                 orderId: id,
-                butlerId: recipient.butlerId
+                butlerId: recipient.butlerId,
+                assignmentId: recipient.butlerId
+                  ? assignmentIdByButlerId.get(recipient.butlerId)
+                  : undefined
               }
             },
             tx

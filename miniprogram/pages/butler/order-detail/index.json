@@ -4,7 +4,7 @@
     "page-container": "/components/page-container/index",
     "section-card": "/components/section-card/index",
     "status-tag": "/components/status-tag/index",
-    "primary-button": "/components/primary-button/index"
+    "primary-button": "/components/primary-button/index",
+    "occurred-at-picker": "/components/occurred-at-picker/index"
   }
 }
-

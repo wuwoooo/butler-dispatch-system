@@ -1,4 +1,4 @@
-<page-container title="管家状态" subtitle="查看管家接待状态与账号状态">
+<page-container title="管家状态">
   <view class="search-bar anim-fade-in">
     <view class="search-input-wrap">
       <view class="search-icon"></view>

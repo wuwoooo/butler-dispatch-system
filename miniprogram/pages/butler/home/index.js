@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const statistics_1 = require("../../../services/statistics");
+const order_1 = require("../../../services/order");
+const format_1 = require("../../../utils/format");
 const status_map_1 = require("../../../utils/status-map");
 const REFRESH_INTERVAL_MS = 30000;
 const encouragements = [
@@ -88,6 +90,9 @@ const encouragements = [
 ];
 Page({
     refreshTimer: null,
+    overduePromptedAssignmentIds: new Set(),
+    overduePrompting: false,
+    occurredAtPickerResolver: null,
     data: {
         todayDate: "",
         encouragement: "",
@@ -97,6 +102,8 @@ Page({
         butlerStatusText: "空闲",
         cards: {},
         currentTask: null,
+        currentTasks: [],
+        occurredAtPicker: { visible: false, title: "" },
         refreshing: false,
         shortcuts: [
             { title: "我的订单", desc: "查看接待任务", url: "/pages/butler/orders/index", tone: "blue" },
@@ -168,8 +175,12 @@ Page({
                 butler: data.butler || {},
                 butlerStatusText: (0, status_map_1.getStatus)("butler", ((_a = data.butler) === null || _a === void 0 ? void 0 : _a.status) || "available").text,
                 cards: data.cards || {},
-                currentTask: data.currentTask || null
+                currentTask: data.currentTask || null,
+                currentTasks: data.currentTasks || (data.currentTask ? [data.currentTask] : [])
             });
+            if (!silent) {
+                await this.promptOverdueTask(data.currentTasks || (data.currentTask ? [data.currentTask] : []));
+            }
         }
         catch (_b) {
             if (!silent) {
@@ -192,5 +203,87 @@ Page({
         wx.navigateTo({
             url: `/pages/butler/order-detail/index?orderId=${detail.orderId}&assignmentId=${detail.assignmentId}`
         });
+    },
+    async promptOverdueTask(tasks) {
+        var _a, _b, _c;
+        if (this.overduePrompting)
+            return;
+        const task = findOverdueTask(tasks, this.overduePromptedAssignmentIds);
+        if (!task)
+            return;
+        this.overduePrompting = true;
+        this.overduePromptedAssignmentIds.add(task.id);
+        const isPickup = task.status === "confirmed";
+        const expectedAt = isPickup ? (_a = task.order) === null || _a === void 0 ? void 0 : _a.arrivalTime : getCheckOutDueAt((_b = task.order) === null || _b === void 0 ? void 0 : _b.checkOutDate);
+        wx.showModal({
+            title: isPickup ? "确认是否已接到客人" : "确认是否已完成接待",
+            content: `订单 ${((_c = task.order) === null || _c === void 0 ? void 0 : _c.orderNo) || ""} 的客人预计${isPickup ? "到达" : "离店"}时间为 ${(0, format_1.formatDateTimeFull)(expectedAt)}，是否${isPickup ? "已接到客人" : "已离店并完成接待"}？`,
+            confirmText: "是，去确认",
+            cancelText: "稍后处理",
+            confirmColor: "#2AACE2",
+            success: async (res) => {
+                if (res.confirm) {
+                    const occurredAt = await this.chooseOccurredAt(isPickup ? "选择接到时间" : "选择完成时间");
+                    if (occurredAt) {
+                        await (isPickup ? (0, order_1.pickedGuest)(task.id, occurredAt) : (0, order_1.completeOrder)(task.id, occurredAt));
+                        wx.showToast({ title: "操作成功", icon: "success" });
+                        await this.load(true);
+                    }
+                }
+            },
+            complete: () => {
+                this.overduePrompting = false;
+            }
+        });
+    },
+    chooseOccurredAt(title) {
+        return new Promise((resolve) => {
+            this.occurredAtPickerResolver = resolve;
+            this.setData({ occurredAtPicker: { visible: true, title } });
+        });
+    },
+    handleOccurredAtConfirm(event) {
+        var _a;
+        const resolve = this.occurredAtPickerResolver;
+        this.occurredAtPickerResolver = null;
+        this.setData({ occurredAtPicker: { visible: false, title: "" } });
+        resolve === null || resolve === void 0 ? void 0 : resolve(((_a = event.detail) === null || _a === void 0 ? void 0 : _a.occurredAt) || null);
+    },
+    handleOccurredAtCancel() {
+        const resolve = this.occurredAtPickerResolver;
+        this.occurredAtPickerResolver = null;
+        this.setData({ occurredAtPicker: { visible: false, title: "" } });
+        resolve === null || resolve === void 0 ? void 0 : resolve(null);
     }
 });
+function findOverdueTask(tasks, promptedIds) {
+    const now = Date.now();
+    return tasks.find((task) => {
+        var _a, _b;
+        if (!(task === null || task === void 0 ? void 0 : task.id) || promptedIds.has(task.id))
+            return false;
+        if (task.status === "confirmed")
+            return isAtOrBeforeNow((_a = task.order) === null || _a === void 0 ? void 0 : _a.arrivalTime, now);
+        if (["picked_guest", "in_service"].includes(task.status)) {
+            return isAtOrBeforeNow(getCheckOutDueAt((_b = task.order) === null || _b === void 0 ? void 0 : _b.checkOutDate), now);
+        }
+        return false;
+    });
+}
+function isAtOrBeforeNow(value, now) {
+    if (!value)
+        return false;
+    const time = new Date(value).getTime();
+    return !Number.isNaN(time) && time <= now;
+}
+function getCheckOutDueAt(value) {
+    if (!value)
+        return value;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime()))
+        return value;
+    if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+        date.setHours(23, 59, 59, 999);
+    }
+    return date;
+}

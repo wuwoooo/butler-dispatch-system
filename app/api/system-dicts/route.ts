@@ -16,6 +16,7 @@ import {
   systemDictQuerySchema
 } from "@/lib/validators";
 import { writeOperationLog } from "@/lib/logger";
+import { ensureDefaultBusinessDicts } from "@/lib/system-dicts";
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireApiRoles(request, [
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
     }
     if (query.scope === "notification" && query.dictType && query.dictType !== notificationConfigType) {
       return errorResponse("DICT_TYPE_FORBIDDEN", "该配置分类不在通知配置范围内", 403);
+    }
+    if (query.scope === "business") {
+      await ensureDefaultBusinessDicts();
     }
     const where = {
       dictType: query.scope === "business"

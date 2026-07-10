@@ -25,6 +25,58 @@
   margin-bottom: 0;
 }
 
+.review-row {
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--color-border-light);
+}
+
+.review-row:last-child {
+  border-bottom: none;
+}
+
+.review-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.review-score {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--color-primary-deep);
+}
+
+.review-meta,
+.review-time {
+  font-size: 22rpx;
+  color: var(--color-text-tertiary);
+}
+
+.review-sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}
+
+.review-tags {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: var(--color-primary);
+}
+
+.review-content {
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.review-time {
+  margin-top: 10rpx;
+  text-align: right;
+}
+
 /* ── 流程时间线组件 ── */
 .timeline-card {
   margin: var(--spacing-md) var(--spacing-2xl) var(--spacing-lg);

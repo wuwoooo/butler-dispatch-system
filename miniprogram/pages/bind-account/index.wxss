@@ -54,14 +54,6 @@
   z-index: 1;
 }
 
-.subtitle {
-  margin-top: 14rpx;
-  font-size: 26rpx;
-  opacity: 0.88;
-  position: relative;
-  z-index: 1;
-}
-
 .bind-card {
   margin: -80rpx 36rpx 0;
   padding: 40rpx;

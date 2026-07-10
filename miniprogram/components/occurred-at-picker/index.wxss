@@ -1,0 +1,36 @@
+.picker-mask {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.picker-panel {
+  width: 100%;
+  padding: 40rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border-radius: 32rpx 32rpx 0 0;
+  background: #ffffff;
+}
+
+.picker-title { color: #172033; font-size: 34rpx; font-weight: 700; text-align: center; }
+.picker-tip { margin: 12rpx 0 28rpx; color: #718096; font-size: 26rpx; text-align: center; }
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 96rpx;
+  border-top: 1rpx solid #edf2f7;
+}
+
+.picker-label { color: #475569; font-size: 30rpx; }
+.picker-value { min-width: 240rpx; color: #1689bd; font-size: 30rpx; font-weight: 600; text-align: right; }
+
+.picker-actions { display: flex; gap: 20rpx; margin-top: 32rpx; }
+.picker-button { flex: 1; height: 84rpx; margin: 0; border-radius: 42rpx; font-size: 30rpx; line-height: 84rpx; }
+.picker-button::after { border: 0; }
+.picker-cancel { color: #475569; background: #f1f5f9; }
+.picker-confirm { color: #ffffff; background: #2aace2; }

@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       orderId: item.orderId,
       orderNo: item.order.orderNo,
       hotel: item.order.hotel,
-      guestName: maskName(item.order.guestName),
+      guestName: item.order.guestName,
       guestCount: item.order.guestCount,
       checkInDate: item.order.checkInDate,
       checkOutDate: item.order.checkOutDate,
@@ -100,12 +100,4 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return handleApiError(error);
   }
-}
-
-function maskName(name: string) {
-  if (name.length <= 1) {
-    return name;
-  }
-
-  return `${name.slice(0, 1)}${"*".repeat(Math.max(name.length - 1, 1))}`;
 }

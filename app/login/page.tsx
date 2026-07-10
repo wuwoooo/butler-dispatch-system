@@ -168,13 +168,30 @@ function LoginShell() {
 
 function IcpFooter() {
   return (
-    <Typography.Link
-      className="login-icp-footer"
-      href="https://beian.miit.gov.cn/"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      滇ICP备2025068996号
-    </Typography.Link>
+    <div className="login-beian-footer">
+      <Typography.Link
+        className="login-beian-link"
+        href="https://beian.miit.gov.cn/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        滇ICP备2025068996号
+      </Typography.Link>
+      <Typography.Link
+        className="login-beian-link login-mps-link"
+        href="https://beian.mps.gov.cn/#/query/webSearch?code=53290102000792"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Image
+          src="https://beian.mps.gov.cn/web/assets/logo01.6189a29f.png"
+          alt="公安备案图标"
+          width={16}
+          height={16}
+          className="login-mps-logo"
+        />
+        滇公网安备53290102000792号
+      </Typography.Link>
+    </div>
   );
 }
