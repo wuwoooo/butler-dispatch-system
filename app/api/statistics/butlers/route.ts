@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { writeOperationLog } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 import { requireApiRoles } from "@/lib/request";
 import { handleApiError, successResponse } from "@/lib/response";
 import { getButlerStatisticsRows } from "@/lib/statistics";
@@ -20,10 +21,17 @@ export async function GET(request: NextRequest) {
     const query = statisticsQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams)
     );
-    const items = await getButlerStatisticsRows(query, {
-      butlerId: query.butlerId,
-      hotelId: query.hotelId
-    });
+    const where = query.butlerId ? { id: query.butlerId } : undefined;
+
+    const [items, total] = await Promise.all([
+      getButlerStatisticsRows(query, {
+        butlerId: query.butlerId,
+        hotelId: query.hotelId,
+        page: query.page,
+        pageSize: query.pageSize
+      }),
+      prisma.butler.count({ where })
+    ]);
 
     await writeOperationLog({
       operatorId: user.id,
@@ -32,7 +40,14 @@ export async function GET(request: NextRequest) {
       remark: "查看后台管家统计"
     });
 
-    return successResponse({ items });
+    return successResponse({
+      items,
+      pagination: {
+        page: query.page,
+        pageSize: query.pageSize,
+        total
+      }
+    });
   } catch (error) {
     return handleApiError(error);
   }

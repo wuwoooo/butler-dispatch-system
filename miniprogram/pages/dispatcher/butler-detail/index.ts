@@ -1,5 +1,5 @@
 import { getButlerDetail } from "../../../services/butler";
-import { formatDate } from "../../../utils/format";
+import { formatDate, formatDateTime } from "../../../utils/format";
 
 Page({
   data: {
@@ -20,8 +20,9 @@ Page({
       avatar: (butler.name || "?").slice(0, 1),
       rows: [
         ["姓名", butler.name],
-        ["手机号", butler.phone],
-        ["车型信息", butler.vehicleInfo || "-"],
+        ["手机号", butler.phone, butler.phone],
+        ["标准车型", ({ sedan: "轿车", suv: "SUV", business: "商务车" } as AnyRecord)[butler.vehicleType] || "待补齐"],
+        ["车辆信息", butler.vehicleInfo || "-"],
         ["平均评分", butler.averageScore || "0.00"],
         ["评价次数", butler.reviewCount || 0],
         ["登录账号", butler.user?.username || "-"],
@@ -29,7 +30,9 @@ Page({
       ],
       assignments: (butler.activeAssignments || []).map((item: AnyRecord) => ({
         ...item,
-        dateText: `${formatDate(item.order?.checkInDate)} 至 ${formatDate(item.order?.checkOutDate)}`
+        dateText: item.order?.serviceStartAt && item.order?.serviceEndAt
+          ? `${formatDateTime(item.order.serviceStartAt)} 至 ${formatDateTime(item.order.serviceEndAt)}`
+          : `${formatDate(item.order?.checkInDate)} 至 ${formatDate(item.order?.checkOutDate)}`
       }))
     });
   }

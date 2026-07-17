@@ -5,10 +5,10 @@
   </view>
   <view class="bind-card">
     <view class="field">
-      <view class="label">用户名 / 手机号</view>
+      <view class="label">用户名 / 手机号 / 姓名</view>
       <view class="input-wrap">
         <text class="input-icon">👤</text>
-        <input class="input" placeholder="请输入用户名或手机号" value="{{username}}" bindinput="onUsername" />
+        <input class="input" placeholder="请输入用户名、手机号或姓名" value="{{username}}" bindinput="onUsername" />
       </view>
     </view>
     <view class="field">

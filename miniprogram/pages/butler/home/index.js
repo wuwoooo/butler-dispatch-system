@@ -205,7 +205,7 @@ Page({
         });
     },
     async promptOverdueTask(tasks) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f;
         if (this.overduePrompting)
             return;
         const task = findOverdueTask(tasks, this.overduePromptedAssignmentIds);
@@ -214,11 +214,14 @@ Page({
         this.overduePrompting = true;
         this.overduePromptedAssignmentIds.add(task.id);
         const isPickup = task.status === "confirmed";
-        const expectedAt = isPickup ? (_a = task.order) === null || _a === void 0 ? void 0 : _a.arrivalTime : getCheckOutDueAt((_b = task.order) === null || _b === void 0 ? void 0 : _b.checkOutDate);
+        const expectedAt = isPickup
+            ? ((_a = task.order) === null || _a === void 0 ? void 0 : _a.serviceStartAt) || ((_b = task.order) === null || _b === void 0 ? void 0 : _b.arrivalTime)
+            : ((_c = task.order) === null || _c === void 0 ? void 0 : _c.serviceEndAt) || getCheckOutDueAt((_d = task.order) === null || _d === void 0 ? void 0 : _d.checkOutDate);
+        const isTransport = ((_e = task.order) === null || _e === void 0 ? void 0 : _e.serviceMode) === "transport";
         wx.showModal({
             title: isPickup ? "确认是否已接到客人" : "确认是否已完成接待",
-            content: `订单 ${((_c = task.order) === null || _c === void 0 ? void 0 : _c.orderNo) || ""} 的客人预计${isPickup ? "到达" : "离店"}时间为 ${(0, format_1.formatDateTimeFull)(expectedAt)}，是否${isPickup ? "已接到客人" : "已离店并完成接待"}？`,
-            confirmText: "是，去确认",
+            content: `订单 ${((_f = task.order) === null || _f === void 0 ? void 0 : _f.orderNo) || ""} 的${isTransport ? "服务" : "客人"}预计${isPickup ? "开始" : isTransport ? "结束" : "离店"}时间为 ${(0, format_1.formatDateTimeFull)(expectedAt)}，是否${isPickup ? "已接到客人" : isTransport ? "已完成接送服务" : "已离店并完成接待"}？`,
+            confirmText: "去确认",
             cancelText: "稍后处理",
             confirmColor: "#2AACE2",
             success: async (res) => {
@@ -233,6 +236,10 @@ Page({
             },
             complete: () => {
                 this.overduePrompting = false;
+            },
+            fail: () => {
+                this.overduePromptedAssignmentIds.delete(task.id);
+                wx.showToast({ title: "提醒弹窗打开失败，请重试", icon: "none" });
             }
         });
     },
@@ -259,13 +266,16 @@ Page({
 function findOverdueTask(tasks, promptedIds) {
     const now = Date.now();
     return tasks.find((task) => {
-        var _a, _b;
+        var _a, _b, _c, _d, _e, _f;
         if (!(task === null || task === void 0 ? void 0 : task.id) || promptedIds.has(task.id))
             return false;
-        if (task.status === "confirmed")
-            return isAtOrBeforeNow((_a = task.order) === null || _a === void 0 ? void 0 : _a.arrivalTime, now);
+        if ((_b = (_a = task.order) === null || _a === void 0 ? void 0 : _a.stayExtensions) === null || _b === void 0 ? void 0 : _b.length)
+            return false;
+        if (task.status === "confirmed") {
+            return isAtOrBeforeNow(((_c = task.order) === null || _c === void 0 ? void 0 : _c.serviceStartAt) || ((_d = task.order) === null || _d === void 0 ? void 0 : _d.arrivalTime), now);
+        }
         if (["picked_guest", "in_service"].includes(task.status)) {
-            return isAtOrBeforeNow(getCheckOutDueAt((_b = task.order) === null || _b === void 0 ? void 0 : _b.checkOutDate), now);
+            return isAtOrBeforeNow(((_e = task.order) === null || _e === void 0 ? void 0 : _e.serviceEndAt) || getCheckOutDueAt((_f = task.order) === null || _f === void 0 ? void 0 : _f.checkOutDate), now);
         }
         return false;
     });

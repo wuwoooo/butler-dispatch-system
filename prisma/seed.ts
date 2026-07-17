@@ -186,6 +186,7 @@ async function seedButlers() {
       name: "赵一",
       phone: "13900020001",
       gender: "male",
+      vehicleType: "business" as const,
       vehicleInfo: "别克 GL8（7座）"
     },
     {
@@ -193,6 +194,7 @@ async function seedButlers() {
       name: "钱二",
       phone: "13900020002",
       gender: "female",
+      vehicleType: "business" as const,
       vehicleInfo: "丰田赛那（7座）"
     },
     {
@@ -200,6 +202,7 @@ async function seedButlers() {
       name: "孙三",
       phone: "13900020003",
       gender: "male",
+      vehicleType: "sedan" as const,
       vehicleInfo: "大众迈腾（5座）"
     },
     {
@@ -207,6 +210,7 @@ async function seedButlers() {
       name: "李四",
       phone: "13900020004",
       gender: "female",
+      vehicleType: "business" as const,
       vehicleInfo: "传祺 M8（7座）"
     },
     {
@@ -214,6 +218,7 @@ async function seedButlers() {
       name: "王五",
       phone: "13900020005",
       gender: "male",
+      vehicleType: "business" as const,
       vehicleInfo: "本田奥德赛（7座）"
     }
   ];
@@ -226,6 +231,7 @@ async function seedButlers() {
           name: row.name,
           phone: row.phone,
           gender: row.gender,
+          vehicleType: row.vehicleType,
           vehicleInfo: row.vehicleInfo,
           status: "available"
         },
@@ -699,6 +705,12 @@ async function upsertOrder(input: {
   settlementStatus?: "unsettled" | "settled";
   settlementRemark?: string | null;
 }) {
+  const serviceStartAt = new Date(
+    Math.min(input.arrivalTime.getTime(), input.checkInDate.getTime())
+  );
+  const serviceEndAt = new Date(input.checkOutDate);
+  serviceEndAt.setHours(23, 59, 59, 999);
+
   return prisma.serviceOrder.upsert({
     where: { orderNo: input.orderNo },
     update: {
@@ -707,6 +719,9 @@ async function upsertOrder(input: {
       guestName: input.guestName,
       guestPhone: input.guestPhone,
       guestCount: input.guestCount,
+      serviceMode: "stay",
+      serviceStartAt,
+      serviceEndAt,
       checkInDate: input.checkInDate,
       checkOutDate: input.checkOutDate,
       roomType: input.roomType,
@@ -725,6 +740,9 @@ async function upsertOrder(input: {
     },
     create: {
       ...input,
+      serviceMode: "stay",
+      serviceStartAt,
+      serviceEndAt,
       destination: null,
       settlementAmount: null,
       settlementStatus: input.settlementStatus ?? "unsettled",

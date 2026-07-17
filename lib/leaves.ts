@@ -69,6 +69,8 @@ export async function findLeaveOrderConflicts(
         select: {
           id: true,
           orderNo: true,
+          serviceStartAt: true,
+          serviceEndAt: true,
           arrivalTime: true,
           checkInDate: true,
           checkOutDate: true,

@@ -1,0 +1,25 @@
+CREATE TABLE `OrderStayExtension` (
+    `id` VARCHAR(191) NOT NULL,
+    `orderId` VARCHAR(191) NOT NULL,
+    `assignmentId` VARCHAR(191) NOT NULL,
+    `originalCheckOutAt` DATETIME(3) NOT NULL,
+    `requestedCheckOutAt` DATETIME(3) NOT NULL,
+    `reason` VARCHAR(500) NULL,
+    `status` ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+    `requestedById` VARCHAR(191) NOT NULL,
+    `reviewedById` VARCHAR(191) NULL,
+    `reviewedAt` DATETIME(3) NULL,
+    `reviewRemark` VARCHAR(500) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`),
+    INDEX `OrderStayExtension_orderId_status_idx` (`orderId`, `status`),
+    INDEX `OrderStayExtension_assignmentId_idx` (`assignmentId`),
+    INDEX `OrderStayExtension_requestedById_idx` (`requestedById`),
+    INDEX `OrderStayExtension_reviewedById_idx` (`reviewedById`),
+    CONSTRAINT `OrderStayExtension_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `ServiceOrder` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `OrderStayExtension_assignmentId_fkey` FOREIGN KEY (`assignmentId`) REFERENCES `OrderButlerAssignment` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `OrderStayExtension_requestedById_fkey` FOREIGN KEY (`requestedById`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `OrderStayExtension_reviewedById_fkey` FOREIGN KEY (`reviewedById`) REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+);

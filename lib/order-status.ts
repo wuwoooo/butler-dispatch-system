@@ -266,6 +266,8 @@ export async function refreshButlerStatus(
       status: true,
       order: {
         select: {
+          serviceStartAt: true,
+          serviceEndAt: true,
           arrivalTime: true,
           checkInDate: true,
           checkOutDate: true
@@ -321,6 +323,8 @@ export async function findButlerActiveAssignments(
         select: {
           id: true,
           orderNo: true,
+          serviceStartAt: true,
+          serviceEndAt: true,
           arrivalTime: true,
           checkInDate: true,
           checkOutDate: true,
@@ -340,6 +344,8 @@ function isCurrentAssignmentForStatus(
   assignment: {
     status: AssignmentStatus;
     order: {
+      serviceStartAt: Date;
+      serviceEndAt: Date;
       arrivalTime: Date;
       checkInDate: Date;
       checkOutDate: Date;

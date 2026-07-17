@@ -19,6 +19,9 @@ async function main() {
     include: {
       order: {
         select: {
+          serviceMode: true,
+          serviceStartAt: true,
+          serviceEndAt: true,
           checkInDate: true,
           checkOutDate: true,
           arrivalTime: true
@@ -58,6 +61,9 @@ function buildDescription(record: {
   abnormalType: string;
   createdAt: Date;
   order: {
+    serviceMode: "stay" | "transport";
+    serviceStartAt: Date;
+    serviceEndAt: Date;
     checkInDate: Date;
     checkOutDate: Date;
     arrivalTime: Date;
@@ -73,8 +79,8 @@ function buildDescription(record: {
   const isConfirmTimeout = record.abnormalType === "assignment_confirm_timeout";
   const title = isConfirmTimeout ? "管家超时未确认" : "管家确认后超期未完成";
   const action = isConfirmTimeout
-    ? "未在入住服务开始前确认接单"
-    : "已确认接单，但到离店日结束仍未完成服务";
+    ? order.serviceMode === "transport" ? "未在接送服务开始前确认接单" : "未在入住服务开始前确认接单"
+    : order.serviceMode === "transport" ? "已确认接单，但到接送服务结束仍未完成服务" : "已确认接单，但到离店日结束仍未完成服务";
   const deadline = isConfirmTimeout
     ? getOrderServiceWindow(order).startAt
     : getOrderServiceEndOfDay(order);

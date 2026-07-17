@@ -11,6 +11,16 @@ const optionalTrimmedString = (max: number) =>
     return trimmed.length ? trimmed : undefined;
   }, z.string().max(max).optional());
 
+const optionalNullableTrimmedString = (max: number) =>
+  z.preprocess((value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : null;
+  }, z.string().max(max).optional().nullable());
+
 export const loginSchema = z.object({
   username: z.string().min(1, "请输入用户名").max(64, "用户名过长"),
   password: z.string().min(1, "请输入密码").max(128, "密码过长")
@@ -18,9 +28,9 @@ export const loginSchema = z.object({
 
 export const userCreateSchema = z.object({
   username: z.string().min(2, "用户名至少 2 个字符").max(64),
-  password: z.string().min(8, "密码至少 8 个字符").max(128),
+  password: z.string().min(6, "密码至少 6 个字符").max(128),
   name: z.string().min(1, "请输入姓名").max(64),
-  phone: z.string().max(32).optional().nullable(),
+  phone: optionalTrimmedString(32).nullable(),
   roleCode: z.enum(ROLE_CODES),
   status: z.enum(["active", "disabled"]).default("active"),
   hotelId: z.string().optional().nullable(),
@@ -29,9 +39,9 @@ export const userCreateSchema = z.object({
 
 export const userUpdateSchema = z.object({
   username: z.string().min(2).max(64).optional(),
-  password: z.string().min(8).max(128).optional(),
+  password: z.string().min(6).max(128).optional(),
   name: z.string().min(1).max(64).optional(),
-  phone: z.string().max(32).optional().nullable(),
+  phone: optionalTrimmedString(32).nullable(),
   roleCode: z.enum(ROLE_CODES).optional(),
   status: z.enum(["active", "disabled"]).optional(),
   hotelId: z.string().optional().nullable(),
@@ -49,7 +59,7 @@ export const accountListRoleCodes = [...accountRoleCodes, "butler"] as const;
 
 const accountProfileSchema = z.object({
   name: z.string().min(1, "请输入姓名").max(64),
-  phone: z.string().max(32).optional().nullable(),
+  phone: optionalTrimmedString(32).nullable(),
   roleCode: z.enum(accountRoleCodes),
   hotelId: z.string().optional().nullable(),
   status: z.enum(["active", "disabled"]).default("active"),
@@ -59,7 +69,7 @@ const accountProfileSchema = z.object({
 export const accountCreateSchema = accountProfileSchema
   .extend({
     username: z.string().min(2, "用户名至少 2 个字符").max(64),
-    password: z.string().min(8, "密码至少 8 个字符").max(128)
+    password: z.string().min(6, "密码至少 6 个字符").max(128)
   })
   .superRefine((value, ctx) => {
     if (value.roleCode === "hotel_frontdesk" && !value.hotelId) {
@@ -99,7 +109,7 @@ export const accountListQuerySchema = z.object({
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "请输入原密码").max(128, "原密码过长"),
-    newPassword: z.string().min(8, "新密码至少 8 个字符").max(128, "新密码过长"),
+    newPassword: z.string().min(6, "新密码至少 6 个字符").max(128, "新密码过长"),
     confirmPassword: z.string().min(1, "请确认新密码").max(128, "确认密码过长")
   })
   .superRefine((value, ctx) => {
@@ -121,7 +131,7 @@ export const changePasswordSchema = z
   });
 
 export const butlerAccountCreateSchema = z.object({
-  password: z.string().min(8, "密码至少 8 个字符").max(128)
+  password: z.string().min(6, "密码至少 6 个字符").max(128)
 });
 
 export const wechatLoginSchema = z.object({
@@ -135,15 +145,17 @@ export const miniProgramBindSchema = wechatLoginSchema.extend({
 
 export const hotelCreateSchema = z.object({
   code: optionalTrimmedString(64),
-  name: z.string().min(1, "请输入酒店名称").max(128),
-  address: z.string().max(255).optional().nullable(),
-  contactName: z.string().max(64).optional().nullable(),
-  contactPhone: z.string().max(32).optional().nullable(),
-  phone: z.string().max(32).optional().nullable(),
+  name: z.string().trim().min(1, "请输入酒店名称").max(128),
+  address: optionalNullableTrimmedString(255),
+  contactName: optionalNullableTrimmedString(64),
+  contactPhone: optionalNullableTrimmedString(32),
+  phone: optionalNullableTrimmedString(32),
   status: z.enum(["active", "disabled"]).default("active")
 });
 
-export const hotelUpdateSchema = hotelCreateSchema.partial();
+export const hotelUpdateSchema = hotelCreateSchema.partial().extend({
+  status: z.enum(["active", "disabled"]).optional()
+});
 
 export const hotelRoomTypeCreateSchema = z.object({
   code: optionalTrimmedString(64).nullable(),
@@ -155,18 +167,26 @@ export const hotelRoomTypeCreateSchema = z.object({
 
 export const hotelRoomTypeUpdateSchema = hotelRoomTypeCreateSchema.partial();
 
+export const hotelRoomImportFileSchema = z.object({
+  name: z.string().regex(/\.(xlsx|xls)$/i, "仅支持 .xls 或 .xlsx 文件"),
+  size: z.number().int().positive("导入文件不能为空").max(5 * 1024 * 1024, "导入文件不能超过 5 MB")
+});
+
 const butlerProfileSchema = z.object({
   code: optionalTrimmedString(64),
   name: z.string().min(1, "请输入管家姓名").max(64),
   phone: z.string().min(1, "请输入手机号").max(32),
   gender: z.string().max(16).optional().nullable(),
+  vehicleType: z.enum(["sedan", "suv", "business"]).optional().nullable(),
   vehicleInfo: z.string().max(128).optional().nullable(),
   dispatchEnabled: z.boolean().optional().default(true),
   remark: z.string().max(500).optional().nullable()
 });
 
 export const butlerCreateSchema = butlerProfileSchema.extend({
-  accountPassword: z.string().regex(/^\d{6}$/, "初始密码必须是 6 位数字")
+  vehicleType: z.enum(["sedan", "suv", "business"], {
+    error: "请选择标准车型"
+  })
 });
 
 export const butlerUpdateSchema = butlerProfileSchema.partial();
@@ -191,6 +211,8 @@ export const orderStatusValues = [
 ] as const;
 
 export const pickupTypeValues = ["airport", "train"] as const;
+export const transportDirectionValues = ["pickup", "dropoff"] as const;
+export const vehicleTypeValues = ["sedan", "suv", "business"] as const;
 
 const nullableText = (max: number) =>
   z.string().max(max).optional().nullable();
@@ -203,6 +225,16 @@ const dateTimeString = (message: string) =>
 /** 管家确认接到客人或完成服务时，可回填实际发生时间。 */
 export const butlerServiceActionSchema = z.object({
   occurredAt: dateTimeString("操作时间格式不正确").optional()
+});
+
+export const stayExtensionRequestSchema = z.object({
+  requestedCheckOutAt: dateTimeString("新的预计离店时间格式不正确"),
+  reason: z.string().trim().max(500, "续住说明不能超过 500 个字符").optional().nullable()
+});
+
+export const stayExtensionReviewSchema = z.object({
+  action: z.enum(["approve", "reject"]),
+  reviewRemark: z.string().trim().max(500, "审核备注不能超过 500 个字符").optional().nullable()
 });
 
 export const orderListQuerySchema = paginationSchema.extend({
@@ -222,6 +254,8 @@ const orderBaseSchema = z.object({
   guestName: z.string().min(1, "请输入客人姓名").max(64),
   guestPhone: z.string().min(1, "请输入客人手机号").max(32),
   guestCount: z.coerce.number().int().min(1, "入住人数至少为 1").max(999),
+  serviceStartAt: dateTimeString("服务开始时间格式不正确").optional(),
+  serviceEndAt: dateTimeString("服务结束时间格式不正确").optional(),
   checkInDate: z.string().datetime("入住日期格式不正确"),
   checkOutDate: z.string().datetime("离店日期格式不正确"),
   roomType: nullableText(64),
@@ -231,6 +265,8 @@ const orderBaseSchema = z.object({
   arrivalTime: z.string().datetime("到达时间格式不正确"),
   flightTrainNo: nullableText(64),
   destination: nullableText(128),
+  requestedVehicleType: z.enum(vehicleTypeValues).optional().nullable(),
+  requestedVehicleInfo: nullableText(128),
   specialNeeds: nullableText(1000),
   remark: nullableText(1000)
 });
@@ -252,13 +288,98 @@ export const orderCreateSchema = orderBaseSchema.superRefine((value, context) =>
   }
 });
 
-export const orderUpdateSchema = orderBaseSchema.partial().extend({
-  status: z.enum(orderStatusValues).optional()
-});
+export const orderUpdateSchema = orderBaseSchema
+  .partial()
+  .extend({
+    transportDirection: z.enum(transportDirectionValues).optional(),
+    settlementAmount: z
+      .string()
+      .trim()
+      .regex(/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/, "收费金额格式不正确")
+      .nullable()
+      .optional(),
+    status: z.enum(orderStatusValues).optional()
+  })
+  .superRefine((value, context) => {
+    if (
+      value.serviceStartAt &&
+      value.serviceEndAt &&
+      new Date(value.serviceEndAt) <= new Date(value.serviceStartAt)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["serviceEndAt"],
+        message: "服务结束时间必须晚于开始时间"
+      });
+    }
+  });
 
 export const dispatchAssignSchema = z.object({
   butlerIds: z.array(z.string()).min(1, "请至少选择一名管家"),
+  settlementAmount: z
+    .string()
+    .trim()
+    .regex(/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/, "收费金额格式不正确"),
+  amountConfirmed: z.literal(true, {
+    error: "请确认收费金额"
+  }),
   remark: nullableText(500)
+});
+
+export const orderImportCommitRowSchema = z
+  .object({
+    hotelId: z.string().min(1, "请选择所属酒店"),
+    sourceSheet: z.string().min(1).max(128),
+    sourceRow: z.number().int().min(1),
+    guestName: z.string().min(1, "客人姓名不能为空").max(64),
+    guestPhone: z.string().min(1, "预订人手机不能为空").max(32),
+    guestCount: z.number().int().min(1).max(999),
+    roomType: nullableText(64),
+    roomNo: nullableText(64),
+    pickupType: z.enum(pickupTypeValues),
+    transportDirection: z.enum(transportDirectionValues),
+    serviceStartAt: z.string().datetime("接送开始时间格式不正确"),
+    serviceEndAt: z.string().datetime("接送结束时间格式不正确"),
+    arrivalStation: z.string().min(1, "接送地点不能为空").max(128),
+    requestedVehicleInfo: nullableText(128),
+    requestedVehicleType: z.enum(vehicleTypeValues).optional().nullable(),
+    settlementAmount: z
+      .string()
+      .trim()
+      .regex(/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/, "收费金额格式不正确")
+      .nullable(),
+    remark: nullableText(1000)
+  })
+  .superRefine((value, context) => {
+    if (new Date(value.serviceEndAt) <= new Date(value.serviceStartAt)) {
+      context.addIssue({
+        code: "custom",
+        path: ["serviceEndAt"],
+        message: "接送结束时间必须晚于开始时间"
+      });
+    }
+  });
+
+export const orderImportCommitSelectionSchema = z.object({
+  rows: z
+    .array(
+      z.object({
+        sourceSheet: z.string().min(1).max(128),
+        sourceRow: z.number().int().min(1),
+        guestPhone: z.string().trim().min(1, "预订人手机不能为空").max(32),
+        pickupType: z.enum(pickupTypeValues),
+        transportDirection: z.enum(transportDirectionValues),
+        arrivalStation: z.string().trim().min(1, "接送地点不能为空").max(128),
+        serviceEndAt: z.string().datetime("接送结束时间格式不正确"),
+        settlementAmount: z
+          .string()
+          .trim()
+          .regex(/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/, "收费金额格式不正确")
+          .nullable()
+      })
+    )
+    .min(1, "请至少选择一条有效订单")
+    .max(500)
 });
 
 export const rejectAssignmentSchema = z.object({
@@ -352,8 +473,8 @@ export const reviewListQuerySchema = paginationSchema.extend({
   endTime: z.string().optional()
 });
 
-export const statisticsQuerySchema = z
-  .object({
+export const statisticsQuerySchema = paginationSchema
+  .extend({
     range: z.enum(["today", "week", "month", "year", "all", "custom"]).optional().default("month"),
     startTime: z.string().optional(),
     endTime: z.string().optional(),
@@ -380,6 +501,7 @@ export const butlerOrderRecordsQuerySchema = paginationSchema.extend({
 export const settlementStatusValues = ["unsettled", "settled"] as const;
 
 export const financeOrdersQuerySchema = paginationSchema.extend({
+  butlerId: z.string().optional(),
   hotelId: z.string().optional(),
   orderStatus: z.enum(orderStatusValues).optional(),
   pickupType: z.enum(pickupTypeValues).optional(),

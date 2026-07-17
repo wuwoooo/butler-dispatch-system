@@ -8,10 +8,12 @@ export type HotelSummary = {
   phone?: string | null;
   status?: string;
   roomTypes?: HotelRoomTypeRecord[];
+  rooms?: HotelRoomRecord[];
   _count?: {
     users: number;
     orders: number;
     roomTypes: number;
+    rooms: number;
   };
 };
 
@@ -27,12 +29,25 @@ export type HotelRoomTypeRecord = {
   updatedAt?: string;
 };
 
+export type HotelRoomRecord = {
+  id: string;
+  hotelId: string;
+  roomTypeId: string;
+  roomNo: string;
+  enabled: boolean;
+  remark?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  roomType: Pick<HotelRoomTypeRecord, "id" | "code" | "name" | "enabled">;
+};
+
 export type ButlerSummary = {
   id: string;
   code?: string;
   name: string;
   phone?: string;
   status?: string;
+  vehicleType?: "sedan" | "suv" | "business" | null;
   vehicleInfo?: string | null;
   dispatchEnabled?: boolean;
   averageScore?: number | string;
@@ -85,6 +100,20 @@ export type OrderAssignmentRecord = {
   assignedBy?: UserSummary | null;
 };
 
+export type StayExtensionRecord = {
+  id: string;
+  assignmentId: string;
+  originalCheckOutAt: string;
+  requestedCheckOutAt: string;
+  reason?: string | null;
+  status: "pending" | "approved" | "rejected";
+  requestedBy?: UserSummary;
+  reviewedBy?: UserSummary | null;
+  reviewedAt?: string | null;
+  reviewRemark?: string | null;
+  createdAt: string;
+};
+
 export type OrderRecord = {
   id: string;
   orderNo: string;
@@ -95,6 +124,10 @@ export type OrderRecord = {
   guestName: string;
   guestPhone: string;
   guestCount: number;
+  serviceMode?: "stay" | "transport";
+  transportDirection?: "pickup" | "dropoff" | null;
+  serviceStartAt?: string;
+  serviceEndAt?: string;
   checkInDate: string;
   checkOutDate?: string | null;
   roomType?: string | null;
@@ -104,12 +137,17 @@ export type OrderRecord = {
   arrivalTime: string;
   flightTrainNo?: string | null;
   destination?: string | null;
+  requestedVehicleType?: "sedan" | "suv" | "business" | null;
+  requestedVehicleInfo?: string | null;
   specialNeeds?: string | null;
   status: string;
   remark?: string | null;
+  settlementAmount?: string | number | null;
+  settlementStatus?: string;
   createdAt: string;
   updatedAt: string;
   assignments?: OrderAssignmentRecord[];
+  stayExtensions?: StayExtensionRecord[];
   rejectRecords?: Array<{
     id: string;
     reason: string;
@@ -135,6 +173,9 @@ export type OrderRecord = {
 export type AvailableButlerRecord = ButlerSummary & {
   available: boolean;
   unavailableReasons: string[];
+  recommended: boolean;
+  recommendedVehicleType: "sedan" | "suv" | "business";
+  recommendationSource: "order_request" | "guest_count";
   user?: UserSummary | null;
 };
 
@@ -240,6 +281,10 @@ export type FinanceOrderRecord = {
   guestName: string;
   guestPhone: string;
   guestCount: number;
+  serviceMode?: "stay" | "transport";
+  transportDirection?: "pickup" | "dropoff" | null;
+  serviceStartAt?: string;
+  serviceEndAt?: string;
   checkInDate: string;
   checkOutDate?: string | null;
   pickupType: string;
@@ -249,8 +294,11 @@ export type FinanceOrderRecord = {
   status: string;
   butlerNames: string[];
   serviceCompletedAt?: string | null;
+  serviceStartedAt?: string | null;
+  serviceDuration?: string | null;
   frontdeskAverageScore: number;
   dispatcherAverageScore: number;
+  settlementAmount?: string | number | null;
   settlementStatus: string;
   settlementRemark?: string | null;
   createdAt: string;
@@ -273,7 +321,11 @@ export type ButlerServiceRecord = {
   isRejected: boolean;
   isCompleted: boolean;
   overallScore: number;
+  confirmedAt?: string | null;
+  pickedGuestAt?: string | null;
+  serviceStartedAt?: string | null;
   completedAt?: string | null;
+  serviceDuration?: string | null;
 };
 
 export type HotelStatisticRecord = {

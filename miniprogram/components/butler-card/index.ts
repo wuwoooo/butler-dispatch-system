@@ -7,6 +7,7 @@ Component({
   data: {
     avatar: "?",
     reasonText: "",
+    vehicleTypeText: "车型待补齐",
     statusRing: "default" // available | on_leave | default
   },
   observers: {
@@ -23,13 +24,21 @@ Component({
         reasonText: Array.isArray(item.unavailableReasons)
           ? item.unavailableReasons.join("、")
           : "",
+        vehicleTypeText: ({ sedan: "轿车", suv: "SUV", business: "商务车" } as AnyRecord)[item.vehicleType] || "车型待补齐",
         statusRing
       });
     }
   },
   methods: {
     handleTap() {
-      this.triggerEvent("tap", this.properties.item);
+      const item = this.properties.item as AnyRecord;
+      if (this.properties.selectable) {
+        if (!item?.id || item.available === false) return;
+        this.triggerEvent("select", item);
+        return;
+      }
+
+      this.triggerEvent("tap", item);
     }
   }
 });

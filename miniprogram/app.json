@@ -37,7 +37,8 @@
     "section-card": "/components/section-card/index",
     "primary-button": "/components/primary-button/index",
     "notification-item": "/components/notification-item/index",
-    "form-cell": "/components/form-cell/index"
+    "form-cell": "/components/form-cell/index",
+    "phone-number": "/components/phone-number/index"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

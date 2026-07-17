@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       status: query.status as Prisma.EnumAssignmentStatusFilter | undefined,
       order: {
         hotelId: query.hotelId || undefined,
-        arrivalTime:
+        serviceStartAt:
           query.startTime || query.endTime
             ? {
                 gte: query.startTime ? new Date(query.startTime) : undefined,
@@ -69,10 +69,17 @@ export async function GET(request: NextRequest) {
       hotel: item.order.hotel,
       guestName: item.order.guestName,
       guestCount: item.order.guestCount,
+      serviceMode: item.order.serviceMode,
+      transportDirection: item.order.transportDirection,
+      serviceStartAt: item.order.serviceStartAt,
+      serviceEndAt: item.order.serviceEndAt,
       checkInDate: item.order.checkInDate,
       checkOutDate: item.order.checkOutDate,
       pickupType: item.order.pickupType,
       arrivalTime: item.order.arrivalTime,
+      requestedVehicleInfo: item.order.requestedVehicleInfo,
+      requestedVehicleType: item.order.requestedVehicleType,
+      settlementAmount: item.order.settlementAmount,
       status: item.status,
       completed: item.status === "completed",
       score:

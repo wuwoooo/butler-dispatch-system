@@ -34,7 +34,10 @@ type OverdueAssignment = {
     id: string;
     orderNo: string;
     status: OrderStatus;
+    serviceMode: "stay" | "transport";
     guestName: string;
+    serviceStartAt: Date;
+    serviceEndAt: Date;
     arrivalTime: Date;
     checkInDate: Date;
     checkOutDate: Date;
@@ -76,7 +79,10 @@ export async function resolveOverdueAssignments(options: OverdueResolution = {})
           id: true,
           orderNo: true,
           status: true,
+          serviceMode: true,
           guestName: true,
+          serviceStartAt: true,
+          serviceEndAt: true,
           arrivalTime: true,
           checkInDate: true,
           checkOutDate: true,
@@ -211,8 +217,12 @@ function getAbnormalDescription(assignment: OverdueAssignment, now: Date) {
       : getOrderServiceEndOfDay(assignment.order);
   const action =
     assignment.status === "pending_confirm"
-      ? "未在入住服务开始前确认接单"
-      : "已确认接单，但到离店日结束仍未完成服务";
+      ? assignment.order.serviceMode === "transport"
+        ? "未在接送服务开始前确认接单"
+        : "未在入住服务开始前确认接单"
+      : assignment.order.serviceMode === "transport"
+        ? "已确认接单，但到接送服务结束仍未完成服务"
+        : "已确认接单，但到离店日结束仍未完成服务";
 
   return [
     `${getAbnormalTitle(assignment)}：管家 ${assignment.butler.name} ${action}。`,

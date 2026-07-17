@@ -20,7 +20,6 @@ import type {
   ButlerSummary,
   HotelSummary
 } from "@/types/domain";
-import { maskPhone } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
 
 type ApiResult<T> =
@@ -67,6 +66,7 @@ export function ButlerStatisticsClient() {
   const [items, setItems] = useState<ButlerStatisticsRecord[]>([]);
   const [butlers, setButlers] = useState<ButlerSummary[]>([]);
   const [hotels, setHotels] = useState<HotelSummary[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 });
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<ButlerStatisticsRecord | null>(null);
 
@@ -98,11 +98,16 @@ export function ButlerStatisticsClient() {
     setHotels(hotelData.items);
   }
 
-  async function loadStatistics() {
+  async function loadStatistics(
+    page = pagination.page,
+    pageSize = pagination.pageSize
+  ) {
     setLoading(true);
     try {
       const values = form.getFieldsValue();
       const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
         range: values.range || "month"
       });
 
@@ -117,10 +122,12 @@ export function ButlerStatisticsClient() {
         params.set("endTime", values.customRange[1].toDate().toISOString());
       }
 
-      const data = await request<{ items: ButlerStatisticsRecord[] }>(
-        `/api/statistics/butlers?${params.toString()}`
-      );
+      const data = await request<{
+        items: ButlerStatisticsRecord[];
+        pagination: { page: number; pageSize: number; total: number };
+      }>(`/api/statistics/butlers?${params.toString()}`);
       setItems(data.items);
+      setPagination(data.pagination);
     } catch (error) {
       message.error(error instanceof Error ? error.message : "加载管家统计失败");
     } finally {
@@ -131,7 +138,7 @@ export function ButlerStatisticsClient() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadBootstrap()
-      .then(loadStatistics)
+      .then(() => loadStatistics(1, 10))
       .catch((error) =>
         message.error(error instanceof Error ? error.message : "初始化失败")
       );
@@ -140,7 +147,7 @@ export function ButlerStatisticsClient() {
 
   return (
     <section className="page-panel">
-      <Space orientation="vertical" size={16} style={{ width: "100%" }}>
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
         <Space style={{ justifyContent: "space-between", width: "100%" }}>
           <Typography.Title level={3} style={{ margin: 0 }}>
             管家统计
@@ -149,7 +156,7 @@ export function ButlerStatisticsClient() {
             <Button icon={<DownloadOutlined />} disabled>
               导出
             </Button>
-            <Button icon={<ReloadOutlined />} onClick={loadStatistics}>
+            <Button icon={<ReloadOutlined />} onClick={() => loadStatistics()}>
               刷新
             </Button>
           </Space>
@@ -188,14 +195,14 @@ export function ButlerStatisticsClient() {
           <Form.Item name="customRange">
             <DatePicker.RangePicker showTime placeholder={["开始时间", "结束时间"]} />
           </Form.Item>
-          <Button type="primary" icon={<SearchOutlined />} onClick={loadStatistics}>
+          <Button type="primary" icon={<SearchOutlined />} onClick={() => loadStatistics(1, pagination.pageSize)}>
             搜索
           </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={() => {
               form.resetFields();
-              loadStatistics();
+              loadStatistics(1, pagination.pageSize);
             }}
           >
             重置
@@ -207,14 +214,18 @@ export function ButlerStatisticsClient() {
           loading={loading}
           dataSource={items}
           scroll={{ x: 1300 }}
-          pagination={{ pageSize: 10, showSizeChanger: true }}
+          pagination={{
+            current: pagination.page,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            onChange: (page, pageSize) => loadStatistics(page, pageSize)
+          }}
           columns={[
             { title: "管家姓名", dataIndex: "name", width: 120 },
             {
               title: "手机号",
               dataIndex: "phone",
-              width: 140,
-              render: maskPhone
+              width: 140
             },
             {
               title: "当前状态",
@@ -236,7 +247,12 @@ export function ButlerStatisticsClient() {
               width: 100,
               render: (value: number) => `${Math.round(value * 100)}%`
             },
-            { title: "平均评分", dataIndex: "averageScore", width: 100 },
+            {
+              title: "平均评分",
+              dataIndex: "averageScore",
+              width: 100,
+              render: (value: number) => (value > 0 ? value.toFixed(2) : "-")
+            },
             {
               title: "好评率",
               dataIndex: "goodReviewRate",
@@ -268,7 +284,7 @@ export function ButlerStatisticsClient() {
           <Descriptions bordered column={2} size="small">
             <Descriptions.Item label="管家">{detail.name}</Descriptions.Item>
             <Descriptions.Item label="手机号">
-              {maskPhone(detail.phone)}
+              {detail.phone}
             </Descriptions.Item>
             <Descriptions.Item label="状态">
               {butlerStatusLabels[detail.status] ?? detail.status}

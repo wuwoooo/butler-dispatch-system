@@ -1,7 +1,9 @@
 Component({
   properties: {
     visible: { type: Boolean, value: false },
-    title: { type: String, value: "选择实际时间" }
+    title: { type: String, value: "选择实际时间" },
+    mode: { type: String, value: "datetime" },
+    initialValue: { type: String, value: "" }
   },
   data: {
     date: "",
@@ -9,15 +11,16 @@ Component({
   },
   observers: {
     visible(visible: boolean) {
-      if (visible) this.resetToCurrentTime();
+      if (visible) this.resetToInitialValue();
     }
   },
   methods: {
-    resetToCurrentTime() {
-      const now = new Date();
+    resetToInitialValue() {
+      const initial = this.properties.initialValue ? new Date(this.properties.initialValue) : new Date();
+      const value = Number.isNaN(initial.getTime()) ? new Date() : initial;
       this.setData({
-        date: formatDate(now),
-        time: `${pad(now.getHours())}:${pad(now.getMinutes())}`
+        date: formatDate(value),
+        time: `${pad(value.getHours())}:${pad(value.getMinutes())}`
       });
     },
     setDate(event: AnyRecord) {

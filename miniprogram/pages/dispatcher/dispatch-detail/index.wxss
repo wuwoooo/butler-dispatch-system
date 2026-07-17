@@ -112,10 +112,68 @@
   border-radius: 3rpx;
 }
 
+.block-title-text {
+  flex: 1;
+}
+
+.multi-select-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.multi-select-toggle switch {
+  transform: scale(0.78);
+  transform-origin: right center;
+}
+
 .candidates-list {
   padding-bottom: calc(92rpx + var(--spacing-2xl));
 }
 
 .candidates-list .butler-card {
   margin-bottom: var(--spacing-lg) !important;
+}
+
+.amount-panel {
+  margin: 0 var(--spacing-2xl) calc(120rpx + var(--spacing-2xl));
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.amount-label {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.amount-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--spacing-md);
+  height: 76rpx;
+}
+
+.amount-prefix {
+  color: var(--color-primary);
+  font-weight: 800;
+  margin-right: var(--spacing-xs);
+}
+
+.amount-input {
+  flex: 1;
+  height: 76rpx;
+}
+
+.amount-hint {
+  margin-top: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: 22rpx;
 }

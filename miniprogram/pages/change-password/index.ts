@@ -19,8 +19,8 @@ Page({
   async handleSubmit() {
     if (!requireField(this.data.currentPassword, "请输入原密码")) return;
     if (!requireField(this.data.newPassword, "请输入新密码")) return;
-    if (this.data.newPassword.length < 8) {
-      wx.showToast({ title: "新密码至少 8 个字符", icon: "none" });
+    if (this.data.newPassword.length < 6) {
+      wx.showToast({ title: "新密码至少 6 个字符", icon: "none" });
       return;
     }
     if (this.data.newPassword !== this.data.confirmPassword) {

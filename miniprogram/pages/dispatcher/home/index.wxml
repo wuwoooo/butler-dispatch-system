@@ -31,12 +31,12 @@
   </view>
 
   <view class="stat-grid anim-fade-in anim-stagger-1">
-    <stat-card label="待分配" value="{{cards.pendingDispatch || 0}}" unit="单" tone="blue" />
-    <stat-card label="待接单" value="{{cards.pendingConfirm || 0}}" unit="单" tone="orange" />
-    <stat-card label="部分拒单" value="{{cards.partialRejected || 0}}" unit="单" tone="red" />
-    <stat-card label="待审请假" value="{{cards.pendingLeaves || 0}}" unit="单" tone="orange" />
-    <stat-card label="空闲管家" value="{{cards.idleButlers || 0}}" unit="人" tone="green" />
-    <stat-card label="接待中" value="{{cards.workingButlers || 0}}" unit="人" tone="cyan" />
+    <stat-card label="待分配" value="{{cards.pendingDispatch || 0}}" unit="单" tone="blue" url="/pages/dispatcher/orders/index?tab=pending_dispatch" bind:tap="openShortcut" />
+    <stat-card label="待接单" value="{{cards.pendingConfirm || 0}}" unit="单" tone="orange" url="/pages/dispatcher/orders/index?tab=pending_confirm" bind:tap="openShortcut" />
+    <stat-card label="部分拒单" value="{{cards.partialRejected || 0}}" unit="单" tone="red" url="/pages/dispatcher/orders/index?tab=partial_rejected" bind:tap="openShortcut" />
+    <stat-card label="待审请假" value="{{cards.pendingLeaves || 0}}" unit="单" tone="orange" url="/pages/dispatcher/leave-review/index" bind:tap="openShortcut" />
+    <stat-card label="空闲管家" value="{{cards.idleButlers || 0}}" unit="人" tone="green" url="/pages/dispatcher/butlers/index?status=available" bind:tap="openShortcut" />
+    <stat-card label="接待中" value="{{cards.workingButlers || 0}}" unit="人" tone="cyan" url="/pages/dispatcher/butlers/index?status=working" bind:tap="openShortcut" />
   </view>
 
   <view class="block-title anim-fade-in anim-stagger-2">优先处理订单</view>
@@ -58,3 +58,4 @@
     </view>
   </view>
 </page-container>
+<app-navbar role="dispatcher" active="home" />

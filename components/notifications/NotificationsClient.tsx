@@ -15,7 +15,7 @@ import {
   Typography
 } from "antd";
 import type { Dayjs } from "dayjs";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { notificationTypeMeta, notificationTypeOptions } from "@/lib/notification-config";
 import type { NotificationRecord } from "@/types/domain";
@@ -32,6 +32,7 @@ function notifyUnreadCountChanged() {
 
 export function NotificationsClient() {
   const { message } = App.useApp();
+  const router = useRouter();
   const [form] = Form.useForm();
   const [items, setItems] = useState<NotificationRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -106,6 +107,26 @@ export function NotificationsClient() {
       await loadData();
     } catch (error) {
       message.error(error instanceof Error ? error.message : "操作失败");
+    }
+  }
+
+  async function openOrderFromNotification(record: NotificationRecord) {
+    if (!record.targetId) return;
+
+    try {
+      if (!record.isRead) {
+        await request(`/api/notifications/${record.id}/read`, { method: "POST" });
+        notifyUnreadCountChanged();
+        setItems((current) =>
+          current.map((item) =>
+            item.id === record.id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item
+          )
+        );
+        setUnreadCount((current) => Math.max(0, current - 1));
+      }
+      router.push(`/orders/${record.targetId}`);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "标记已读失败，请稍后重试");
     }
   }
 
@@ -196,7 +217,9 @@ export function NotificationsClient() {
               width: 160,
               render: (value: string, record) =>
                 record.targetType === "ServiceOrder" && value ? (
-                  <Link href={`/orders/${value}`}>查看订单</Link>
+                  <Button type="link" style={{ padding: 0 }} onClick={() => openOrderFromNotification(record)}>
+                    查看订单
+                  </Button>
                 ) : (
                   "-"
                 )

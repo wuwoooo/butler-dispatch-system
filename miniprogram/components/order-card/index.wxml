@@ -8,10 +8,18 @@
   </view>
   <view class="guest-line">{{view.guestName}} · {{view.guestCount}}人</view>
   <view class="info-grid">
-    <view class="info-item info-pickup">接站：{{view.pickupType}}</view>
-    <view class="info-item info-arrival">到达：{{view.arrivalTime}}</view>
-    <view class="info-item info-checkin" style="grid-column: span 2;">入住：{{view.checkIn}} 至 {{view.checkOut}}</view>
-    <view class="info-item info-room">房间：{{view.roomText || '-'}}</view>
+    <block wx:if="{{view.serviceMode === 'transport'}}">
+      <view class="info-item info-pickup">接送：{{view.transportType}}</view>
+      <view class="info-item info-arrival">收费：{{view.settlementAmount}}</view>
+      <view class="info-item info-checkin" style="grid-column: span 2;">时间：{{view.serviceStartAt}} 至 {{view.serviceEndAt}}</view>
+    </block>
+    <block wx:else>
+      <view class="info-item info-pickup">接站：{{view.pickupType}}</view>
+      <view class="info-item info-arrival">到达：{{view.arrivalTime}}</view>
+      <view class="info-item info-checkin" style="grid-column: span 2;">入住：{{view.checkIn}} 至 {{view.checkOut}}</view>
+      <view class="info-item info-room">房间：{{view.roomText || '-'}}</view>
+      <view class="info-item">收费：{{view.settlementAmount}}</view>
+    </block>
   </view>
   <view wx:if="{{showActions && view.assignmentStatus === 'pending_confirm'}}" class="card-actions">
     <button class="action-btn reject" catchtap="handleReject">拒单</button>

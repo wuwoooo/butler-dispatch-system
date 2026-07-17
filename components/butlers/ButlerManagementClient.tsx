@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ButlerStatisticsClient } from "@/components/butlers/ButlerStatisticsClient";
 import { ButlerStatusTag } from "@/components/status/StatusTags";
 import { SortableTable } from "@/components/tables/SortableTable";
-import { formatDate, formatDateTime, maskPhone } from "@/utils/format";
+import { formatDate, formatDateTime } from "@/utils/format";
 
 type ApiResult<T> =
   | { success: true; data: T; message: string }
@@ -46,6 +46,9 @@ type ButlerActiveAssignment = {
     checkInDate?: string;
     checkOutDate?: string;
     arrivalTime?: string;
+    serviceStartAt?: string;
+    serviceEndAt?: string;
+    serviceMode?: "stay" | "transport";
     hotel?: {
       name: string;
     } | null;
@@ -60,6 +63,7 @@ type Butler = {
   status: string;
   dispatchEnabled: boolean;
   gender?: string | null;
+  vehicleType?: "sedan" | "suv" | "business" | null;
   vehicleInfo?: string | null;
   averageScore?: number | string;
   reviewCount?: number;
@@ -74,10 +78,10 @@ type ButlerForm = {
   name: string;
   phone: string;
   gender?: string;
+  vehicleType?: "sedan" | "suv" | "business";
   vehicleInfo?: string;
   dispatchEnabled?: boolean;
   remark?: string;
-  accountPassword?: string;
 };
 
 type ServiceStatus =
@@ -96,21 +100,16 @@ const currentAssignmentStatuses = [
 const emptyValues: ButlerForm = {
   name: "",
   phone: "",
-  dispatchEnabled: true,
-  accountPassword: ""
+  dispatchEnabled: true
 };
 
-function generateSixDigitPassword() {
-  if (globalThis.crypto?.getRandomValues) {
-    const values = new Uint32Array(1);
-    globalThis.crypto.getRandomValues(values);
-    return String(100000 + (values[0] % 900000));
+function getAssignmentServiceEndAt(assignment: ButlerActiveAssignment) {
+  const serviceEndAt = assignment.order?.serviceEndAt;
+  if (serviceEndAt) {
+    const exactEndAt = new Date(serviceEndAt);
+    return Number.isNaN(exactEndAt.getTime()) ? null : exactEndAt;
   }
 
-  return String(Math.floor(100000 + Math.random() * 900000));
-}
-
-function getAssignmentServiceEndAt(assignment: ButlerActiveAssignment) {
   const checkOutDate = assignment.order?.checkOutDate;
   if (!checkOutDate) {
     return null;
@@ -126,6 +125,12 @@ function getAssignmentServiceEndAt(assignment: ButlerActiveAssignment) {
 }
 
 function getAssignmentServiceStartAt(assignment: ButlerActiveAssignment) {
+  const serviceStartAt = assignment.order?.serviceStartAt;
+  if (serviceStartAt) {
+    const startAt = new Date(serviceStartAt);
+    return Number.isNaN(startAt.getTime()) ? null : startAt;
+  }
+
   const arrivalTime = assignment.order?.arrivalTime;
   const checkInDate = assignment.order?.checkInDate;
   if (!arrivalTime || !checkInDate) {
@@ -209,7 +214,9 @@ function renderReceptionDates(record: Butler) {
           <Space key={assignment.id} size={6} wrap>
             <Tag color={color}>{label}</Tag>
             <Typography.Text>
-              {formatDate(order?.checkInDate)} 至 {formatDate(order?.checkOutDate)}
+              {order?.serviceStartAt && order?.serviceEndAt
+                ? `${formatDateTime(order.serviceStartAt)} 至 ${formatDateTime(order.serviceEndAt)}`
+                : `${formatDate(order?.checkInDate)} 至 ${formatDate(order?.checkOutDate)}`}
             </Typography.Text>
             {order?.hotel?.name ? (
               <Typography.Text type="secondary">
@@ -233,17 +240,13 @@ function ButlerEditor({
   onSubmit: (values: ButlerForm) => Promise<void>;
 }) {
   const create = editing === "create";
-  const [form] = Form.useForm<ButlerForm>();
-  const generatedPassword = useMemo(
-    () => (create ? generateSixDigitPassword() : ""),
-    [create]
-  );
   const initialValues: ButlerForm = create
-    ? { ...emptyValues, accountPassword: generatedPassword }
+    ? emptyValues
     : {
         name: editing.name,
         phone: editing.phone,
         gender: editing.gender ?? undefined,
+        vehicleType: editing.vehicleType ?? undefined,
         vehicleInfo: editing.vehicleInfo ?? undefined,
         dispatchEnabled: editing.dispatchEnabled,
         remark: editing.remark ?? ""
@@ -259,7 +262,6 @@ function ButlerEditor({
       width={620}
     >
       <Form
-        form={form}
         key={`${create ? "create" : editing.id}-${
           editing === "create" ? "" : editing.updatedAt ?? ""
         }`}
@@ -290,6 +292,21 @@ function ButlerEditor({
             ]}
           />
         </Form.Item>
+        <Form.Item
+          label="标准车型"
+          name="vehicleType"
+          rules={create ? [{ required: true, message: "请选择标准车型" }] : undefined}
+          extra="用于派单时按人数或原表车型推荐。"
+        >
+          <Select
+            allowClear={!create}
+            options={[
+              { label: "轿车", value: "sedan" },
+              { label: "SUV", value: "suv" },
+              { label: "商务车", value: "business" }
+            ]}
+          />
+        </Form.Item>
         <Form.Item label="车型信息" name="vehicleInfo" extra="例如：别克 GL8（7座）">
           <Input placeholder="品牌 / 型号 / 座位数" />
         </Form.Item>
@@ -301,46 +318,6 @@ function ButlerEditor({
         >
           <Switch checkedChildren="允许" unCheckedChildren="暂停" />
         </Form.Item>
-
-        {create ? (
-          <>
-            <Form.Item label="登录账号">
-              <Input value="按管家姓名自动生成拼音账号" disabled />
-            </Form.Item>
-            <Form.Item
-              label="初始密码"
-              name="accountPassword"
-              extra="系统自动生成 6 位数字密码，请保存后告知管家。"
-              rules={[
-                {
-                  required: true,
-                  pattern: /^\d{6}$/,
-                  message: "初始密码必须是 6 位数字"
-                }
-              ]}
-            >
-              <Input
-                autoComplete="off"
-                readOnly
-                addonAfter={
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={() => {
-                      form.setFieldValue(
-                        "accountPassword",
-                        generateSixDigitPassword()
-                      );
-                    }}
-                    style={{ paddingInline: 0 }}
-                  >
-                    重新生成
-                  </Button>
-                }
-              />
-            </Form.Item>
-          </>
-        ) : null}
 
         <Form.Item label="备注" name="remark">
           <Input.TextArea rows={2} />
@@ -423,23 +400,11 @@ export function ButlerManagementClient() {
   async function save(values: ButlerForm) {
     try {
       if (editing === "create") {
-        const created = await request<Butler>("/api/butlers", {
+        await request<Butler>("/api/butlers", {
           method: "POST",
           body: JSON.stringify(values)
         });
-        modal.success({
-          title: "管家已创建",
-          content: (
-            <Descriptions bordered size="small" column={1}>
-              <Descriptions.Item label="登录账号">
-                {created.user?.username ?? "-"}
-              </Descriptions.Item>
-              <Descriptions.Item label="初始密码">
-                {values.accountPassword}
-              </Descriptions.Item>
-            </Descriptions>
-          )
-        });
+        message.success("管家已创建，可在详情中按需开通账号");
       } else if (editing) {
         await request(`/api/butlers/${editing.id}`, {
           method: "PUT",
@@ -471,7 +436,7 @@ export function ButlerManagementClient() {
             登录账号将按“{detail.name}”自动生成拼音，并在重名时追加数字。
           </Typography.Text>
           <Input.Password
-            placeholder="初始密码（至少 8 位）"
+            placeholder="初始密码（至少 6 位）"
             onChange={(event) => {
               password = event.target.value;
             }}
@@ -481,8 +446,8 @@ export function ButlerManagementClient() {
       okText: "开通",
       cancelText: "取消",
       onOk: async () => {
-        if (password.length < 8) {
-          message.error("初始密码至少 8 位");
+        if (password.length < 6) {
+          message.error("初始密码至少 6 位");
           throw new Error("invalid password");
         }
         try {
@@ -617,8 +582,7 @@ export function ButlerManagementClient() {
                     {
                       title: "手机号",
                       dataIndex: "phone",
-                      width: 140,
-                      render: maskPhone
+                      width: 140
                     },
                     {
                       title: "登录账号",
@@ -648,7 +612,18 @@ export function ButlerManagementClient() {
                       )
                     },
                     {
-                      title: "车型信息",
+                      title: "标准车型",
+                      dataIndex: "vehicleType",
+                      width: 120,
+                      render: (value) =>
+                        value ? (
+                          { sedan: "轿车", suv: "SUV", business: "商务车" }[value as "sedan" | "suv" | "business"]
+                        ) : (
+                          <Tag color="warning">待补齐</Tag>
+                        )
+                    },
+                    {
+                      title: "车辆信息",
                       dataIndex: "vehicleInfo",
                       width: 160,
                       render: (value) => value || "-"
@@ -734,7 +709,7 @@ export function ButlerManagementClient() {
                   <Descriptions bordered size="small" column={2}>
                     <Descriptions.Item label="姓名">{detail.name}</Descriptions.Item>
                     <Descriptions.Item label="手机号">
-                      {maskPhone(detail.phone)}
+                      {detail.phone}
                     </Descriptions.Item>
                     <Descriptions.Item label="当前服务状态">
                       <ButlerStatusTag value={getDisplayServiceStatus(detail)} />
@@ -749,6 +724,11 @@ export function ButlerManagementClient() {
                     </Descriptions.Item>
                     <Descriptions.Item label="车型信息">
                       {detail.vehicleInfo || "-"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="标准车型">
+                      {detail.vehicleType
+                        ? { sedan: "轿车", suv: "SUV", business: "商务车" }[detail.vehicleType]
+                        : "待补齐"}
                     </Descriptions.Item>
                     <Descriptions.Item label="登录账号">
                       {account?.username ?? "未开通"}

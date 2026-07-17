@@ -4,6 +4,8 @@ import { getRequestUser } from "@/lib/auth";
 import { requireRole } from "@/lib/permissions";
 import type { AuthenticatedUser, RoleCode } from "@/types/auth";
 
+const REQUEST_META_USER_AGENT_MAX_LENGTH = 255;
+
 export async function requireApiUser(request: NextRequest) {
   const user = await getRequestUser(request);
 
@@ -44,11 +46,13 @@ export async function requireApiRoles(
 }
 
 export function getRequestMeta(request: NextRequest) {
+  const userAgent = request.headers.get("user-agent");
+
   return {
     ip:
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       request.headers.get("x-real-ip") ??
       null,
-    userAgent: request.headers.get("user-agent")
+    userAgent: userAgent?.slice(0, REQUEST_META_USER_AGENT_MAX_LENGTH) ?? null
   };
 }

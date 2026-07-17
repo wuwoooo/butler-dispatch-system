@@ -40,7 +40,10 @@
         <view class="row-dot-decor"></view>
         <text>{{row[0]}}</text>
       </view>
-      <view class="row-value">{{row[1] || '-'}}</view>
+      <view class="row-value">
+        <phone-number wx:if="{{row[2]}}" phone="{{row[2]}}" display="{{row[1]}}" />
+        <text wx:else>{{row[1] || '-'}}</text>
+      </view>
     </view>
   </section-card>
 
@@ -65,6 +68,7 @@
         wx:if="{{!item.reject}}"
         text="{{item.text}}"
         tone="{{item.tone}}"
+        disabled="{{item.disabled}}"
         data-action="{{item.action}}"
         bind:tap="doAction"
       />
@@ -80,6 +84,8 @@
 <occurred-at-picker
   visible="{{occurredAtPicker.visible}}"
   title="{{occurredAtPicker.title}}"
+  mode="{{occurredAtPicker.mode}}"
+  initial-value="{{occurredAtPicker.initialValue}}"
   bind:confirm="handleOccurredAtConfirm"
   bind:cancel="handleOccurredAtCancel"
 />

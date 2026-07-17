@@ -9,7 +9,7 @@ function redirectByRole(user, replace = false) {
     if (role === "butler") {
         url = "/pages/butler/home/index";
     }
-    else if (role === "dispatcher") {
+    else if (role === "dispatcher" || role === "admin") {
         url = "/pages/dispatcher/home/index";
     }
     else {

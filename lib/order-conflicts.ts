@@ -14,6 +14,8 @@ export type OrderWindowSource = {
   arrivalTime: Date;
   checkInDate: Date;
   checkOutDate: Date;
+  serviceStartAt?: Date | null;
+  serviceEndAt?: Date | null;
 };
 
 export type TimeWindow = {
@@ -36,6 +38,13 @@ export type ButlerOrderTimeConflict = {
  * 离店日期是订单必填字段；如果录入值不晚于开始时间，调用方应在订单校验层拦截。
  */
 export function getOrderServiceWindow(order: OrderWindowSource): TimeWindow {
+  if (order.serviceStartAt && order.serviceEndAt) {
+    return {
+      startAt: new Date(order.serviceStartAt),
+      endAt: new Date(order.serviceEndAt)
+    };
+  }
+
   const startAt = new Date(
     Math.min(order.arrivalTime.getTime(), order.checkInDate.getTime())
   );
@@ -44,14 +53,20 @@ export function getOrderServiceWindow(order: OrderWindowSource): TimeWindow {
   return { startAt, endAt };
 }
 
-export function getOrderServiceEndOfDay(order: Pick<OrderWindowSource, "checkOutDate">) {
+export function getOrderServiceEndOfDay(
+  order: Pick<OrderWindowSource, "checkOutDate" | "serviceEndAt">
+) {
+  if (order.serviceEndAt) {
+    return new Date(order.serviceEndAt);
+  }
+
   const endAt = new Date(order.checkOutDate);
   endAt.setHours(23, 59, 59, 999);
   return endAt;
 }
 
 export function isOrderServiceWindowExpired(
-  order: Pick<OrderWindowSource, "checkOutDate">,
+  order: Pick<OrderWindowSource, "checkOutDate" | "serviceEndAt">,
   now = new Date()
 ) {
   return getOrderServiceEndOfDay(order) < now;
@@ -96,6 +111,8 @@ export async function findButlerOrderTimeConflicts(
           id: true,
           orderNo: true,
           status: true,
+          serviceStartAt: true,
+          serviceEndAt: true,
           arrivalTime: true,
           checkInDate: true,
           checkOutDate: true

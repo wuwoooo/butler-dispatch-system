@@ -5,7 +5,6 @@ import { writeOperationLog } from "@/lib/logger";
 import { requireApiRoles } from "@/lib/request";
 import { handleApiError } from "@/lib/response";
 import { leaveListQuerySchema } from "@/lib/validators";
-import { maskPhone } from "@/utils/format";
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireApiRoles(request, [
@@ -41,7 +40,7 @@ export async function GET(request: NextRequest) {
         ],
         rows: rows.map((item) => ({
           butlerName: item.butler.name,
-          butlerPhone: maskPhone(item.butler.phone),
+          butlerPhone: item.butler.phone,
           startAt: item.startAt.toISOString(),
           endAt: item.endAt.toISOString(),
           leaveType: item.leaveType,

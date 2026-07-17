@@ -13,7 +13,12 @@ Page({
     order: {} as AnyRecord,
     assigned: [] as AnyRecord[],
     candidates: [] as AnyRecord[],
+    recommendation: {} as AnyRecord,
     selectedIds: [] as string[],
+    multiSelectEnabled: false,
+    settlementAmount: "",
+    defaultSettlementAmount: "",
+    settlementAmountsByVehicleType: {} as AnyRecord,
     sections: [] as AnyRecord[],
     canDispatch: false
   },
@@ -36,24 +41,75 @@ Page({
         ...item,
         selected: this.data.selectedIds.includes(item.id)
       })),
-      sections: buildSections(order),
+      recommendation: available.recommendation || {},
+      multiSelectEnabled: false,
+      sections: buildSections(order, available.recommendation),
+      settlementAmount:
+        order.settlementAmount === null || order.settlementAmount === undefined
+          ? String(available.defaultSettlementAmount || "")
+          : Number(order.settlementAmount).toFixed(2),
+      defaultSettlementAmount: String(available.defaultSettlementAmount || ""),
+      settlementAmountsByVehicleType:
+        available.settlementAmountsByVehicleType || {},
       canDispatch: ["pending_dispatch", "partial_rejected"].includes(order.status)
     });
   },
-  toggleButler(event: AnyRecord) {
+  onAmountInput(event: AnyRecord) {
+    this.setData({ settlementAmount: String(event.detail.value || "") });
+  },
+  selectButler(event: AnyRecord) {
     const item = event.detail;
-    if (item.available === false) return;
-    const selected = new Set(this.data.selectedIds);
-    if (selected.has(item.id)) selected.delete(item.id);
-    else selected.add(item.id);
-    const selectedIds = Array.from(selected);
-    this.setData({
+    if (!item?.id || item.available === false) return;
+    const currentSelectedIds = this.data.selectedIds as string[];
+    const selectedIds = currentSelectedIds.includes(item.id)
+      ? currentSelectedIds.filter((id) => id !== item.id)
+      : this.data.multiSelectEnabled
+        ? [...currentSelectedIds, item.id]
+        : [item.id];
+    const nextData: AnyRecord = {
       selectedIds,
       candidates: this.data.candidates.map((candidate: AnyRecord) => ({
         ...candidate,
         selected: selectedIds.includes(candidate.id)
       }))
+    };
+    nextData.settlementAmount = getSettlementAmountForSelection({
+      candidates: this.data.candidates,
+      selectedIds,
+      recommendation: this.data.recommendation,
+      defaultSettlementAmount: this.data.defaultSettlementAmount,
+      settlementAmountsByVehicleType:
+        this.data.settlementAmountsByVehicleType
     });
+    this.setData(nextData);
+  },
+  onMultiSelectChange(event: AnyRecord) {
+    const multiSelectEnabled = Boolean(event.detail.value);
+    const currentSelectedIds = this.data.selectedIds as string[];
+    const selectedIds =
+      !multiSelectEnabled && currentSelectedIds.length > 1
+        ? currentSelectedIds.slice(-1)
+        : currentSelectedIds;
+    const nextData: AnyRecord = {
+      multiSelectEnabled,
+      selectedIds,
+      candidates: this.data.candidates.map((candidate: AnyRecord) => ({
+        ...candidate,
+        selected: selectedIds.includes(candidate.id)
+      }))
+    };
+
+    if (selectedIds !== currentSelectedIds) {
+      nextData.settlementAmount = getSettlementAmountForSelection({
+        candidates: this.data.candidates,
+        selectedIds,
+        recommendation: this.data.recommendation,
+        defaultSettlementAmount: this.data.defaultSettlementAmount,
+        settlementAmountsByVehicleType:
+          this.data.settlementAmountsByVehicleType
+      });
+    }
+    this.setData(nextData);
   },
   lastSubmitTime: 0,
   lastCancelTime: 0,
@@ -71,13 +127,25 @@ Page({
       wx.showToast({ title: "请至少选择一名管家", icon: "none" });
       return;
     }
+    if (!/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/.test(this.data.settlementAmount)) {
+      wx.showToast({ title: "请填写正确的收费金额", icon: "none" });
+      return;
+    }
+    const selectedNames = this.data.candidates
+      .filter((item: AnyRecord) => this.data.selectedIds.includes(item.id))
+      .map((item: AnyRecord) => item.name)
+      .join("、");
     wx.showModal({
       title: "提交派单",
-      content: `确认派给 ${this.data.selectedIds.length} 名管家？`,
+      content: `确认派给 ${selectedNames}？收费金额 ¥${Number(this.data.settlementAmount).toFixed(2)}`,
       confirmColor: "#2AACE2",
       success: async (res: AnyRecord) => {
         if (!res.confirm) return;
-        await dispatchOrder(this.data.orderId, this.data.selectedIds);
+        await dispatchOrder(
+          this.data.orderId,
+          this.data.selectedIds,
+          this.data.settlementAmount
+        );
         wx.showToast({ title: "派单成功", icon: "success" });
         this.setData({ selectedIds: [] });
         this.load();
@@ -106,7 +174,9 @@ Page({
   }
 });
 
-function buildSections(order: AnyRecord) {
+function buildSections(order: AnyRecord, recommendation?: AnyRecord) {
+  const transport = order.serviceMode === "transport";
+  const transportType = formatTransportType(order.pickupType, order.transportDirection);
   return [
     {
       title: "订单信息",
@@ -114,17 +184,66 @@ function buildSections(order: AnyRecord) {
         ["订单编号", order.orderNo],
         ["酒店名称", order.hotel?.name],
         ["订单状态", getStatus("order", order.status).text],
-        ["客人姓名", `${order.guestName || "-"} · ${order.guestCount || 0}人`]
+        ["客人姓名", `${order.guestName || "-"} · ${order.guestCount || 0}人`],
+        ["收费金额", order.settlementAmount === null || order.settlementAmount === undefined ? "-" : `¥${Number(order.settlementAmount).toFixed(2)}`]
       ]
     },
     {
-      title: "入住与接站",
-      rows: [
-        ["入住日期", formatDateFull(order.checkInDate)],
-        ["离店日期", formatDateFull(order.checkOutDate)],
-        ["接站方案", pickupTypeMap[order.pickupType] || "-"],
-        ["到达时间", formatDateTimeFull(order.arrivalTime)]
-      ]
+      title: transport ? "接送任务" : "入住与接站",
+      rows: transport
+        ? [
+            ["接送类型", transportType],
+            ["开始时间", formatDateTimeFull(order.serviceStartAt)],
+            ["预计结束", formatDateTimeFull(order.serviceEndAt)],
+            ["接送地点", order.arrivalStation || "-"],
+            ["原表车型", order.requestedVehicleInfo || "-"],
+            [
+              "推荐车型",
+              `${({ sedan: "轿车", suv: "SUV", business: "商务车" } as AnyRecord)[recommendation?.vehicleType] || "-"}${recommendation?.source ? `（${recommendation.source === "order_request" ? "按原表车型" : "按接送人数"}）` : ""}`
+            ]
+          ]
+        : [
+            ["入住日期", formatDateFull(order.checkInDate)],
+            ["离店日期", formatDateFull(order.checkOutDate)],
+            ["接站方案", pickupTypeMap[order.pickupType] || "-"],
+            ["到达时间", formatDateTimeFull(order.arrivalTime)]
+          ]
     }
   ];
+}
+
+function formatTransportType(pickupType: string, direction?: string) {
+  if (pickupType === "airport") return direction === "pickup" ? "接机" : "送机";
+  return direction === "pickup" ? "接站" : "送站";
+}
+
+function getSettlementAmountForSelection(input: {
+  candidates: AnyRecord[];
+  selectedIds: string[];
+  recommendation: AnyRecord;
+  defaultSettlementAmount: string;
+  settlementAmountsByVehicleType: AnyRecord;
+}) {
+  if (input.selectedIds.length === 0) {
+    return input.defaultSettlementAmount;
+  }
+
+  const selectedVehicleTypes = input.candidates
+    .filter((candidate) => input.selectedIds.includes(candidate.id))
+    .map((candidate) => candidate.vehicleType);
+  const fallbackVehicleType = input.recommendation?.vehicleType || "sedan";
+
+  if (selectedVehicleTypes.length === 0) {
+    return input.defaultSettlementAmount;
+  }
+
+  return selectedVehicleTypes
+    .reduce((total, vehicleType) => {
+      const amount =
+        input.settlementAmountsByVehicleType[
+          vehicleType || fallbackVehicleType
+        ];
+      return total + Number(amount || 0);
+    }, 0)
+    .toFixed(2);
 }

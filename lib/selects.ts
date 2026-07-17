@@ -61,12 +61,32 @@ export const hotelPublicSelect = {
     select: {
       users: true,
       orders: true,
-      roomTypes: true
+      roomTypes: true,
+      rooms: true
     }
   },
   createdAt: true,
   updatedAt: true
 } satisfies Prisma.HotelSelect;
+
+export const hotelRoomSelect = {
+  id: true,
+  hotelId: true,
+  roomTypeId: true,
+  roomNo: true,
+  enabled: true,
+  remark: true,
+  createdAt: true,
+  updatedAt: true,
+  roomType: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      enabled: true
+    }
+  }
+} satisfies Prisma.HotelRoomSelect;
 
 export const butlerPublicSelect = {
   id: true,
@@ -74,6 +94,7 @@ export const butlerPublicSelect = {
   name: true,
   phone: true,
   gender: true,
+  vehicleType: true,
   vehicleInfo: true,
   dispatchEnabled: true,
   status: true,
@@ -119,6 +140,9 @@ export const butlerWithAccountSelect = {
           id: true,
           orderNo: true,
           guestName: true,
+          serviceMode: true,
+          serviceStartAt: true,
+          serviceEndAt: true,
           checkInDate: true,
           checkOutDate: true,
           arrivalTime: true,
@@ -152,6 +176,10 @@ export const orderListSelect = {
   guestName: true,
   guestPhone: true,
   guestCount: true,
+  serviceMode: true,
+  transportDirection: true,
+  serviceStartAt: true,
+  serviceEndAt: true,
   checkInDate: true,
   checkOutDate: true,
   roomType: true,
@@ -161,9 +189,13 @@ export const orderListSelect = {
   arrivalTime: true,
   flightTrainNo: true,
   destination: true,
+  requestedVehicleType: true,
+  requestedVehicleInfo: true,
   specialNeeds: true,
   status: true,
   remark: true,
+  settlementAmount: true,
+  settlementStatus: true,
   createdAt: true,
   updatedAt: true,
   hotel: {
@@ -201,7 +233,9 @@ export const orderListSelect = {
           code: true,
           name: true,
           phone: true,
-          status: true
+          status: true,
+          vehicleType: true,
+          vehicleInfo: true
         }
       },
       assignedBy: {

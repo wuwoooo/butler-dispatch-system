@@ -16,6 +16,11 @@ Page({
         items: [],
         loading: true
     },
+    onLoad(query) {
+        if (query.status) {
+            this.setData({ activeStatus: query.status });
+        }
+    },
     onShow() {
         this.load();
     },

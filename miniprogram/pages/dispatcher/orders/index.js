@@ -18,6 +18,11 @@ Page({
         items: [],
         loading: true
     },
+    onLoad(query) {
+        if (query.tab) {
+            this.setData({ active: query.tab });
+        }
+    },
     onShow() {
         this.load();
     },

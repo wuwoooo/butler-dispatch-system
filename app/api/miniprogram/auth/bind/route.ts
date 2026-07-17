@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
       where: {
         OR: [
           { username: body.username },
-          { phone: body.username }
+          { phone: body.username },
+          { name: body.username }
         ]
       },
       take: 2,
@@ -30,10 +31,14 @@ export async function POST(request: NextRequest) {
         operationType: "MINIPROGRAM_BIND_FAILED",
         targetType: "User",
         targetId: body.username,
-        remark: "小程序账号绑定失败：用户名与手机号匹配到不同账号",
+        remark: "小程序账号绑定失败：账号标识匹配到多个账号，请改用用户名或手机号，或联系管理员核对账号信息",
         ...meta
       });
-      return errorResponse("ACCOUNT_IDENTIFIER_CONFLICT", "账号标识冲突，请联系管理员", 409);
+      return errorResponse(
+        "ACCOUNT_IDENTIFIER_CONFLICT",
+        "账号标识匹配到多个账号，请改用用户名或手机号，或联系管理员核对账号信息",
+        409
+      );
     }
 
     const user = users[0] ?? null;

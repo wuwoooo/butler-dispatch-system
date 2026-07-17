@@ -5,15 +5,18 @@
   right: 0;
   bottom: 0;
   z-index: 50;
+  box-sizing: border-box;
+  height: calc(128rpx + constant(safe-area-inset-bottom));
   height: calc(128rpx + env(safe-area-inset-bottom));
+  padding: 0 0 constant(safe-area-inset-bottom);
   padding: 0 0 env(safe-area-inset-bottom);
   display: flex;
   justify-content: space-around;
   border-top: 1rpx solid var(--color-border-light);
-  background: rgba(255, 255, 255, 0.90);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 -2rpx 12rpx rgba(26, 35, 50, 0.04);
+  box-shadow: 0 -4rpx 18rpx rgba(26, 35, 50, 0.06);
 }
 
 .tab-item {

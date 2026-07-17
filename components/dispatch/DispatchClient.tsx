@@ -5,8 +5,11 @@ import {
   App,
   Button,
   Drawer,
+  InputNumber,
   Modal,
   Space,
+  Switch,
+  Tag,
   Typography
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +17,7 @@ import {
   AssignmentStatusTag,
   ButlerStatusTag,
   OrderStatusTag,
+  PickupTypeTag,
   getAssignmentStatusLabel
 } from "@/components/status/StatusTags";
 import { OrderDetailView } from "@/components/orders/OrderDetailView";
@@ -22,8 +26,13 @@ import type {
   OrderAssignmentRecord,
   OrderRecord
 } from "@/types/domain";
-import { formatDateTime, maskPhone } from "@/utils/format";
+import { formatDateTime } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
+import { getDefaultTransportFeeTotalText } from "@/lib/transport-pricing";
+import {
+  normalizeButlerSelectionForMode,
+  toggleButlerSelection as getNextButlerSelection
+} from "@/lib/dispatch-selection";
 
 type ApiResult<T> =
   | { success: true; data: T; message: string }
@@ -41,6 +50,8 @@ const blockingSameOrderAssignmentStatuses = [
   "in_service",
   "reassigned"
 ];
+type VehicleType = "sedan" | "suv" | "business";
+
 export function DispatchClient() {
   const { message, modal } = App.useApp();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
@@ -48,7 +59,13 @@ export function DispatchClient() {
   const [assignOpen, setAssignOpen] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<OrderRecord | null>(null);
   const [butlers, setButlers] = useState<AvailableButlerRecord[]>([]);
+  const [recommendation, setRecommendation] = useState<{
+    vehicleType: VehicleType;
+    source: "order_request" | "guest_count";
+  } | null>(null);
   const [selectedButlerIds, setSelectedButlerIds] = useState<string[]>([]);
+  const [multiSelectEnabled, setMultiSelectEnabled] = useState(false);
+  const [settlementAmount, setSettlementAmount] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<OrderRecord | null>(null);
@@ -88,12 +105,30 @@ export function DispatchClient() {
     setCurrentOrder(order);
     setAssignOpen(true);
     setSelectedButlerIds([]);
+    setMultiSelectEnabled(false);
+    setRecommendation(null);
+    setSettlementAmount(
+      order.settlementAmount === null || order.settlementAmount === undefined
+        ? ""
+        : Number(order.settlementAmount).toFixed(2)
+    );
 
     try {
-      const data = await request<{ items: AvailableButlerRecord[] }>(
+      const data = await request<{
+        items: AvailableButlerRecord[];
+        recommendation: {
+          vehicleType: VehicleType;
+          source: "order_request" | "guest_count";
+        };
+        defaultSettlementAmount: string;
+      }>(
         `/api/orders/${order.id}/available-butlers`
       );
       setButlers(data.items);
+      setRecommendation(data.recommendation);
+      if (order.settlementAmount === null || order.settlementAmount === undefined) {
+        setSettlementAmount(data.defaultSettlementAmount);
+      }
     } catch (error) {
       message.error(error instanceof Error ? error.message : "加载管家失败");
     }
@@ -120,15 +155,59 @@ export function DispatchClient() {
     return new Map<string, OrderAssignmentRecord>(entries);
   }, [currentOrder]);
 
+  function getSettlementAmountForSelection(selectedIds: string[]) {
+    const selectedVehicleTypes = butlers
+      .filter((butler) => selectedIds.includes(butler.id))
+      .map((butler) => butler.vehicleType);
+    return getDefaultTransportFeeTotalText({
+      pickupType: currentOrder?.pickupType === "train" ? "train" : "airport",
+      selectedVehicleTypes,
+      fallbackVehicleType: recommendation?.vehicleType ?? "sedan"
+    });
+  }
+
+  function toggleButlerSelection(butlerId: string) {
+    const nextSelectedIds = getNextButlerSelection({
+      selectedIds: selectedButlerIds,
+      butlerId,
+      multiple: multiSelectEnabled
+    });
+
+    setSelectedButlerIds(nextSelectedIds);
+    setSettlementAmount(getSettlementAmountForSelection(nextSelectedIds));
+  }
+
+  function changeMultiSelectMode(enabled: boolean) {
+    const nextSelectedIds = normalizeButlerSelectionForMode(
+      selectedButlerIds,
+      enabled
+    );
+
+    setMultiSelectEnabled(enabled);
+    if (nextSelectedIds !== selectedButlerIds) {
+      setSelectedButlerIds(nextSelectedIds);
+      setSettlementAmount(getSettlementAmountForSelection(nextSelectedIds));
+    }
+  }
+
   async function submitAssign() {
     if (!currentOrder || selectedButlerIds.length === 0) {
       message.warning("请至少选择一名管家");
       return;
     }
+    if (!/^(0|[1-9]\d{0,9})(\.\d{1,2})?$/.test(settlementAmount)) {
+      message.warning("请填写正确的收费金额");
+      return;
+    }
+
+    const selectedNames = butlers
+      .filter((butler) => selectedButlerIds.includes(butler.id))
+      .map((butler) => butler.name)
+      .join("、");
 
     modal.confirm({
       title: "确认派单",
-      content: "派单后管家会收到待确认任务，请确认选择无误。",
+      content: `确认派给 ${selectedNames}？本订单收费金额为 ¥${Number(settlementAmount).toFixed(2)}。`,
       okText: "确认派单",
       cancelText: "取消",
       onOk: async () => {
@@ -137,7 +216,9 @@ export function DispatchClient() {
           await request(`/api/orders/${currentOrder.id}/dispatch`, {
             method: "POST",
             body: JSON.stringify({
-              butlerIds: selectedButlerIds
+              butlerIds: selectedButlerIds,
+              settlementAmount,
+              amountConfirmed: true
             })
           });
           message.success("派单成功");
@@ -222,15 +303,32 @@ export function DispatchClient() {
           rowKey="id"
           loading={loading}
           dataSource={orders}
-          scroll={{ x: 1150 }}
+          scroll={{ x: 1280 }}
           columns={[
             { title: "酒店", dataIndex: ["hotel", "name"], width: 180 },
-            { title: "客人", dataIndex: "guestName", width: 110 },
+            {
+              title: "客人",
+              dataIndex: "guestName",
+              width: 140,
+              render: (value, record) => `${value}（${record.guestCount}人）`
+            },
+            {
+              title: "服务类型",
+              dataIndex: "pickupType",
+              width: 130,
+              render: (value, record) =>
+                record.serviceMode === "transport" ? (
+                  <Typography.Text>
+                    {formatTransportType(value, record.transportDirection)}
+                  </Typography.Text>
+                ) : (
+                  <PickupTypeTag value={value} />
+                )
+            },
             {
               title: "手机号",
               dataIndex: "guestPhone",
-              width: 130,
-              render: maskPhone
+              width: 130
             },
             {
               title: "到达时间",
@@ -287,9 +385,40 @@ export function DispatchClient() {
       >
         <Space orientation="vertical" size={24} style={{ width: "100%" }}>
           <div>
-            <Typography.Text strong style={{ fontSize: "14px", display: "block", marginBottom: 8 }}>
-              <i className="fa-solid fa-users" style={{ color: "var(--primary)", marginRight: 6 }} /> 服务管家 (可多选)
-            </Typography.Text>
+            <Space wrap style={{ marginBottom: 16 }}>
+              <Typography.Text>接送人数：<strong>{currentOrder?.guestCount ?? 0} 人</strong></Typography.Text>
+              {currentOrder ? (
+                <Tag color="purple" icon={<i className="fa-solid fa-route" />}>
+                  行程：{getDispatchRouteLabel(currentOrder)}
+                </Tag>
+              ) : null}
+              {currentOrder?.requestedVehicleInfo ? (
+                <Typography.Text>原表车型：<strong>{currentOrder.requestedVehicleInfo}</strong></Typography.Text>
+              ) : null}
+              {recommendation ? (
+                <Typography.Text>
+                  推荐车型：
+                  <strong>
+                    {{ sedan: "轿车", suv: "SUV", business: "商务车" }[recommendation.vehicleType]}
+                  </strong>
+                  （{recommendation.source === "order_request" ? "按原表车型" : "按接送人数"}）
+                </Typography.Text>
+              ) : null}
+            </Space>
+            <Space style={{ justifyContent: "space-between", width: "100%", marginBottom: 8 }}>
+              <Typography.Text strong style={{ fontSize: "14px" }}>
+                <i className="fa-solid fa-users" style={{ color: "var(--primary)", marginRight: 6 }} /> 服务管家
+              </Typography.Text>
+              <Space size={8}>
+                <Typography.Text type="secondary">多选</Typography.Text>
+                <Switch
+                  checked={multiSelectEnabled}
+                  onChange={changeMultiSelectMode}
+                  checkedChildren="开"
+                  unCheckedChildren="关"
+                />
+              </Space>
+            </Space>
             <div className="butler-card-grid">
               {butlers.map((butler) => {
                 const existing = existingAssignmentByButlerId.get(butler.id);
@@ -304,11 +433,7 @@ export function DispatchClient() {
                     className={`butler-select-card ${isSelected ? "butler-select-card-selected" : ""} ${disabled ? "butler-select-card-disabled" : ""}`}
                     onClick={() => {
                       if (!disabled) {
-                        if (isSelected) {
-                          setSelectedButlerIds((prev) => prev.filter((id) => id !== butler.id));
-                        } else {
-                          setSelectedButlerIds((prev) => [...prev, butler.id]);
-                        }
+                        toggleButlerSelection(butler.id);
                       }
                     }}
                   >
@@ -323,7 +448,18 @@ export function DispatchClient() {
                       <Space wrap size={4}>
                         <ButlerStatusTag value={butler.status ?? "available"} />
                         {existing ? <AssignmentStatusTag value={existing.status} /> : null}
+                        {butler.recommended ? <Tag color="blue">推荐</Tag> : null}
+                        <Tag>
+                          {butler.vehicleType
+                            ? { sedan: "轿车", suv: "SUV", business: "商务车" }[butler.vehicleType]
+                            : "车型待补齐"}
+                        </Tag>
                       </Space>
+                      {butler.vehicleInfo ? (
+                        <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                          {butler.vehicleInfo}
+                        </Typography.Text>
+                      ) : null}
                       {disabled && butler.unavailableReasons.length > 0 ? (
                         <div style={{ color: "#ef4444", fontSize: "11px", marginTop: 4 }}>
                           <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 4 }} />
@@ -337,6 +473,24 @@ export function DispatchClient() {
                 );
               })}
             </div>
+          </div>
+          <div>
+            <Typography.Text strong style={{ display: "block", marginBottom: 8 }}>
+              收费金额
+            </Typography.Text>
+            <InputNumber<string>
+              stringMode
+              min="0"
+              precision={2}
+              prefix="¥"
+              value={settlementAmount || undefined}
+              onChange={(value) => setSettlementAmount(value ?? "")}
+              style={{ width: 240 }}
+              placeholder="允许明确填写 0 元"
+            />
+            <Typography.Text type="secondary" style={{ display: "block", marginTop: 6 }}>
+              每辆车分别按机场/车站默认价计费并自动合计；重新选择管家时会覆盖人工改价。
+            </Typography.Text>
           </div>
         </Space>
       </Modal>
@@ -364,4 +518,25 @@ export function DispatchClient() {
       </Drawer>
     </section>
   );
+}
+
+function getDispatchRouteLabel(order: OrderRecord) {
+  const station = order.pickupType === "airport" ? "机场" : "火车站";
+  const isDropoff =
+    order.serviceMode === "transport" && order.transportDirection === "dropoff";
+
+  return isDropoff ? `酒店 → ${station}` : `${station} → 酒店`;
+}
+
+function formatTransportType(
+  pickupType: string,
+  direction?: string | null
+) {
+  if (pickupType === "airport") {
+    return direction === "dropoff" ? "送机" : "接机";
+  }
+  if (pickupType === "train") {
+    return direction === "dropoff" ? "送站" : "接站";
+  }
+  return "-";
 }

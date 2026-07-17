@@ -65,7 +65,7 @@
   </view>
 
   <view class="app-version anim-fade-in anim-stagger-4">
-    <text>阿鹏哥管家调配系统 v1.2.5</text>
+    <text>{{appVersionText}}</text>
     <text class="copyright">© 2026 阿鹏哥旅游. All Rights Reserved.</text>
   </view>
 

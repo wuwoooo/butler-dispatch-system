@@ -1,14 +1,14 @@
 <view wx:if="{{visible}}" class="picker-mask">
   <view class="picker-panel" catchtap="noop">
     <view class="picker-title">{{title}}</view>
-    <view class="picker-tip">默认使用当前时间，可按实际情况调整。</view>
+    <view class="picker-tip">{{mode === 'date' ? '默认使用订单原预计离店日期，可按实际情况调整。' : '默认使用当前时间，可按实际情况调整。'}}</view>
     <view class="picker-row">
       <view class="picker-label">日期</view>
       <picker mode="date" value="{{date}}" bindchange="setDate">
         <view class="picker-value">{{date}}</view>
       </picker>
     </view>
-    <view class="picker-row">
+    <view wx:if="{{mode !== 'date'}}" class="picker-row">
       <view class="picker-label">时间</view>
       <picker mode="time" value="{{time}}" bindchange="setTime">
         <view class="picker-value">{{time}}</view>

@@ -2,12 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const auth_1 = require("../../../services/auth");
 const user_1 = require("../../../services/user");
+const constants_1 = require("../../../utils/constants");
 const status_map_1 = require("../../../utils/status-map");
 Page({
     data: {
         user: {},
         avatar: "?",
-        roleText: "-"
+        roleText: "-",
+        appVersionText: (0, constants_1.getAppVersionText)()
     },
     onShow() {
         this.load();

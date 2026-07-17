@@ -18,39 +18,41 @@ model Role {
 }
 
 model User {
-  id                     String                  @id @default(cuid())
-  username               String                  @unique @db.VarChar(64)
-  passwordHash           String                  @db.VarChar(255)
-  name                   String                  @db.VarChar(64)
-  phone                  String?                 @unique @db.VarChar(32)
-  roleId                 String
-  roleCode               RoleCode
-  status                 UserStatus              @default(active)
-  hotelId                String?
-  butlerId               String?                 @unique
-  lastLoginAt            DateTime?
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  id                      String                  @id @default(cuid())
+  username                String                  @unique @db.VarChar(64)
+  passwordHash            String                  @db.VarChar(255)
+  name                    String                  @db.VarChar(64)
+  phone                   String?                 @unique @db.VarChar(32)
+  roleId                  String
+  roleCode                RoleCode
+  status                  UserStatus              @default(active)
+  hotelId                 String?
+  butlerId                String?                 @unique
+  lastLoginAt             DateTime?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
   /// 小程序登录成功后更新；后台登录使用 lastLoginAt。
-  lastMiniProgramLoginAt DateTime?
-  miniProgramBoundAt     DateTime?
-  remark                 String?                 @db.VarChar(500)
+  lastMiniProgramLoginAt  DateTime?
+  miniProgramBoundAt      DateTime?
+  remark                  String?                 @db.VarChar(500)
   /// 一个微信 openid 只能绑定一个系统账号。接口层不会把该字段原样返回给普通用户。
-  wechatOpenId           String?                 @unique @db.VarChar(128)
-  wechatUnionId          String?                 @db.VarChar(128)
-  createdAbnormals       AbnormalRecord[]        @relation("AbnormalCreatedBy")
-  handledAbnormals       AbnormalRecord[]        @relation("AbnormalHandledBy")
-  reviewedLeaves         ButlerLeave[]           @relation("LeaveReviewer")
-  notifications          Notification[]          @relation("UserNotifications")
-  operationLogs          OperationLog[]          @relation("OperatorLogs")
-  assignedAssignments    OrderButlerAssignment[] @relation("AssignmentAssigner")
-  rejectRecords          RejectRecord[]          @relation("RejectCreator")
-  createdOrders          ServiceOrder[]          @relation("CreatedOrders")
-  settledOrders          ServiceOrder[]          @relation("SettledOrders")
-  reviewsGiven           ServiceReview[]         @relation("Reviewer")
-  butler                 Butler?                 @relation("ButlerUser", fields: [butlerId], references: [id])
-  hotel                  Hotel?                  @relation("HotelUsers", fields: [hotelId], references: [id])
-  role                   Role                    @relation(fields: [roleId], references: [id])
+  wechatOpenId            String?                 @unique @db.VarChar(128)
+  wechatUnionId           String?                 @db.VarChar(128)
+  createdAbnormals        AbnormalRecord[]        @relation("AbnormalCreatedBy")
+  handledAbnormals        AbnormalRecord[]        @relation("AbnormalHandledBy")
+  reviewedLeaves          ButlerLeave[]           @relation("LeaveReviewer")
+  notifications           Notification[]          @relation("UserNotifications")
+  operationLogs           OperationLog[]          @relation("OperatorLogs")
+  assignedAssignments     OrderButlerAssignment[] @relation("AssignmentAssigner")
+  rejectRecords           RejectRecord[]          @relation("RejectCreator")
+  createdOrders           ServiceOrder[]          @relation("CreatedOrders")
+  settledOrders           ServiceOrder[]          @relation("SettledOrders")
+  reviewsGiven            ServiceReview[]         @relation("Reviewer")
+  stayExtensionsRequested OrderStayExtension[]    @relation("StayExtensionRequester")
+  stayExtensionsReviewed  OrderStayExtension[]    @relation("StayExtensionReviewer")
+  butler                  Butler?                 @relation("ButlerUser", fields: [butlerId], references: [id])
+  hotel                   Hotel?                  @relation("HotelUsers", fields: [hotelId], references: [id])
+  role                    Role                    @relation(fields: [roleId], references: [id])
 
   @@index([roleCode])
   @@index([hotelId])
@@ -70,6 +72,7 @@ model Hotel {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   roomTypes    HotelRoomType[]
+  rooms        HotelRoom[]
   orders       ServiceOrder[]
   users        User[]          @relation("HotelUsers")
 }
@@ -84,10 +87,30 @@ model HotelRoomType {
   remark    String?  @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  hotel     Hotel    @relation(fields: [hotelId], references: [id], onDelete: Restrict)
+  rooms     HotelRoom[]
 
   @@unique([hotelId, name])
+  @@unique([hotelId, code])
   @@index([hotelId, enabled])
+}
+
+/// 酒店房间主数据。roomNo 保存酒店内可唯一识别的完整房号，例如“遇-3栋-101”。
+/// 订单上的 roomNo/roomType 仍保留为历史快照文本，不改为外键。
+model HotelRoom {
+  id         String        @id @default(cuid())
+  hotelId    String
+  roomTypeId String
+  roomNo     String        @db.VarChar(64)
+  enabled    Boolean       @default(true)
+  remark     String?       @db.VarChar(500)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  hotel      Hotel         @relation(fields: [hotelId], references: [id], onDelete: Restrict)
+  roomType   HotelRoomType @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+
+  @@unique([hotelId, roomNo])
+  @@index([roomTypeId, enabled])
 }
 
 model Butler {
@@ -103,6 +126,8 @@ model Butler {
   rejectCount     Int                     @default(0)
   averageScore    Decimal                 @default(0.00) @db.Decimal(3, 2)
   reviewCount     Int                     @default(0)
+  /// 用于车型推荐的标准分类；自由文本车型信息仍保留在 vehicleInfo。
+  vehicleType     VehicleType?
   /// 车辆品牌、型号及座位数等自由文本，例如“别克 GL8（7座）”。
   vehicleInfo     String?                 @db.VarChar(128)
   /// 是否允许接收新的派单。当前服务状态由订单和请假自动计算，不能用此字段覆盖。
@@ -120,43 +145,57 @@ model Butler {
 /// 订单只保存订单维度信息，不保存单个管家字段。
 /// 一个订单可以分配多个管家，必须通过 OrderButlerAssignment 表表达。
 model ServiceOrder {
-  id               String                  @id @default(cuid())
-  orderNo          String                  @unique @db.VarChar(64)
-  hotelId          String
-  createdById      String
-  guestName        String                  @db.VarChar(64)
-  guestPhone       String                  @db.VarChar(32)
-  guestCount       Int                     @default(1)
-  checkInDate      DateTime
-  checkOutDate     DateTime
-  pickupType       PickupType
-  arrivalTime      DateTime
-  arrivalStation   String                  @db.VarChar(128)
-  flightTrainNo    String?                 @db.VarChar(64)
-  destination      String?                 @db.VarChar(128)
-  status           OrderStatus             @default(pending_dispatch)
-  remark           String?                 @db.VarChar(1000)
-  settlementAmount Decimal?                @db.Decimal(12, 2)
-  settlementStatus SettlementStatus        @default(unsettled)
-  settlementRemark String?                 @db.VarChar(500)
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  roomNo           String?                 @db.VarChar(64)
-  roomType         String?                 @db.VarChar(64)
-  specialNeeds     String?                 @db.VarChar(1000)
-  settledAt        DateTime?
-  settledById      String?
-  abnormalRecords  AbnormalRecord[]
-  assignments      OrderButlerAssignment[]
-  rejectRecords    RejectRecord[]
-  createdBy        User                    @relation("CreatedOrders", fields: [createdById], references: [id])
-  hotel            Hotel                   @relation(fields: [hotelId], references: [id])
-  settledBy        User?                   @relation("SettledOrders", fields: [settledById], references: [id])
-  reviews          ServiceReview[]
+  id                   String                  @id @default(cuid())
+  orderNo              String                  @unique @db.VarChar(64)
+  hotelId              String
+  createdById          String
+  guestName            String                  @db.VarChar(64)
+  guestPhone           String                  @db.VarChar(32)
+  guestCount           Int                     @default(1)
+  serviceMode          OrderServiceMode        @default(stay)
+  transportDirection   TransportDirection?
+  serviceStartAt       DateTime
+  serviceEndAt         DateTime
+  checkInDate          DateTime
+  checkOutDate         DateTime
+  pickupType           PickupType
+  arrivalTime          DateTime
+  arrivalStation       String                  @db.VarChar(128)
+  flightTrainNo        String?                 @db.VarChar(64)
+  destination          String?                 @db.VarChar(128)
+  requestedVehicleType VehicleType?
+  requestedVehicleInfo String?                 @db.VarChar(128)
+  importFingerprint    String?                 @unique @db.VarChar(64)
+  importSourceFile     String?                 @db.VarChar(255)
+  importSourceSheet    String?                 @db.VarChar(128)
+  importSourceRow      Int?
+  status               OrderStatus             @default(pending_dispatch)
+  remark               String?                 @db.VarChar(1000)
+  settlementAmount     Decimal?                @db.Decimal(12, 2)
+  settlementStatus     SettlementStatus        @default(unsettled)
+  settlementRemark     String?                 @db.VarChar(500)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  roomNo               String?                 @db.VarChar(64)
+  roomType             String?                 @db.VarChar(64)
+  specialNeeds         String?                 @db.VarChar(1000)
+  settledAt            DateTime?
+  settledById          String?
+  abnormalRecords      AbnormalRecord[]
+  assignments          OrderButlerAssignment[]
+  rejectRecords        RejectRecord[]
+  stayExtensions       OrderStayExtension[]
+  createdBy            User                    @relation("CreatedOrders", fields: [createdById], references: [id])
+  hotel                Hotel                   @relation(fields: [hotelId], references: [id])
+  settledBy            User?                   @relation("SettledOrders", fields: [settledById], references: [id])
+  reviews              ServiceReview[]
 
   @@index([hotelId])
   @@index([status])
   @@index([arrivalTime])
+  @@index([serviceStartAt])
+  @@index([serviceEndAt])
+  @@index([serviceMode])
   @@index([createdById], map: "ServiceOrder_createdById_fkey")
   @@index([settledById], map: "ServiceOrder_settledById_fkey")
 }
@@ -164,12 +203,12 @@ model ServiceOrder {
 /// 订单和管家的中间表。
 /// 后续确认、拒单、已接到客人、服务中、完成服务都必须落在这张表的独立状态上。
 model OrderButlerAssignment {
-  id               String           @id @default(cuid())
+  id               String               @id @default(cuid())
   orderId          String
   butlerId         String
-  status           AssignmentStatus @default(pending_confirm)
+  status           AssignmentStatus     @default(pending_confirm)
   assignedById     String?
-  assignedAt       DateTime         @default(now())
+  assignedAt       DateTime             @default(now())
   confirmedAt      DateTime?
   rejectedAt       DateTime?
   pickedGuestAt    DateTime?
@@ -177,20 +216,47 @@ model OrderButlerAssignment {
   completedAt      DateTime?
   reassignedAt     DateTime?
   cancelledAt      DateTime?
-  rejectReason     String?          @db.VarChar(500)
-  remark           String?          @db.VarChar(500)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  assignedBy       User?            @relation("AssignmentAssigner", fields: [assignedById], references: [id])
-  butler           Butler           @relation(fields: [butlerId], references: [id])
-  order            ServiceOrder     @relation(fields: [orderId], references: [id])
+  rejectReason     String?              @db.VarChar(500)
+  remark           String?              @db.VarChar(500)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  assignedBy       User?                @relation("AssignmentAssigner", fields: [assignedById], references: [id])
+  butler           Butler               @relation(fields: [butlerId], references: [id])
+  order            ServiceOrder         @relation(fields: [orderId], references: [id])
   rejectRecords    RejectRecord[]
   reviews          ServiceReview[]
+  stayExtensions   OrderStayExtension[]
 
   @@unique([orderId, butlerId])
   @@index([butlerId])
   @@index([status])
   @@index([assignedById], map: "OrderButlerAssignment_assignedById_fkey")
+}
+
+/// 管家上报客人续住后，由前台或调配员审核；审核通过才更新订单的生效离店时间。
+model OrderStayExtension {
+  id                  String                @id @default(cuid())
+  orderId             String
+  assignmentId        String
+  originalCheckOutAt  DateTime
+  requestedCheckOutAt DateTime
+  reason              String?               @db.VarChar(500)
+  status              StayExtensionStatus   @default(pending)
+  requestedById       String
+  reviewedById        String?
+  reviewedAt          DateTime?
+  reviewRemark        String?               @db.VarChar(500)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  order               ServiceOrder          @relation(fields: [orderId], references: [id])
+  assignment          OrderButlerAssignment @relation(fields: [assignmentId], references: [id])
+  requestedBy         User                  @relation("StayExtensionRequester", fields: [requestedById], references: [id])
+  reviewedBy          User?                 @relation("StayExtensionReviewer", fields: [reviewedById], references: [id])
+
+  @@index([orderId, status])
+  @@index([assignmentId])
+  @@index([requestedById])
+  @@index([reviewedById])
 }
 
 /// 管家只能在待确认阶段拒单，且拒单必须填写原因。
@@ -391,9 +457,31 @@ enum AssignmentStatus {
   cancelled
 }
 
+enum StayExtensionStatus {
+  pending
+  approved
+  rejected
+}
+
 enum PickupType {
   airport
   train
+}
+
+enum VehicleType {
+  sedan
+  suv
+  business
+}
+
+enum OrderServiceMode {
+  stay
+  transport
+}
+
+enum TransportDirection {
+  pickup
+  dropoff
 }
 
 /// 管家请假由调配员审核；请假时间不能与已有订单服务时间冲突，业务接口实现时必须校验。

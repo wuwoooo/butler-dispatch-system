@@ -34,7 +34,7 @@ import type {
   OrderRecord,
   ReviewRecord
 } from "@/types/domain";
-import { formatDateTime, maskPhone } from "@/utils/format";
+import { formatDateTime } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
 
 type ApiResult<T> =
@@ -541,8 +541,7 @@ export function ReviewsClient() {
             {
               title: "管家手机号",
               dataIndex: ["butler", "phone"],
-              width: 140,
-              render: maskPhone
+              width: 140
             },
             { title: "评价人", dataIndex: ["reviewer", "name"], width: 120 },
             {

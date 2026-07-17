@@ -3,7 +3,8 @@
 import {
   PlusOutlined,
   ReloadOutlined,
-  SearchOutlined
+  SearchOutlined,
+  UploadOutlined
 } from "@ant-design/icons";
 import {
   App,
@@ -24,8 +25,10 @@ import {
   Typography
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
+import { HotelRoomImportModal } from "@/components/hotels/HotelRoomImportModal";
 import { SortableTable } from "@/components/tables/SortableTable";
 import type {
+  HotelRoomRecord,
   HotelRoomTypeRecord,
   HotelSummary
 } from "@/types/domain";
@@ -264,6 +267,7 @@ export function HotelsClient() {
     roomType: null,
     initialValues: emptyRoomTypeValues
   });
+  const [importHotel, setImportHotel] = useState<HotelSummary | null>(null);
 
   const canManageHotels = currentUser?.roleCode === "admin";
 
@@ -350,6 +354,10 @@ export function HotelsClient() {
       (sum, hotel) => sum + (hotel._count?.roomTypes ?? hotel.roomTypes?.length ?? 0),
       0
     );
+    const roomCount = hotels.reduce(
+      (sum, hotel) => sum + (hotel._count?.rooms ?? hotel.rooms?.length ?? 0),
+      0
+    );
     const frontdeskCount = hotels.reduce(
       (sum, hotel) => sum + (hotel._count?.users ?? 0),
       0
@@ -359,6 +367,7 @@ export function HotelsClient() {
       totalHotels: hotels.length,
       activeHotels,
       roomTypeCount,
+      roomCount,
       frontdeskCount
     };
   }, [hotels]);
@@ -496,6 +505,14 @@ export function HotelsClient() {
               </Typography.Title>
             </Card>
           </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card size="small">
+              <Typography.Text type="secondary">客房单元数</Typography.Text>
+              <Typography.Title level={3} style={{ margin: "8px 0 0" }}>
+                {summary.roomCount}
+              </Typography.Title>
+            </Card>
+          </Col>
         </Row>
 
         <Form
@@ -547,14 +564,16 @@ export function HotelsClient() {
           }}
           columns={[
             { title: "酒店名称", dataIndex: "name", width: 220, fixed: "left" },
-            { title: "地址", dataIndex: "address", width: 240 },
-            { title: "联系人", dataIndex: "contactName", width: 120 },
-            { title: "联系电话", dataIndex: "contactPhone", width: 140 },
             { title: "酒店电话", dataIndex: "phone", width: 140 },
             {
               title: "房型数",
               width: 100,
               render: (_, record) => record._count?.roomTypes ?? record.roomTypes?.length ?? 0
+            },
+            {
+              title: "客房数",
+              width: 100,
+              render: (_, record) => record._count?.rooms ?? record.rooms?.length ?? 0
             },
             {
               title: "前台账号数",
@@ -772,6 +791,57 @@ export function HotelsClient() {
                   />
                 </Card>
 
+                <Card
+                  size="small"
+                  title="客房信息"
+                  extra={
+                    canManageHotels ? (
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<UploadOutlined />}
+                        onClick={() => setImportHotel(detail)}
+                      >
+                        批量导入
+                      </Button>
+                    ) : null
+                  }
+                >
+                  <Table<HotelRoomRecord>
+                    rowKey="id"
+                    size="small"
+                    dataSource={detail.rooms ?? []}
+                    pagination={{ pageSize: 10, showSizeChanger: true }}
+                    locale={{ emptyText: "当前酒店还没有配置房号" }}
+                    scroll={{ x: 820 }}
+                    columns={[
+                      { title: "房号", dataIndex: "roomNo", width: 190 },
+                      {
+                        title: "房型代码",
+                        width: 110,
+                        render: (_, record) => record.roomType.code || "-"
+                      },
+                      {
+                        title: "房类",
+                        width: 280,
+                        render: (_, record) => record.roomType.name
+                      },
+                      {
+                        title: "状态",
+                        dataIndex: "enabled",
+                        width: 90,
+                        render: (value: boolean) =>
+                          value ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>
+                      },
+                      {
+                        title: "备注",
+                        dataIndex: "remark",
+                        render: (value: string | null) => value || "-"
+                      }
+                    ]}
+                  />
+                </Card>
+
                 <Card size="small" title="前台账号">
                   <Table
                     rowKey="id"
@@ -809,6 +879,16 @@ export function HotelsClient() {
               })
             }
             onSubmit={submitRoomType}
+          />
+          <HotelRoomImportModal
+            open={Boolean(importHotel)}
+            hotel={importHotel}
+            onClose={() => setImportHotel(null)}
+            onImported={async () => {
+              const hotelId = importHotel?.id;
+              if (!hotelId) return;
+              await Promise.all([loadHotels(), loadHotelDetail(hotelId)]);
+            }}
           />
         </>
       ) : null}

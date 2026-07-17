@@ -109,6 +109,26 @@ export function canAccess(
   return permissionMatrix[user.roleCode][resource]?.includes(action) ?? false;
 }
 
+export function canImportOrders(
+  user: Pick<AuthenticatedUser, "roleCode"> | null | undefined
+) {
+  return Boolean(
+    user &&
+      ["admin", "hotel_frontdesk"].includes(user.roleCode) &&
+      canAccess(user, "orders", "create")
+  );
+}
+
+export function canImportHotelRooms(
+  user: Pick<AuthenticatedUser, "roleCode"> | null | undefined
+) {
+  return Boolean(
+    user?.roleCode === "admin" &&
+      canAccess(user, "hotels", "create") &&
+      canAccess(user, "hotels", "update")
+  );
+}
+
 export function requireRole(
   user: Pick<AuthenticatedUser, "roleCode"> | null | undefined,
   roles: RoleCode[]

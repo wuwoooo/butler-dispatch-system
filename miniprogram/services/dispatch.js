@@ -9,8 +9,13 @@ function getAvailableButlers(orderId) {
         loading: false
     });
 }
-function dispatchOrder(orderId, butlerIds, remark) {
-    return request_1.http.post(`/api/orders/${orderId}/dispatch`, { butlerIds, remark });
+function dispatchOrder(orderId, butlerIds, settlementAmount, remark) {
+    return request_1.http.post(`/api/orders/${orderId}/dispatch`, {
+        butlerIds,
+        settlementAmount,
+        amountConfirmed: true,
+        remark
+    });
 }
 function cancelDispatchAssignment(orderId, assignmentId, remark) {
     return request_1.http.post(`/api/orders/${orderId}/assignments/${assignmentId}/cancel`, { remark });

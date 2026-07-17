@@ -107,6 +107,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
             ? body.roomNo ?? null
             : undefined,
           pickupType: body.pickupType,
+          transportDirection:
+            before.serviceMode === "transport" &&
+            Object.prototype.hasOwnProperty.call(body, "transportDirection")
+              ? body.transportDirection ?? null
+              : undefined,
           arrivalStation: Object.prototype.hasOwnProperty.call(body, "arrivalStation")
             ? body.arrivalStation ?? ""
             : undefined,
@@ -117,12 +122,25 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           destination: Object.prototype.hasOwnProperty.call(body, "destination")
             ? body.destination ?? null
             : undefined,
+          requestedVehicleType: Object.prototype.hasOwnProperty.call(body, "requestedVehicleType")
+            ? body.requestedVehicleType ?? null
+            : undefined,
+          requestedVehicleInfo: Object.prototype.hasOwnProperty.call(body, "requestedVehicleInfo")
+            ? body.requestedVehicleInfo ?? null
+            : undefined,
           specialNeeds: Object.prototype.hasOwnProperty.call(body, "specialNeeds")
             ? body.specialNeeds ?? null
             : undefined,
           remark: Object.prototype.hasOwnProperty.call(body, "remark")
             ? body.remark ?? null
             : undefined,
+          settlementAmount:
+            before.serviceMode === "transport" &&
+            Object.prototype.hasOwnProperty.call(body, "settlementAmount")
+              ? body.settlementAmount === null
+                ? null
+                : new Prisma.Decimal(body.settlementAmount as string)
+              : undefined,
           status:
             user.roleCode === "admin" || user.roleCode === "dispatcher"
               ? body.status
@@ -140,28 +158,58 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return errorResponse("CHECK_OUT_REQUIRED", "离店日期不能为空", 422);
     }
 
+    if (
+      before.serviceMode === "transport" &&
+      Object.prototype.hasOwnProperty.call(body, "transportDirection") &&
+      !body.transportDirection
+    ) {
+      return errorResponse("TRANSPORT_DIRECTION_REQUIRED", "接送方向不能为空", 422);
+    }
+
+    if (
+      before.serviceMode === "transport" &&
+      Object.prototype.hasOwnProperty.call(body, "arrivalStation") &&
+      !body.arrivalStation?.trim()
+    ) {
+      return errorResponse("ARRIVAL_STATION_REQUIRED", "接送地点不能为空", 422);
+    }
+
     const timeFieldsChanged =
       Object.prototype.hasOwnProperty.call(body, "checkInDate") ||
       Object.prototype.hasOwnProperty.call(body, "checkOutDate") ||
-      Object.prototype.hasOwnProperty.call(body, "arrivalTime");
+      Object.prototype.hasOwnProperty.call(body, "arrivalTime") ||
+      Object.prototype.hasOwnProperty.call(body, "serviceStartAt") ||
+      Object.prototype.hasOwnProperty.call(body, "serviceEndAt");
 
     if (!canOnlyUpdateRemark && timeFieldsChanged) {
-      const targetWindow = getOrderServiceWindow({
-        arrivalTime: body.arrivalTime
-          ? new Date(body.arrivalTime)
-          : before.arrivalTime,
-        checkInDate: body.checkInDate
-          ? new Date(body.checkInDate)
-          : before.checkInDate,
-        checkOutDate: Object.prototype.hasOwnProperty.call(body, "checkOutDate")
-          ? new Date(body.checkOutDate as string)
-          : before.checkOutDate
-      });
+      const targetWindow =
+        before.serviceMode === "transport"
+          ? {
+              startAt: body.serviceStartAt
+                ? new Date(body.serviceStartAt)
+                : before.serviceStartAt,
+              endAt: body.serviceEndAt
+                ? new Date(body.serviceEndAt)
+                : before.serviceEndAt
+            }
+          : getOrderServiceWindow({
+              arrivalTime: body.arrivalTime
+                ? new Date(body.arrivalTime)
+                : before.arrivalTime,
+              checkInDate: body.checkInDate
+                ? new Date(body.checkInDate)
+                : before.checkInDate,
+              checkOutDate: Object.prototype.hasOwnProperty.call(body, "checkOutDate")
+                ? new Date(body.checkOutDate as string)
+                : before.checkOutDate
+            });
 
       if (targetWindow.endAt <= targetWindow.startAt) {
         return errorResponse(
           "ORDER_TIME_INVALID",
-          "离店日期必须晚于到达时间和入住日期",
+          before.serviceMode === "transport"
+            ? "服务结束时间必须晚于开始时间"
+            : "离店日期必须晚于到达时间和入住日期",
           422
         );
       }
@@ -187,6 +235,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           422
         );
       }
+
+      data.serviceStartAt = targetWindow.startAt;
+      data.serviceEndAt = targetWindow.endAt;
+
+      if (before.serviceMode === "transport") {
+        data.arrivalTime = targetWindow.startAt;
+        data.checkInDate = targetWindow.startAt;
+        data.checkOutDate = targetWindow.endAt;
+      }
     }
 
     const updated = await prisma.serviceOrder.update({
@@ -209,6 +266,95 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     });
 
     return successResponse(updated, "修改成功");
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  const { user, response } = await requireApiUser(request);
+
+  if (!user) {
+    return response;
+  }
+
+  if (!canAccess(user, "orders", "delete")) {
+    return errorResponse("FORBIDDEN", "没有权限删除订单", 403);
+  }
+
+  try {
+    const { id } = await context.params;
+    const before = await prisma.serviceOrder.findFirst({
+      where: {
+        id,
+        ...buildOrderScopeWhere(user)
+      },
+      select: {
+        ...orderListSelect,
+        _count: {
+          select: {
+            assignments: true,
+            abnormalRecords: true
+          }
+        }
+      }
+    });
+
+    if (!before) {
+      return errorResponse("ORDER_NOT_FOUND", "订单不存在", 404);
+    }
+
+    if (before.status !== "pending_dispatch") {
+      return errorResponse(
+        "ORDER_DELETE_STATUS_NOT_ALLOWED",
+        "只能删除待分配订单",
+        422
+      );
+    }
+
+    if (before._count.assignments > 0) {
+      return errorResponse(
+        "ORDER_HAS_ASSIGNMENT_HISTORY",
+        "该订单已产生过管家分配记录，不能删除",
+        409
+      );
+    }
+
+    if (before._count.abnormalRecords > 0) {
+      return errorResponse(
+        "ORDER_HAS_ABNORMAL_RECORDS",
+        "该订单关联了异常记录，请先处理关联记录",
+        409
+      );
+    }
+
+    try {
+      await prisma.serviceOrder.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2003"
+      ) {
+        return errorResponse(
+          "ORDER_HAS_RELATED_RECORDS",
+          "该订单已关联业务记录，不能删除",
+          409
+        );
+      }
+      throw error;
+    }
+
+    await writeOperationLog({
+      operatorId: user.id,
+      operationType: "DELETE_ORDER",
+      targetType: "ServiceOrder",
+      targetId: id,
+      beforeData: before,
+      remark: "删除待分配订单",
+      ...getRequestMeta(request)
+    });
+
+    return successResponse({ id }, "删除成功");
   } catch (error) {
     return handleApiError(error);
   }

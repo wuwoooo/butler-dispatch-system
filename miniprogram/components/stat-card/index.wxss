@@ -1,16 +1,39 @@
 /* 统计卡片 */
 .stat-card {
-  padding: 30rpx 28rpx 30rpx 36rpx;
+  padding: 32rpx 28rpx 32rpx 38rpx;
   border-radius: var(--radius-lg);
   background: var(--color-bg-card);
-  box-shadow: var(--shadow-md);
-  border-left: 8rpx solid var(--color-primary);
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  box-shadow: 0 10rpx 28rpx rgba(26, 60, 107, 0.05);
+  transition: all var(--duration-fast) var(--ease-smooth);
   position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* 伪元素做精致圆角彩条 */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+  border-radius: 0 4rpx 4rpx 0;
+  background: var(--color-primary);
+  transition: width var(--duration-fast) var(--ease-smooth);
+}
+
+.stat-card:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(26, 60, 107, 0.03);
 }
 
 .stat-card.clickable:active {
-  transform: scale(0.97);
+  transform: scale(0.96) translateY(2rpx);
+}
+
+.stat-card.clickable:active::before {
+  width: 12rpx; /* 点击时彩条微加宽交互 */
 }
 
 /* 右上角红色圆点指示器（如有） */
@@ -23,21 +46,22 @@
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: var(--color-success);
-  box-shadow: 0 0 8rpx rgba(16, 185, 129, 0.4);
+  background: var(--color-danger);
+  box-shadow: 0 0 10rpx rgba(239, 68, 68, 0.5);
+  animation: pulse 2s infinite;
 }
 
 .stat-value-wrap {
   display: flex;
   align-items: baseline;
-  gap: 4rpx;
+  gap: 6rpx;
 }
 
 .stat-value {
-  font-size: 48rpx;
-  font-weight: 800;
+  font-size: 52rpx;
+  font-weight: 900;
   color: var(--color-text-primary);
-  letter-spacing: -1rpx;
+  letter-spacing: -1.5rpx;
   animation: countPop 0.5s var(--ease-spring) both;
 }
 
@@ -49,60 +73,76 @@
 }
 
 .stat-label {
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   font-size: 24rpx;
   color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* 右上角精致 chevron 箭头代替粗点 */
 .chevron-arrow {
   position: absolute;
   right: 28rpx;
-  top: 36rpx;
+  top: 38rpx;
   width: 12rpx;
   height: 12rpx;
   border-right: 3rpx solid var(--color-decor);
   border-top: 3rpx solid var(--color-decor);
   transform: rotate(45deg);
+  opacity: 0.7;
 }
 
 /* ── 各色调样式与微量渐变背景 ── */
+.tone-blue::before {
+  background: var(--color-primary);
+}
 .tone-blue {
-  border-left-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(42, 172, 226, 0.04) 0%, var(--color-bg-card) 60%);
+  background: linear-gradient(135deg, rgba(42, 172, 226, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 8rpx 20rpx rgba(42, 172, 226, 0.06);
 }
 .tone-blue .stat-value, .tone-blue .stat-unit {
   color: var(--color-primary);
 }
 
+.tone-green::before {
+  background: var(--color-success);
+}
 .tone-green {
-  border-left-color: var(--color-success);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, var(--color-bg-card) 60%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 8rpx 20rpx rgba(16, 185, 129, 0.06);
 }
 .tone-green .stat-value, .tone-green .stat-unit {
   color: var(--color-success-deep);
 }
 
+.tone-orange::before {
+  background: var(--color-warning);
+}
 .tone-orange {
-  border-left-color: var(--color-warning);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, var(--color-bg-card) 60%);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 8rpx 20rpx rgba(245, 158, 11, 0.06);
 }
 .tone-orange .stat-value, .tone-orange .stat-unit {
   color: var(--color-warning-deep);
 }
 
+.tone-red::before {
+  background: var(--color-danger);
+}
 .tone-red {
-  border-left-color: var(--color-danger);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.04) 0%, var(--color-bg-card) 60%);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 8rpx 20rpx rgba(239, 68, 68, 0.06);
 }
 .tone-red .stat-value, .tone-red .stat-unit {
   color: var(--color-danger);
 }
 
+.tone-cyan::before {
+  background: var(--color-cyan-deep);
+}
 .tone-cyan {
-  border-left-color: var(--color-cyan-deep);
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.04) 0%, var(--color-bg-card) 60%);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 8rpx 20rpx rgba(14, 165, 233, 0.06);
 }
 .tone-cyan .stat-value, .tone-cyan .stat-unit {
   color: var(--color-cyan-deep);

@@ -56,6 +56,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         throw new ApiError("ORDER_NOT_FOUND", "订单不存在", 404);
       }
 
+      await tx.serviceOrder.update({
+        where: { id },
+        data: {
+          settlementAmount: new Prisma.Decimal(body.settlementAmount)
+        }
+      });
+
       const existingAssignments = await tx.orderButlerAssignment.findMany({
         where: { orderId: id },
         select: {
@@ -195,7 +202,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           targetId: id,
           beforeData: toJson(before),
           afterData: toJson(after),
-          remark: `派单：新增或重新分配 ${createdAssignments.length} 个分配`,
+          remark: `派单：新增或重新分配 ${createdAssignments.length} 个分配，收费金额 ¥${body.settlementAmount}`,
           ip: meta.ip,
           userAgent: meta.userAgent
         }

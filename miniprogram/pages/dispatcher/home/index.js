@@ -69,7 +69,11 @@ Page({
         }
     },
     openShortcut(event) {
-        wx.navigateTo({ url: event.currentTarget.dataset.url });
+        const detail = event.detail || {};
+        const url = detail.url || event.currentTarget.dataset.url;
+        if (url) {
+            wx.navigateTo({ url });
+        }
     },
     openOrder(event) {
         const detail = event.detail || {};

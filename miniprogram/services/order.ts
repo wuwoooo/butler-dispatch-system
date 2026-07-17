@@ -30,3 +30,7 @@ export function pickedGuest(assignmentId: string, occurredAt?: string) {
 export function completeOrder(assignmentId: string, occurredAt?: string) {
   return http.post(`/api/butler/orders/${assignmentId}/complete`, occurredAt ? { occurredAt } : {});
 }
+
+export function requestStayExtension(assignmentId: string, requestedCheckOutAt: string) {
+  return http.post(`/api/butler/orders/${assignmentId}/stay-extension`, { requestedCheckOutAt });
+}

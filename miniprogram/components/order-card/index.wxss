@@ -1,15 +1,16 @@
 /* 订单卡片 */
 .order-card {
-  margin: 20rpx var(--spacing-2xl);
-  padding: 30rpx;
+  margin: 24rpx var(--spacing-2xl);
+  padding: 32rpx;
   border-radius: var(--radius-lg);
   background: var(--color-bg-card);
-  box-shadow: var(--shadow-md);
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  box-shadow: 0 12rpx 36rpx rgba(26, 35, 50, 0.05);
+  transition: all var(--duration-fast) var(--ease-smooth);
 }
 
 .order-card:active {
-  transform: scale(0.985);
+  transform: translateY(2rpx) scale(0.985);
+  box-shadow: 0 6rpx 16rpx rgba(26, 35, 50, 0.03);
 }
 
 .order-top {
@@ -45,12 +46,13 @@
 }
 
 .info-grid {
-  margin-top: 20rpx;
-  padding: 20rpx;
+  margin-top: 24rpx;
+  padding: 24rpx;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14rpx;
-  background: var(--color-bg-info);
+  gap: 16rpx;
+  background: rgba(42, 172, 226, 0.03);
+  border: 1rpx solid rgba(42, 172, 226, 0.05);
   border-radius: var(--radius-md);
 }
 

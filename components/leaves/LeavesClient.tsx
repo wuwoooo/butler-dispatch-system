@@ -29,7 +29,7 @@ import {
   leaveTypeOptions
 } from "@/components/status/StatusTags";
 import type { LeaveRecord } from "@/types/domain";
-import { formatDateTime, maskPhone } from "@/utils/format";
+import { formatDateTime } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
 
 type ApiResult<T> =
@@ -324,8 +324,7 @@ export function LeavesClient() {
             {
               title: "手机号",
               dataIndex: ["butler", "phone"],
-              width: 140,
-              render: maskPhone
+              width: 140
             },
             {
               title: "请假开始",
@@ -416,7 +415,7 @@ export function LeavesClient() {
               <Descriptions className="modern-descriptions" column={2} size="small">
                 <Descriptions.Item label="管家">{detail.butler?.name}</Descriptions.Item>
                 <Descriptions.Item label="手机号">
-                  {maskPhone(detail.butler?.phone)}
+                  {detail.butler?.phone ?? "-"}
                 </Descriptions.Item>
                 <Descriptions.Item label="请假类型">
                   <LeaveTypeTag value={detail.leaveType} />

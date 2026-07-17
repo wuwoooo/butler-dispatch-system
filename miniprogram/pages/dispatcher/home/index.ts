@@ -64,7 +64,11 @@ Page({
     }
   },
   openShortcut(event: AnyRecord) {
-    wx.navigateTo({ url: event.currentTarget.dataset.url });
+    const detail = event.detail || {};
+    const url = detail.url || event.currentTarget.dataset.url;
+    if (url) {
+      wx.navigateTo({ url });
+    }
   },
   openOrder(event: AnyRecord) {
     const detail = event.detail || {};

@@ -15,8 +15,8 @@ export function getCurrentUser(options?: { silent?: boolean }) {
   return http.get<{ user: AnyRecord }>("/api/miniprogram/auth/me", options);
 }
 
-export function unbindMiniProgram() {
-  return http.post("/api/miniprogram/auth/unbind");
+export function unbindMiniProgram(code: string, options?: { silent?: boolean }) {
+  return http.post("/api/miniprogram/auth/unbind", { code }, options);
 }
 
 export function changePassword(data: {

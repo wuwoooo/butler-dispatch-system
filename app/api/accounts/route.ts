@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
-import { accountPublicSelect, managedAccountRoleCodes, toAccountPublic } from "@/lib/accounts";
+import { accountPublicSelect, backendAccountRoleCodes, toAccountPublic } from "@/lib/accounts";
 import { resolveRole, validateHotelBinding } from "@/lib/account-actions";
 import { hashPassword } from "@/lib/auth";
 import { writeOperationLog } from "@/lib/logger";
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       Object.fromEntries(request.nextUrl.searchParams)
     );
     const where: Prisma.UserWhereInput = {
-      roleCode: { in: [...managedAccountRoleCodes] }
+      roleCode: { in: [...backendAccountRoleCodes] }
     };
 
     if (query.username) where.username = { contains: query.username };

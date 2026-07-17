@@ -15,8 +15,8 @@ function bindAccount(data, options) {
 function getCurrentUser(options) {
     return request_1.http.get("/api/miniprogram/auth/me", options);
 }
-function unbindMiniProgram() {
-    return request_1.http.post("/api/miniprogram/auth/unbind");
+function unbindMiniProgram(code, options) {
+    return request_1.http.post("/api/miniprogram/auth/unbind", { code }, options);
 }
 function changePassword(data) {
     return request_1.http.post("/api/auth/change-password", data);

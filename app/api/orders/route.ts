@@ -8,6 +8,7 @@ import { handleApiError, successResponse, errorResponse } from "@/lib/response";
 import { orderListSelect } from "@/lib/selects";
 import { orderCreateSchema, orderListQuerySchema } from "@/lib/validators";
 import { writeOperationLog } from "@/lib/logger";
+import { getOrderServiceWindow } from "@/lib/order-conflicts";
 
 export async function GET(request: NextRequest) {
   const { user, response } = await requireApiUser(request);
@@ -106,6 +107,14 @@ export async function POST(request: NextRequest) {
       return errorResponse("HOTEL_NOT_FOUND", "酒店不存在", 404);
     }
 
+    const checkInDate = new Date(body.checkInDate);
+    const checkOutDate = new Date(body.checkOutDate);
+    const arrivalTime = new Date(body.arrivalTime);
+    const serviceWindow = getOrderServiceWindow({
+      checkInDate,
+      checkOutDate,
+      arrivalTime
+    });
     const created = await prisma.serviceOrder.create({
       data: {
         orderNo: await generateOrderNo(),
@@ -114,15 +123,20 @@ export async function POST(request: NextRequest) {
         guestName: body.guestName,
         guestPhone: body.guestPhone,
         guestCount: body.guestCount,
-        checkInDate: new Date(body.checkInDate),
-        checkOutDate: new Date(body.checkOutDate),
+        serviceMode: "stay",
+        serviceStartAt: serviceWindow.startAt,
+        serviceEndAt: serviceWindow.endAt,
+        checkInDate,
+        checkOutDate,
         roomType: body.roomType ?? null,
         roomNo: body.roomNo ?? null,
         pickupType: body.pickupType,
         arrivalStation: body.arrivalStation ?? "",
-        arrivalTime: new Date(body.arrivalTime),
+        arrivalTime,
         flightTrainNo: body.flightTrainNo ?? null,
         destination: body.destination ?? null,
+        requestedVehicleType: body.requestedVehicleType ?? null,
+        requestedVehicleInfo: body.requestedVehicleInfo ?? null,
         specialNeeds: body.specialNeeds ?? null,
         remark: body.remark ?? null,
         status: "pending_dispatch"

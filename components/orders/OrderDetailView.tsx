@@ -6,8 +6,8 @@ import {
   OrderStatusTag,
   PickupTypeTag
 } from "@/components/status/StatusTags";
-import type { OrderAssignmentRecord, OrderRecord } from "@/types/domain";
-import { formatDate, formatDateTime, maskPhone } from "@/utils/format";
+import type { OrderAssignmentRecord, OrderRecord, StayExtensionRecord } from "@/types/domain";
+import { formatDate, formatDateTime } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
 
 type OrderDetailViewProps = {
@@ -16,6 +16,8 @@ type OrderDetailViewProps = {
   onCompleteAssignment?: (assignment: OrderAssignmentRecord) => void;
   canCancelAssignment?: boolean;
   onCancelAssignment?: (assignment: OrderAssignmentRecord) => void;
+  canReviewStayExtension?: boolean;
+  onReviewStayExtension?: (extension: StayExtensionRecord, action: "approve" | "reject") => void;
 };
 
 type RejectRecordItem = NonNullable<OrderRecord["rejectRecords"]>[number];
@@ -24,11 +26,15 @@ type OperationLogItem = NonNullable<OrderRecord["operationLogs"]>[number];
 
 const operationActionLabels: Record<string, string> = {
   CREATE_ORDER: "创建订单",
+  IMPORT_ORDER: "批量导入订单",
   UPDATE_ORDER: "修改订单",
   DISPATCH_ORDER: "派单",
   REASSIGN_ORDER: "改派",
   ORDER_REVIEW_STATUS_CHANGE: "完成评价",
-  UPDATE_SETTLEMENT_STATUS: "修改结算状态"
+  UPDATE_SETTLEMENT_STATUS: "修改结算状态",
+  REQUEST_STAY_EXTENSION: "提交续住申请",
+  APPROVE_STAY_EXTENSION: "确认客人续住",
+  REJECT_STAY_EXTENSION: "驳回续住申请"
 };
 
 function getOrderActivityLabel(log: OperationLogItem) {
@@ -87,13 +93,16 @@ export function OrderDetailView({
   canCompleteAssignment = false,
   onCompleteAssignment,
   canCancelAssignment = false,
-  onCancelAssignment
+  onCancelAssignment,
+  canReviewStayExtension = false,
+  onReviewStayExtension
 }: OrderDetailViewProps) {
   if (!order) {
     return <Empty description="暂无订单详情" />;
   }
 
   const activityLogs = buildOrderActivityLogs(order.operationLogs || []);
+  const isTransport = order.serviceMode === "transport";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -110,25 +119,30 @@ export function OrderDetailView({
           <Descriptions.Item label="所属酒店">{order.hotel?.name}</Descriptions.Item>
           <Descriptions.Item label="客人姓名">{order.guestName}</Descriptions.Item>
           <Descriptions.Item label="客人手机号">
-            {maskPhone(order.guestPhone)}
+            {order.guestPhone}
           </Descriptions.Item>
-          <Descriptions.Item label="入住人数">{order.guestCount} 人</Descriptions.Item>
+          <Descriptions.Item label={isTransport ? "接送人数" : "入住人数"}>{order.guestCount} 人</Descriptions.Item>
+          <Descriptions.Item label="收费金额">
+            {order.settlementAmount === null || order.settlementAmount === undefined
+              ? "-"
+              : `¥${Number(order.settlementAmount).toFixed(2)}`}
+          </Descriptions.Item>
         </Descriptions>
       </div>
 
       {/* 分组 2: 房型与时间计划 */}
       <div className="detail-card-group">
         <div className="detail-card-title">
-          <i className="fa-solid fa-calendar-days" /> 房型与入住时间
+          <i className="fa-solid fa-calendar-days" /> {isTransport ? "接送时间" : "房型与入住时间"}
         </div>
         <Descriptions className="modern-descriptions" column={2} size="small">
           <Descriptions.Item label="房型">{order.roomType || "-"}</Descriptions.Item>
           <Descriptions.Item label="房间号">{order.roomNo || "-"}</Descriptions.Item>
-          <Descriptions.Item label="入住日期">
-            {formatDate(order.checkInDate)}
+          <Descriptions.Item label={isTransport ? "服务开始" : "入住日期"}>
+            {isTransport ? formatDateTime(order.serviceStartAt) : formatDate(order.checkInDate)}
           </Descriptions.Item>
-          <Descriptions.Item label="离店日期">
-            {formatDate(order.checkOutDate)}
+          <Descriptions.Item label={isTransport ? "预计结束" : "离店日期"}>
+            {isTransport ? formatDateTime(order.serviceEndAt) : formatDate(order.checkOutDate)}
           </Descriptions.Item>
         </Descriptions>
       </div>
@@ -139,16 +153,28 @@ export function OrderDetailView({
           <i className="fa-solid fa-route" /> 到达与接送信息
         </div>
         <Descriptions className="modern-descriptions" column={2} size="small">
-          <Descriptions.Item label="接站类型">
-            <PickupTypeTag value={order.pickupType} />
+          <Descriptions.Item label={isTransport ? "接送类型" : "接站类型"}>
+            {isTransport
+              ? formatTransportType(order.pickupType, order.transportDirection)
+              : <PickupTypeTag value={order.pickupType} />}
           </Descriptions.Item>
           <Descriptions.Item label="航班号/车次">
             {order.flightTrainNo || "-"}
           </Descriptions.Item>
-          <Descriptions.Item label="到达地点">{order.arrivalStation}</Descriptions.Item>
-          <Descriptions.Item label="到达时间">
-            {formatDateTime(order.arrivalTime)}
+          <Descriptions.Item label={isTransport ? "接送地点" : "到达地点"}>{order.arrivalStation}</Descriptions.Item>
+          <Descriptions.Item label={isTransport ? "接送时间" : "到达时间"}>
+            {formatDateTime(isTransport ? order.serviceStartAt : order.arrivalTime)}
           </Descriptions.Item>
+          {isTransport ? (
+            <>
+              <Descriptions.Item label="原表车型">{order.requestedVehicleInfo || "-"}</Descriptions.Item>
+              <Descriptions.Item label="需求车型">
+                {order.requestedVehicleType
+                  ? { sedan: "轿车", suv: "SUV", business: "商务车" }[order.requestedVehicleType]
+                  : `${getGuestCountVehicleLabel(order.guestCount)}（按接送人数）`}
+              </Descriptions.Item>
+            </>
+          ) : null}
         </Descriptions>
       </div>
 
@@ -157,17 +183,60 @@ export function OrderDetailView({
         <div className="detail-card-title">
           <i className="fa-solid fa-note-sticky" /> 特殊需求与备注
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-          <div>
+        <div style={{ display: "grid", gridTemplateColumns: isTransport ? "1fr" : "1fr 1fr", gap: "20px" }}>
+          {!isTransport ? <div>
             <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "6px", fontWeight: 500 }}>特殊需求</div>
             <div className="soft-text-card soft-text-card-primary">{order.specialNeeds || "无特殊需求"}</div>
-          </div>
+          </div> : null}
           <div>
             <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "6px", fontWeight: 500 }}>备注</div>
             <div className="soft-text-card">{order.remark || "无备注"}</div>
           </div>
         </div>
       </div>
+
+      {!isTransport ? <div className="detail-card-group">
+        <div className="detail-card-title">
+          <i className="fa-solid fa-bed" /> 续住记录
+        </div>
+        {!order.stayExtensions || order.stayExtensions.length === 0 ? (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无续住记录" />
+        ) : (
+          <SortableTable<StayExtensionRecord>
+            size="small"
+            rowKey="id"
+            pagination={false}
+            dataSource={order.stayExtensions}
+            columns={[
+              { title: "原预计离店", render: (_, record) => formatDateTime(record.originalCheckOutAt) },
+              { title: "申请离店", render: (_, record) => formatDateTime(record.requestedCheckOutAt) },
+              { title: "上报人", render: (_, record) => record.requestedBy?.name || "-" },
+              { title: "申请时间", render: (_, record) => formatDateTime(record.createdAt) },
+              {
+                title: "状态",
+                render: (_, record) => ({ pending: "待确认", approved: "已确认", rejected: "已驳回" })[record.status]
+              },
+              { title: "审核人", render: (_, record) => record.reviewedBy?.name || "-" },
+              { title: "审核备注", render: (_, record) => record.reviewRemark || "-" },
+              {
+                title: "操作",
+                width: 180,
+                render: (_, record) =>
+                  canReviewStayExtension && record.status === "pending" ? (
+                    <Space size={8}>
+                      <Button type="primary" size="small" onClick={() => onReviewStayExtension?.(record, "approve")}>
+                        确认续住
+                      </Button>
+                      <Button danger size="small" onClick={() => onReviewStayExtension?.(record, "reject")}>
+                        驳回
+                      </Button>
+                    </Space>
+                  ) : "-"
+              }
+            ]}
+          />
+        )}
+      </div> : null}
 
       {/* 分组 5: 已分配管家 */}
       <div className="detail-card-group">
@@ -332,4 +401,19 @@ export function OrderDetailView({
       </div>
     </div>
   );
+}
+
+function formatTransportType(
+  pickupType: string,
+  direction?: "pickup" | "dropoff" | null
+) {
+  if (!direction) return pickupType === "airport" ? "机场接送" : "车站接送";
+  if (pickupType === "airport") return direction === "pickup" ? "接机" : "送机";
+  return direction === "pickup" ? "接站" : "送站";
+}
+
+function getGuestCountVehicleLabel(guestCount: number) {
+  if (guestCount >= 5) return "商务车";
+  if (guestCount === 4) return "SUV";
+  return "轿车";
 }

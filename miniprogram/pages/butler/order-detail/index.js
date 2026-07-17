@@ -12,9 +12,10 @@ Page({
         assignment: {},
         sections: [],
         reviews: [],
+        stayExtensions: [],
         actions: [],
         rejectReasons: [],
-        occurredAtPicker: { visible: false, title: "" },
+        occurredAtPicker: { visible: false, title: "", mode: "datetime", initialValue: "" },
         currentStep: 0 // 1: 待接单, 2: 准备中, 3: 服务中, 4: 已完成
     },
     // 增加时间戳防抖防连击
@@ -59,6 +60,7 @@ Page({
                 assignment,
                 sections: buildSections(order, assignment),
                 reviews: buildReviews(order.reviews || [], assignment.id),
+                stayExtensions: order.stayExtensions || [],
                 actions: buildActions(order, assignment),
                 currentStep
             });
@@ -76,7 +78,14 @@ Page({
         const config = {
             confirm: { title: "确认接单", content: "确认接受该订单？", api: () => (0, order_1.confirmOrder)(this.data.assignmentId) },
             picked: { title: "已接到客人", content: "确认已接到自己负责的客人后，订单将进入接待中状态。", api: (occurredAt) => (0, order_1.pickedGuest)(this.data.assignmentId, occurredAt) },
-            complete: { title: "完成服务", content: "确认自己负责的客人已离店并完成服务？", api: (occurredAt) => (0, order_1.completeOrder)(this.data.assignmentId, occurredAt) }
+            complete: {
+                title: "完成服务",
+                content: this.data.order.serviceMode === "transport"
+                    ? "确认自己负责的接送服务已完成？"
+                    : "确认自己负责的客人已离店并完成服务？",
+                api: (occurredAt) => (0, order_1.completeOrder)(this.data.assignmentId, occurredAt)
+            },
+            extend: { title: "客人续住", content: "提交新的预计离店时间后，将由前台或调配员确认。", api: (requestedCheckOutAt) => (0, order_1.requestStayExtension)(this.data.assignmentId, requestedCheckOutAt) }
         };
         const item = config[action];
         if (!item)
@@ -90,8 +99,10 @@ Page({
             success: async (res) => {
                 if (!res.confirm)
                     return;
-                if (["picked", "complete"].includes(action)) {
-                    const occurredAt = await this.chooseOccurredAt(action === "picked" ? "选择接到时间" : "选择完成时间");
+                if (["picked", "complete", "extend"].includes(action)) {
+                    const occurredAt = await this.chooseOccurredAt(action === "picked" ? "选择接到时间" : action === "complete" ? "选择完成时间" : "选择新的预计离店日期", action === "extend"
+                        ? { mode: "date", initialValue: this.data.order.checkOutDate }
+                        : undefined);
                     if (!occurredAt)
                         return;
                     await item.api(occurredAt);
@@ -143,28 +154,36 @@ Page({
             }
         });
     },
-    chooseOccurredAt(title) {
+    chooseOccurredAt(title, options) {
         return new Promise((resolve) => {
             this.occurredAtPickerResolver = resolve;
-            this.setData({ occurredAtPicker: { visible: true, title } });
+            this.setData({
+                occurredAtPicker: {
+                    visible: true,
+                    title,
+                    mode: (options === null || options === void 0 ? void 0 : options.mode) || "datetime",
+                    initialValue: (options === null || options === void 0 ? void 0 : options.initialValue) || ""
+                }
+            });
         });
     },
     handleOccurredAtConfirm(event) {
         var _a;
         const resolve = this.occurredAtPickerResolver;
         this.occurredAtPickerResolver = null;
-        this.setData({ occurredAtPicker: { visible: false, title: "" } });
+        this.setData({ occurredAtPicker: { visible: false, title: "", mode: "datetime", initialValue: "" } });
         resolve === null || resolve === void 0 ? void 0 : resolve(((_a = event.detail) === null || _a === void 0 ? void 0 : _a.occurredAt) || null);
     },
     handleOccurredAtCancel() {
         const resolve = this.occurredAtPickerResolver;
         this.occurredAtPickerResolver = null;
-        this.setData({ occurredAtPicker: { visible: false, title: "" } });
+        this.setData({ occurredAtPicker: { visible: false, title: "", mode: "datetime", initialValue: "" } });
         resolve === null || resolve === void 0 ? void 0 : resolve(null);
     }
 });
 function buildSections(order, assignment) {
     var _a;
+    const transport = order.serviceMode === "transport";
     const assignmentRows = [
         ["指派状态", (0, status_map_1.getStatus)("assignment", assignment.status).text],
         ["接单时间", (0, format_1.formatDateTimeFull)(assignment.confirmedAt)],
@@ -174,7 +193,7 @@ function buildSections(order, assignment) {
     if (assignment.status === "rejected") {
         assignmentRows.push(["拒单时间", (0, format_1.formatDateTimeFull)(assignment.rejectedAt)], ["拒单理由", assignment.rejectReason || "-"]);
     }
-    return [
+    const sections = [
         {
             title: "订单信息",
             rows: [
@@ -187,20 +206,29 @@ function buildSections(order, assignment) {
             title: "客人信息",
             rows: [
                 ["客人姓名", order.guestName],
-                ["联系电话", (0, format_1.maskPhone)(order.guestPhone)],
-                ["接待人数", `${order.guestCount || 0}人`]
+                ["联系电话", order.guestPhone, order.guestPhone],
+                ["接待人数", `${order.guestCount || 0}人`],
+                ["收费金额", order.settlementAmount === null || order.settlementAmount === undefined ? "-" : `¥${Number(order.settlementAmount).toFixed(2)}`]
             ]
         },
         {
-            title: "入住与接站",
-            rows: [
-                ["入住日期", (0, format_1.formatDateFull)(order.checkInDate)],
-                ["离店日期", (0, format_1.formatDateFull)(order.checkOutDate)],
-                ["房间信息", `${order.roomType || "-"} / ${order.roomNo || "-"}`],
-                ["接站方案", status_map_1.pickupTypeMap[order.pickupType] || "-"],
-                ["到达时间", (0, format_1.formatDateTimeFull)(order.arrivalTime)],
-                ["航班车次", order.flightTrainNo || "-"]
-            ]
+            title: transport ? "接送任务" : "入住与接站",
+            rows: transport
+                ? [
+                    ["接送类型", formatTransportType(order.pickupType, order.transportDirection)],
+                    ["开始时间", (0, format_1.formatDateTimeFull)(order.serviceStartAt)],
+                    ["预计结束", (0, format_1.formatDateTimeFull)(order.serviceEndAt)],
+                    ["接送地点", order.arrivalStation || "-"],
+                    ["原表车型", order.requestedVehicleInfo || "-"]
+                ]
+                : [
+                    ["入住日期", (0, format_1.formatDateFull)(order.checkInDate)],
+                    ["离店日期", (0, format_1.formatDateFull)(order.checkOutDate)],
+                    ["房间信息", `${order.roomType || "-"} / ${order.roomNo || "-"}`],
+                    ["接站方案", status_map_1.pickupTypeMap[order.pickupType] || "-"],
+                    ["到达时间", (0, format_1.formatDateTimeFull)(order.arrivalTime)],
+                    ["航班车次", order.flightTrainNo || "-"]
+                ]
         },
         {
             title: "任务分配",
@@ -214,6 +242,20 @@ function buildSections(order, assignment) {
             ]
         }
     ];
+    const latestExtension = (order.stayExtensions || []).find((item) => item.assignmentId === assignment.id);
+    if (!transport && latestExtension) {
+        const statusText = { pending: "待前台/调配员确认", approved: "已确认", rejected: "已驳回" };
+        sections.push({
+            title: "续住处理",
+            rows: [
+                ["申请状态", statusText[latestExtension.status] || latestExtension.status],
+                ["原预计离店", (0, format_1.formatDateTimeFull)(latestExtension.originalCheckOutAt)],
+                ["申请离店", (0, format_1.formatDateTimeFull)(latestExtension.requestedCheckOutAt)],
+                ["审核备注", latestExtension.reviewRemark || "-"]
+            ]
+        });
+    }
+    return sections;
 }
 function buildActions(order, assignment) {
     if (assignment.status === "pending_confirm") {
@@ -226,7 +268,13 @@ function buildActions(order, assignment) {
         return [{ text: "已接到客人", action: "picked", tone: "success" }];
     }
     if (["picked_guest", "in_service"].includes(assignment.status) || order.status === "partial_completed") {
-        return [{ text: "确认客人离店，完成服务", action: "complete", tone: "primary" }];
+        const pendingExtension = (order.stayExtensions || []).some((item) => item.assignmentId === assignment.id && item.status === "pending");
+        return order.serviceMode === "transport"
+            ? [{ text: "完成服务", action: "complete", tone: "primary" }]
+            : [
+                { text: pendingExtension ? "待确认" : "客人续住", action: "extend", tone: "ghost", disabled: pendingExtension },
+                { text: "完成服务", action: "complete", tone: "primary" }
+            ];
     }
     return [];
 }
@@ -239,19 +287,26 @@ function buildReviews(reviews, assignmentId) {
     });
 }
 function buildEarlyActionWarning(action, order) {
-    if (action === "picked" && isBefore(order.arrivalTime)) {
+    const startAt = order.serviceStartAt || order.arrivalTime;
+    const endAt = order.serviceEndAt || order.checkOutDate;
+    if (action === "picked" && isBefore(startAt)) {
         return {
             title: "到达时间未到",
-            content: `当前时间早于客人到达时间（${(0, format_1.formatDateTimeFull)(order.arrivalTime)}）。请确认已实际接到客人后再继续，是否仍要标记为“已接到客人”？`
+            content: `当前时间早于服务开始时间（${(0, format_1.formatDateTimeFull)(startAt)}）。请确认已实际接到客人后再继续。`
         };
     }
-    if (action === "complete" && isBefore(order.checkOutDate)) {
+    if (action === "complete" && isBefore(endAt)) {
         return {
-            title: "离店时间未到",
-            content: `当前时间早于客人离店时间（${(0, format_1.formatDateTimeFull)(order.checkOutDate)}）。请确认客人已实际离店且服务完成，是否仍要标记为“已完成接待”？`
+            title: order.serviceMode === "transport" ? "服务结束时间未到" : "离店时间未到",
+            content: `当前时间早于预计服务结束时间（${(0, format_1.formatDateTimeFull)(endAt)}）。请确认服务已完成后再继续。`
         };
     }
     return null;
+}
+function formatTransportType(pickupType, direction) {
+    if (pickupType === "airport")
+        return direction === "pickup" ? "接机" : "送机";
+    return direction === "pickup" ? "接站" : "送站";
 }
 function isBefore(value) {
     if (!value)

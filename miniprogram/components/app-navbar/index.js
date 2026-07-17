@@ -21,13 +21,13 @@ Component({
     },
     observers: {
         role(role) {
-            this.setData({ tabs: role === "dispatcher" ? dispatcherTabs : butlerTabs });
+            this.setData({ tabs: (role === "dispatcher" || role === "admin") ? dispatcherTabs : butlerTabs });
         }
     },
     lifetimes: {
         attached() {
             this.setData({
-                tabs: this.properties.role === "dispatcher" ? dispatcherTabs : butlerTabs
+                tabs: (this.properties.role === "dispatcher" || this.properties.role === "admin") ? dispatcherTabs : butlerTabs
             });
         }
     },

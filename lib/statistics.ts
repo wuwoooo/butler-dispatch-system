@@ -182,14 +182,19 @@ export async function getButlerStatistics(
 
 export async function getButlerStatisticsRows(
   rangeInput: StatisticsRangeInput,
-  options: { butlerId?: string; hotelId?: string } = {},
+  options: { butlerId?: string; hotelId?: string; page?: number; pageSize?: number } = {},
   client: DbClient = prisma
 ) {
+  const skip = options.page && options.pageSize ? (options.page - 1) * options.pageSize : undefined;
+  const take = options.pageSize || undefined;
+
   const butlers = await client.butler.findMany({
     where: {
       id: options.butlerId || undefined
     },
     orderBy: [{ status: "asc" }, { createdAt: "asc" }],
+    skip,
+    take,
     select: {
       id: true,
       code: true,

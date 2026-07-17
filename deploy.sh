@@ -132,6 +132,27 @@ KEEP_RELEASES='${KEEP_RELEASES}'
 HEALTH_URL='${HEALTH_URL}'
 OVERDUE_ASSIGNMENTS_CRON='${OVERDUE_ASSIGNMENTS_CRON}'
 migration_grants_enabled=0
+LOCK_FILE='/tmp/${APP_NAME}.deploy.lock'
+
+command -v flock >/dev/null 2>&1 || {
+  echo "Missing required command: flock" >&2
+  exit 1
+}
+exec 9>"\${LOCK_FILE}"
+if ! flock -n 9; then
+  echo "Another ${APP_NAME} deployment is already running. Refusing concurrent release operations." >&2
+  exit 1
+fi
+
+assert_release_dir() {
+  local phase="\$1"
+  if ! sudo test -d "\${RELEASE_DIR}"; then
+    echo "Release directory is missing during \${phase}: \${RELEASE_DIR}" >&2
+    echo "Release parent contents:" >&2
+    sudo ls -la "\$(dirname "\${RELEASE_DIR}")" >&2 || true
+    return 1
+  fi
+}
 
 revoke_runtime_grants() {
   if [ "\${migration_grants_enabled}" = "1" ]; then
@@ -162,6 +183,7 @@ sudo chmod 755 \
   "\$(dirname "\$(dirname "\${RELEASE_DIR}")")" \
   "\$(dirname "\${RELEASE_DIR}")"
 sudo rsync -a --delete "\${UPLOAD_DIR}/" "\${RELEASE_DIR}/"
+assert_release_dir "source synchronization"
 
 if [ -f "\${CURRENT_LINK}/.env" ]; then
   sudo install -o "\${APP_USER}" -g "\${APP_USER}" -m 600 "\${CURRENT_LINK}/.env" "\${RELEASE_DIR}/.env"
@@ -173,14 +195,22 @@ else
 fi
 
 sudo chown -R "\${APP_USER}:\${APP_USER}" "\${RELEASE_DIR}"
+assert_release_dir "dependency installation"
 
 sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npm ci"
+assert_release_dir "npm ci"
 
 if [ "\${RUN_MIGRATIONS}" = "1" ]; then
-  set +e
-  migration_status="\$(sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npx prisma migrate status" 2>&1)"
-  migration_status_code=\$?
-  set -e
+  assert_release_dir "prisma migrate status"
+  # `prisma migrate status` 在发现待迁移时会返回非零；在命令替换中它仍会
+  # 因 errtrace 继承 ERR trap，所以此处临时禁用 trap，读取退出码后立即恢复。
+  trap - ERR
+  if migration_status="\$(sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npx prisma migrate status" 2>&1)"; then
+    migration_status_code=0
+  else
+    migration_status_code=\$?
+  fi
+  trap rollback ERR
   printf '%s\n' "\${migration_status}"
 
   if printf '%s\n' "\${migration_status}" | grep -q "Database schema is up to date"; then
@@ -194,11 +224,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP, REFERENCES ON 
 FLUSH PRIVILEGES;
 SQL
     migration_grants_enabled=1
+    assert_release_dir "prisma migrate deploy"
     sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npx prisma migrate deploy"
     revoke_runtime_grants
   fi
 fi
 
+assert_release_dir "production build"
 sudo -u "\${APP_USER}" -H bash -lc "cd '\${RELEASE_DIR}' && npm run build"
 
 if [ -L "\${CURRENT_LINK}" ] && [ -d "\$(readlink -f "\${CURRENT_LINK}")" ]; then

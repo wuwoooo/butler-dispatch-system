@@ -41,10 +41,25 @@
     </section-card>
   </view>
 
-  <view wx:if="{{canDispatch}}" class="block-title anim-fade-in anim-stagger-4">选择可用管家</view>
+  <view wx:if="{{canDispatch}}" class="block-title anim-fade-in anim-stagger-4">
+    <text class="block-title-text">选择可用管家</text>
+    <view class="multi-select-toggle">
+      <text>多选</text>
+      <switch checked="{{multiSelectEnabled}}" bindchange="onMultiSelectChange" color="#2AACE2" />
+    </view>
+  </view>
   
   <view wx:if="{{canDispatch}}" class="candidates-list anim-fade-in anim-stagger-5">
-    <butler-card wx:for="{{candidates}}" wx:key="id" item="{{item}}" selectable="{{true}}" selected="{{item.selected}}" bind:tap="toggleButler" />
+    <butler-card wx:for="{{candidates}}" wx:key="id" item="{{item}}" selectable="{{true}}" selected="{{item.selected}}" bind:select="selectButler" />
+  </view>
+
+  <view wx:if="{{canDispatch}}" class="amount-panel anim-fade-in anim-stagger-5">
+    <view class="amount-label">收费金额</view>
+    <view class="amount-input-wrap">
+      <text class="amount-prefix">¥</text>
+      <input class="amount-input" type="digit" value="{{settlementAmount}}" placeholder="允许填写 0.00" bindinput="onAmountInput" />
+    </view>
+    <view class="amount-hint">每辆车按默认价计费并自动合计；重新选择管家时会覆盖人工改价。</view>
   </view>
 
   <view wx:if="{{canDispatch}}" class="fixed-action anim-fade-in anim-stagger-5">

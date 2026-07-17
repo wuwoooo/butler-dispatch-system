@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       await markDispatchNotificationReadForOrder(user.id, before.orderId, tx, rejectedAt);
 
       await notifyRoleUsers(
-        ["dispatcher"],
+        ["admin", "dispatcher"],
         {
           title: "管家拒单",
           content: `${before.butler.name} 拒绝订单 ${before.order.orderNo}，原因：${body.rejectReason}`,

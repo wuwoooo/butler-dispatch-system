@@ -6,6 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
+    "test": "tsx --test tests/lib/*.test.ts",
     "postinstall": "prisma generate",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -35,6 +36,7 @@
     "pinyin-pro": "^3.28.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "4.4.3"
   },
   "devDependencies": {

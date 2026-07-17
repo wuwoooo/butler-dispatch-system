@@ -1,7 +1,5 @@
 import { NextRequest } from "next/server";
 import { canAccess } from "@/lib/permissions";
-import { hashPassword } from "@/lib/auth";
-import { generateButlerUsername } from "@/lib/butler-account";
 import { generateButlerCode } from "@/lib/code-generator";
 import { prisma } from "@/lib/prisma";
 import { writeOperationLog } from "@/lib/logger";
@@ -52,39 +50,19 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = butlerCreateSchema.parse(await request.json());
     const code = await generateButlerCode();
-    const created = await prisma.$transaction(async (tx) => {
-      const butler = await tx.butler.create({
-        data: {
-          name: parsed.name,
-          phone: parsed.phone,
-          gender: parsed.gender,
-          vehicleInfo: parsed.vehicleInfo,
-          dispatchEnabled: parsed.dispatchEnabled,
-          status: "available",
-          remark: parsed.remark,
-          code
-        }
-      });
-
-      const role = await tx.role.findUnique({ where: { code: "butler" } });
-      if (!role) throw new Error("BUTLER_ROLE_NOT_FOUND");
-      await tx.user.create({
-        data: {
-          username: await generateButlerUsername(parsed.name, tx),
-          passwordHash: await hashPassword(parsed.accountPassword),
-          name: parsed.name,
-          phone: parsed.phone,
-          roleCode: "butler",
-          roleId: role.id,
-          butlerId: butler.id,
-          status: "active"
-        }
-      });
-
-      return tx.butler.findUniqueOrThrow({
-        where: { id: butler.id },
-        select: butlerWithAccountSelect
-      });
+    const created = await prisma.butler.create({
+      data: {
+        name: parsed.name,
+        phone: parsed.phone,
+        gender: parsed.gender,
+        vehicleType: parsed.vehicleType,
+        vehicleInfo: parsed.vehicleInfo,
+        dispatchEnabled: parsed.dispatchEnabled,
+        status: "available",
+        remark: parsed.remark,
+        code
+      },
+      select: butlerWithAccountSelect
     });
 
     await writeOperationLog({
@@ -93,7 +71,7 @@ export async function POST(request: NextRequest) {
       targetType: "Butler",
       targetId: created.id,
       afterData: toButlerPublic(created),
-      remark: "创建管家并自动开通账号",
+      remark: "创建管家档案",
       ...getRequestMeta(request)
     });
 

@@ -2,7 +2,6 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { buildOrderScopeWhere } from "@/lib/orders";
 import { prisma } from "@/lib/prisma";
 import type { AuthenticatedUser } from "@/types/auth";
-import { maskPhone } from "@/utils/format";
 
 type DbClient = Prisma.TransactionClient | PrismaClient;
 
@@ -185,8 +184,4 @@ export async function getRejectionExportRows(
       }
     }
   });
-}
-
-export function maskPhoneValue(phone: string | null | undefined) {
-  return maskPhone(phone);
 }

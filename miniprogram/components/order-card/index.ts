@@ -29,6 +29,17 @@ Component({
           orderNo: order.orderNo || item.orderNo || "-",
           guestName: order.guestName || item.guestName || "-",
           guestCount: order.guestCount || item.guestCount || 0,
+          serviceMode: order.serviceMode || item.serviceMode || "stay",
+          transportType: formatTransportType(
+            order.pickupType || item.pickupType,
+            order.transportDirection || item.transportDirection
+          ),
+          serviceStartAt: formatDateTime(order.serviceStartAt || order.arrivalTime || item.serviceStartAt || item.arrivalTime),
+          serviceEndAt: formatDateTime(order.serviceEndAt || order.checkOutDate || item.serviceEndAt || item.checkOutDate),
+          settlementAmount:
+            order.settlementAmount === null || order.settlementAmount === undefined
+              ? "-"
+              : `¥${Number(order.settlementAmount).toFixed(2)}`,
           pickupType: pickupTypeMap[order.pickupType || item.pickupType] || "-",
           arrivalTime: formatDateTime(order.arrivalTime || item.arrivalTime),
           checkIn: formatDate(order.checkInDate || item.checkInDate),
@@ -60,3 +71,8 @@ Component({
     }
   }
 });
+
+function formatTransportType(pickupType: string, direction?: string) {
+  if (pickupType === "airport") return direction === "pickup" ? "接机" : "送机";
+  return direction === "pickup" ? "接站" : "送站";
+}

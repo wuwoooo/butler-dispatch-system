@@ -7,13 +7,13 @@ import type {
   FinanceOrderRecord,
   HotelStatisticRecord
 } from "@/types/domain";
-import { maskPhone } from "@/utils/format";
 
 type DbClient = Prisma.TransactionClient | PrismaClient;
 
 type FinanceOrdersQuery = {
   page?: number;
   pageSize?: number;
+  butlerId?: string;
   hotelId?: string;
   orderStatus?: string;
   pickupType?: string;
@@ -105,19 +105,49 @@ function round2(value: number) {
 }
 
 function toFinanceOrderRecord(order: Awaited<ReturnType<typeof getFinanceOrdersRaw>>[number]): FinanceOrderRecord {
-  const completedAt = order.assignments
+  const startedAtList = order.assignments
+    .map((assignment) => assignment.serviceStartedAt)
+    .filter((d): d is Date => !!d)
+    .sort((a, b) => a.getTime() - b.getTime());
+  const serviceStartedAt = startedAtList.at(0) ?? null;
+
+  const completedAtList = order.assignments
     .map((assignment) => assignment.completedAt)
-    .filter(Boolean)
-    .sort()
-    .at(-1);
+    .filter((d): d is Date => !!d)
+    .sort((a, b) => a.getTime() - b.getTime());
+  const completedAt = completedAtList.at(-1) ?? null;
+
+  let serviceDuration = "";
+  if (serviceStartedAt && completedAt) {
+    const diffMs = completedAt.getTime() - serviceStartedAt.getTime();
+    if (diffMs > 0) {
+      const diffHours = diffMs / 1000 / 60 / 60;
+      const days = Math.floor(diffHours / 24);
+      const hours = Math.round(diffHours % 24);
+      const parts: string[] = [];
+      if (days > 0) {
+        parts.push(`${days}天`);
+      }
+      if (hours > 0 || parts.length === 0) {
+        parts.push(`${hours}小时`);
+      }
+      serviceDuration = parts.join("");
+    } else {
+      serviceDuration = "0小时";
+    }
+  }
 
   return {
     id: order.id,
     orderNo: order.orderNo,
     hotelName: order.hotel.name,
     guestName: order.guestName,
-    guestPhone: maskPhone(order.guestPhone),
+    guestPhone: order.guestPhone,
     guestCount: order.guestCount,
+    serviceMode: order.serviceMode,
+    transportDirection: order.transportDirection,
+    serviceStartAt: order.serviceStartAt.toISOString(),
+    serviceEndAt: order.serviceEndAt.toISOString(),
     checkInDate: order.checkInDate.toISOString(),
     checkOutDate: order.checkOutDate?.toISOString() ?? null,
     pickupType: order.pickupType,
@@ -126,9 +156,12 @@ function toFinanceOrderRecord(order: Awaited<ReturnType<typeof getFinanceOrdersR
     flightTrainNo: order.flightTrainNo,
     status: order.status,
     butlerNames: order.assignments.map((assignment) => assignment.butler.name),
+    serviceStartedAt: serviceStartedAt?.toISOString() ?? null,
     serviceCompletedAt: completedAt?.toISOString() ?? null,
+    serviceDuration,
     frontdeskAverageScore: calcRoleAverage(order.reviews, "hotel_frontdesk"),
     dispatcherAverageScore: calcRoleAverage(order.reviews, "dispatcher"),
+    settlementAmount: order.settlementAmount?.toString() ?? null,
     settlementStatus: order.settlementStatus,
     settlementRemark: order.settlementRemark,
     createdAt: order.createdAt.toISOString()
@@ -137,27 +170,39 @@ function toFinanceOrderRecord(order: Awaited<ReturnType<typeof getFinanceOrdersR
 
 async function getFinanceOrdersRaw(
   user: AuthenticatedUser,
-  query: FinanceOrdersQuery,
+  query: FinanceOrdersQuery & { skip?: number; take?: number },
   client: DbClient = prisma
 ) {
   const scope = buildOrderScopeWhere(user);
+  const finishedStatuses = ["pending_review", "reviewed", "completed"] as const;
+  const statusFilter = query.orderStatus
+    ? (finishedStatuses.includes(query.orderStatus as never) ? (query.orderStatus as never) : { in: [] as never })
+    : { in: finishedStatuses as never };
+
   const where: Prisma.ServiceOrderWhereInput = {
     ...scope,
     hotelId:
       user.roleCode === "hotel_frontdesk"
         ? user.hotelId ?? "__none__"
         : query.hotelId || undefined,
-    status: query.orderStatus as never,
+    status: statusFilter,
     pickupType: query.pickupType as never,
     settlementStatus: query.settlementStatus,
     checkInDate: buildCheckInRange(query.startDate, query.endDate),
     arrivalTime: buildArrivalRange(query.arrivalStartTime, query.arrivalEndTime),
+    assignments: query.butlerId ? {
+      some: {
+        butlerId: query.butlerId
+      }
+    } : undefined,
     OR: buildOrderKeywordWhere(query.keyword)
   };
 
   return client.serviceOrder.findMany({
     where,
     orderBy: { createdAt: "desc" },
+    skip: query.skip,
+    take: query.take,
     include: {
       hotel: {
         select: {
@@ -170,6 +215,7 @@ async function getFinanceOrdersRaw(
         select: {
           id: true,
           status: true,
+          serviceStartedAt: true,
           completedAt: true,
           butler: {
             select: {
@@ -195,14 +241,46 @@ export async function getFinanceOrders(
   query: FinanceOrdersQuery,
   client: DbClient = prisma
 ) {
-  const rows = (await getFinanceOrdersRaw(user, query, client)).map(toFinanceOrderRecord);
   const page = query.page ?? 1;
   const pageSize = query.pageSize ?? 20;
-  const start = (page - 1) * pageSize;
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
+
+  const scope = buildOrderScopeWhere(user);
+  const finishedStatuses = ["pending_review", "reviewed", "completed"] as const;
+  const statusFilter = query.orderStatus
+    ? (finishedStatuses.includes(query.orderStatus as never) ? (query.orderStatus as never) : { in: [] as never })
+    : { in: finishedStatuses as never };
+
+  const where: Prisma.ServiceOrderWhereInput = {
+    ...scope,
+    hotelId:
+      user.roleCode === "hotel_frontdesk"
+        ? user.hotelId ?? "__none__"
+        : query.hotelId || undefined,
+    status: statusFilter,
+    pickupType: query.pickupType as never,
+    settlementStatus: query.settlementStatus,
+    checkInDate: buildCheckInRange(query.startDate, query.endDate),
+    arrivalTime: buildArrivalRange(query.arrivalStartTime, query.arrivalEndTime),
+    assignments: query.butlerId ? {
+      some: {
+        butlerId: query.butlerId
+      }
+    } : undefined,
+    OR: buildOrderKeywordWhere(query.keyword)
+  };
+
+  const [rawRows, total] = await Promise.all([
+    getFinanceOrdersRaw(user, { ...query, skip, take }, client),
+    client.serviceOrder.count({ where })
+  ]);
+
+  const items = rawRows.map(toFinanceOrderRecord);
 
   return {
-    items: rows.slice(start, start + pageSize),
-    total: rows.length
+    items,
+    total
   };
 }
 
@@ -234,62 +312,84 @@ export async function getFinanceButlerServices(
     }
   };
 
-  const rows = await client.orderButlerAssignment.findMany({
-    where,
-    orderBy: { assignedAt: "desc" },
-    include: {
-      butler: {
-        select: {
-          id: true,
-          name: true,
-          phone: true
-        }
-      },
-      order: {
-        include: {
-          hotel: {
-            select: {
-              id: true,
-              name: true
+  const skip = query.page && query.pageSize ? (query.page - 1) * query.pageSize : undefined;
+  const take = query.pageSize || undefined;
+
+  const [rows, total] = await Promise.all([
+    client.orderButlerAssignment.findMany({
+      where,
+      orderBy: { assignedAt: "desc" },
+      skip,
+      take,
+      include: {
+        butler: {
+          select: {
+            id: true,
+            name: true,
+            phone: true
+          }
+        },
+        order: {
+          include: {
+            hotel: {
+              select: {
+                id: true,
+                name: true
+              }
             }
           }
-        }
-      },
-      reviews: {
-        select: {
-          overallScore: true
+        },
+        reviews: {
+          select: {
+            overallScore: true
+          }
         }
       }
+    }),
+    client.orderButlerAssignment.count({ where })
+  ]);
+
+  const items: ButlerServiceRecord[] = rows.map((assignment) => {
+    let serviceDuration = "";
+    if (assignment.serviceStartedAt && assignment.completedAt) {
+      const diffMs = assignment.completedAt.getTime() - assignment.serviceStartedAt.getTime();
+      const diffMins = Math.round(diffMs / 1000 / 60);
+      if (diffMins >= 60) {
+        const hours = (diffMins / 60).toFixed(1);
+        serviceDuration = `${hours} 小时`;
+      } else {
+        serviceDuration = `${diffMins} 分钟`;
+      }
     }
+
+    return {
+      id: assignment.id,
+      butlerName: assignment.butler.name,
+      butlerPhone: assignment.butler.phone,
+      orderNo: assignment.order.orderNo,
+      hotelName: assignment.order.hotel.name,
+      guestName: assignment.order.guestName,
+      guestPhone: assignment.order.guestPhone,
+      guestCount: assignment.order.guestCount,
+      checkInDate: assignment.order.checkInDate.toISOString(),
+      checkOutDate: assignment.order.checkOutDate.toISOString(),
+      pickupType: assignment.order.pickupType,
+      arrivalTime: assignment.order.arrivalTime.toISOString(),
+      assignmentStatus: assignment.status,
+      isRejected: assignment.status === "rejected",
+      isCompleted: assignment.status === "completed",
+      overallScore: average(assignment.reviews.map((review) => review.overallScore)),
+      confirmedAt: assignment.confirmedAt?.toISOString() ?? null,
+      pickedGuestAt: assignment.pickedGuestAt?.toISOString() ?? null,
+      serviceStartedAt: assignment.serviceStartedAt?.toISOString() ?? null,
+      completedAt: assignment.completedAt?.toISOString() ?? null,
+      serviceDuration
+    };
   });
 
-  const items: ButlerServiceRecord[] = rows.map((assignment) => ({
-    id: assignment.id,
-    butlerName: assignment.butler.name,
-    butlerPhone: maskPhone(assignment.butler.phone),
-    orderNo: assignment.order.orderNo,
-    hotelName: assignment.order.hotel.name,
-    guestName: assignment.order.guestName,
-    guestPhone: maskPhone(assignment.order.guestPhone),
-    guestCount: assignment.order.guestCount,
-    checkInDate: assignment.order.checkInDate.toISOString(),
-    checkOutDate: assignment.order.checkOutDate.toISOString(),
-    pickupType: assignment.order.pickupType,
-    arrivalTime: assignment.order.arrivalTime.toISOString(),
-    assignmentStatus: assignment.status,
-    isRejected: assignment.status === "rejected",
-    isCompleted: assignment.status === "completed",
-    overallScore: average(assignment.reviews.map((review) => review.overallScore)),
-    completedAt: assignment.completedAt?.toISOString() ?? null
-  }));
-
-  const page = query.page ?? 1;
-  const pageSize = query.pageSize ?? 20;
-  const start = (page - 1) * pageSize;
-
   return {
-    items: items.slice(start, start + pageSize),
-    total: items.length
+    items,
+    total
   };
 }
 
@@ -298,7 +398,8 @@ export async function getFinanceButlerServicesForExport(
   query: FinanceButlerServicesQuery,
   client: DbClient = prisma
 ) {
-  const result = await getFinanceButlerServices(user, { ...query, page: 1, pageSize: 100000 }, client);
+  const cleanQuery = { ...query, page: undefined, pageSize: undefined };
+  const result = await getFinanceButlerServices(user, cleanQuery, client);
   return result.items;
 }
 
@@ -378,12 +479,11 @@ export async function getFinanceHotelStatistics(
     averageScore: average(reviewMap.get(item.hotelId) ?? [])
   }));
 
-  const page = query.page ?? 1;
-  const pageSize = query.pageSize ?? 20;
-  const start = (page - 1) * pageSize;
+  const skip = query.page && query.pageSize ? (query.page - 1) * query.pageSize : undefined;
+  const take = query.pageSize || undefined;
 
   return {
-    items: items.slice(start, start + pageSize),
+    items: skip !== undefined && take !== undefined ? items.slice(skip, skip + take) : items,
     total: items.length
   };
 }
@@ -393,11 +493,7 @@ export async function getFinanceHotelStatisticsForExport(
   query: FinanceHotelStatisticsQuery,
   client: DbClient = prisma
 ) {
-  const result = await getFinanceHotelStatistics(
-    user,
-    { ...query, page: 1, pageSize: 100000 },
-    client
-  );
-
+  const cleanQuery = { ...query, page: undefined, pageSize: undefined };
+  const result = await getFinanceHotelStatistics(user, cleanQuery, client);
   return result.items;
 }

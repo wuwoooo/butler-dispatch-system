@@ -1,15 +1,3 @@
-export function maskPhone(phone: string | null | undefined) {
-  if (!phone) {
-    return "";
-  }
-
-  if (phone.length < 7) {
-    return phone.replace(/.(?=.{2})/g, "*");
-  }
-
-  return `${phone.slice(0, 3)}****${phone.slice(-4)}`;
-}
-
 export function formatDateTime(value: string | Date | null | undefined) {
   if (!value) {
     return "-";

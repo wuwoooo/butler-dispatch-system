@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
             phone: true,
             status: true,
             averageScore: true,
+            vehicleType: true,
             vehicleInfo: true
           }
         }),
@@ -80,11 +81,8 @@ export async function GET(request: NextRequest) {
               {
                 status: { in: scheduledTaskStatuses },
                 order: {
-                  checkOutDate: { gte: today },
-                  OR: [
-                    { arrivalTime: { lt: tomorrow } },
-                    { checkInDate: { lt: tomorrow } }
-                  ]
+                  serviceEndAt: { gte: today },
+                  serviceStartAt: { lt: tomorrow }
                 }
               }
             ]
@@ -121,6 +119,10 @@ export async function GET(request: NextRequest) {
                     id: true,
                     name: true
                   }
+                },
+                stayExtensions: {
+                  where: { status: "pending" },
+                  select: { id: true }
                 }
               }
             }
@@ -132,8 +134,8 @@ export async function GET(request: NextRequest) {
       const nextRank = currentTaskStatusRank[next.status] ?? 99;
       if (prevRank !== nextRank) return prevRank - nextRank;
 
-      const prevArrival = prev.order.arrivalTime?.getTime() ?? 0;
-      const nextArrival = next.order.arrivalTime?.getTime() ?? 0;
+      const prevArrival = prev.order.serviceStartAt?.getTime() ?? 0;
+      const nextArrival = next.order.serviceStartAt?.getTime() ?? 0;
       if (prevArrival !== nextArrival) return prevArrival - nextArrival;
 
       return next.updatedAt.getTime() - prev.updatedAt.getTime();

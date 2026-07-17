@@ -12,6 +12,10 @@ import {
 } from "@/lib/order-conflicts";
 import { prisma } from "@/lib/prisma";
 import type { AuthenticatedUser } from "@/types/auth";
+import {
+  resolveRecommendedVehicle,
+  sortVehicleRecommendationCandidates
+} from "@/lib/vehicle-recommendation";
 
 type DbClient = Prisma.TransactionClient | PrismaClient;
 
@@ -99,7 +103,9 @@ export async function getOrderDetail(orderId: string, client: DbClient = prisma)
               name: true,
               phone: true,
               status: true,
-              rejectCount: true
+              rejectCount: true,
+              vehicleType: true,
+              vehicleInfo: true
             }
           },
           assignedBy: {
@@ -147,6 +153,17 @@ export async function getOrderDetail(orderId: string, client: DbClient = prisma)
             }
           }
         }
+      },
+      stayExtensions: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          requestedBy: {
+            select: { id: true, name: true, roleCode: true }
+          },
+          reviewedBy: {
+            select: { id: true, name: true, roleCode: true }
+          }
+        }
       }
     }
   });
@@ -155,11 +172,21 @@ export async function getOrderDetail(orderId: string, client: DbClient = prisma)
     return null;
   }
 
+  const stayExtensionIds = order.stayExtensions.map((extension) => extension.id);
+
   const [operationLogs, notifications] = await Promise.all([
     client.operationLog.findMany({
       where: {
-        targetType: "ServiceOrder",
-        targetId: orderId
+        OR: [
+          {
+            targetType: "ServiceOrder",
+            targetId: orderId
+          },
+          {
+            targetType: "OrderStayExtension",
+            targetId: { in: stayExtensionIds }
+          }
+        ]
       },
       orderBy: { createdAt: "desc" },
       include: {
@@ -207,6 +234,10 @@ export async function getButlerAvailabilityForOrder(
     where: { id: orderId },
     select: {
       id: true,
+      guestCount: true,
+      requestedVehicleType: true,
+      serviceStartAt: true,
+      serviceEndAt: true,
       arrivalTime: true,
       checkInDate: true,
       checkOutDate: true
@@ -218,6 +249,10 @@ export async function getButlerAvailabilityForOrder(
   }
 
   const orderWindow = getOrderServiceWindow(order);
+  const recommendation = resolveRecommendedVehicle({
+    guestCount: order.guestCount,
+    requestedVehicleType: order.requestedVehicleType
+  });
   const butlers = await client.butler.findMany({
     orderBy: [{ status: "asc" }, { createdAt: "asc" }],
     include: {
@@ -255,6 +290,8 @@ export async function getButlerAvailabilityForOrder(
           order: {
             select: {
               orderNo: true,
+              serviceStartAt: true,
+              serviceEndAt: true,
               arrivalTime: true,
               checkInDate: true,
               checkOutDate: true,
@@ -294,7 +331,7 @@ export async function getButlerAvailabilityForOrder(
     }
   });
 
-  return butlers.map((butler) => {
+  const candidates = butlers.map((butler) => {
     const reasons: string[] = [];
 
     if (butler.status === "disabled") {
@@ -346,11 +383,17 @@ export async function getButlerAvailabilityForOrder(
       name: butler.name,
       phone: butler.phone,
       status: butler.status,
+      vehicleType: butler.vehicleType,
       vehicleInfo: butler.vehicleInfo,
       dispatchEnabled: butler.dispatchEnabled,
       user: butler.user,
       available: reasons.length === 0,
-      unavailableReasons: reasons
+      unavailableReasons: reasons,
+      recommended: butler.vehicleType === recommendation.vehicleType,
+      recommendedVehicleType: recommendation.vehicleType,
+      recommendationSource: recommendation.source
     };
   });
+
+  return sortVehicleRecommendationCandidates(candidates);
 }

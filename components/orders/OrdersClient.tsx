@@ -1,6 +1,12 @@
 "use client";
 
-import { PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  ImportOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined
+} from "@ant-design/icons";
 import {
   App,
   Button,
@@ -17,14 +23,15 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dayjs } from "dayjs";
 import { OrderDetailView } from "@/components/orders/OrderDetailView";
 import { OrderFormModal } from "@/components/orders/OrderFormModal";
+import { OrderImportModal } from "@/components/orders/OrderImportModal";
 import {
   OrderStatusTag,
   PickupTypeTag,
   orderStatusOptions,
   pickupTypeOptions
 } from "@/components/status/StatusTags";
-import type { HotelSummary, OrderAssignmentRecord, OrderRecord } from "@/types/domain";
-import { formatDate, formatDateTime, maskPhone } from "@/utils/format";
+import type { HotelSummary, OrderAssignmentRecord, OrderRecord, StayExtensionRecord } from "@/types/domain";
+import { formatDateTime } from "@/utils/format";
 import { SortableTable } from "@/components/tables/SortableTable";
 
 type ApiResult<T> =
@@ -66,6 +73,8 @@ export function OrdersClient() {
   }>({ open: false, mode: "create", order: null });
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<OrderRecord | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
 
   const canCreate = currentUser?.roleCode === "admin" || currentUser?.roleCode === "hotel_frontdesk";
 
@@ -188,6 +197,33 @@ export function OrdersClient() {
     }
   }
 
+  function deleteOrder(record: OrderRecord) {
+    modal.confirm({
+      title: "确认删除订单",
+      content: `确认删除订单 ${record.orderNo}（${record.guestName}）？删除后无法恢复。`,
+      okText: "确认删除",
+      cancelText: "取消",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setDeletingOrderId(record.id);
+        try {
+          await request(`/api/orders/${record.id}`, { method: "DELETE" });
+          message.success("订单已删除");
+          const nextPage =
+            orders.length === 1 && pagination.page > 1
+              ? pagination.page - 1
+              : pagination.page;
+          await loadOrders(nextPage, pagination.pageSize);
+        } catch (error) {
+          message.error(error instanceof Error ? error.message : "删除订单失败");
+          throw error;
+        } finally {
+          setDeletingOrderId(null);
+        }
+      }
+    });
+  }
+
   async function completeAssignmentFromDetail(assignment: OrderAssignmentRecord) {
     if (!detail) {
       return;
@@ -245,6 +281,34 @@ export function OrdersClient() {
     });
   }
 
+  async function reviewStayExtension(extension: StayExtensionRecord, action: "approve" | "reject") {
+    if (!detail) return;
+
+    const approved = action === "approve";
+    modal.confirm({
+      title: approved ? "确认客人续住" : "驳回续住申请",
+      content: approved
+        ? `确认将预计离店时间调整为 ${formatDateTime(extension.requestedCheckOutAt)}？系统会校验当前管家的后续任务冲突。`
+        : "驳回后管家将收到通知，订单仍按当前预计离店时间处理。",
+      okText: approved ? "确认续住" : "确认驳回",
+      cancelText: "取消",
+      okButtonProps: approved ? undefined : { danger: true },
+      onOk: async () => {
+        try {
+          await request(`/api/orders/${detail.id}/stay-extensions/${extension.id}`, {
+            method: "POST",
+            body: JSON.stringify({ action })
+          });
+          message.success(approved ? "续住已确认" : "续住申请已驳回");
+          await openDetail(detail.id);
+          await loadOrders(pagination.page, pagination.pageSize);
+        } catch (error) {
+          message.error(error instanceof Error ? error.message : "处理续住申请失败");
+        }
+      }
+    });
+  }
+
   function getButlerNames(record: OrderRecord) {
     return (record.assignments || [])
       .filter((assignment) => !["reassigned", "cancelled"].includes(assignment.status))
@@ -261,15 +325,20 @@ export function OrdersClient() {
             订单管理
           </Typography.Title>
           {canCreate ? (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() =>
-                setModalState({ open: true, mode: "create", order: null })
-              }
-            >
-              新建订单
-            </Button>
+            <Space>
+              <Button icon={<ImportOutlined />} onClick={() => setImportOpen(true)}>
+                批量导入
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() =>
+                  setModalState({ open: true, mode: "create", order: null })
+                }
+              >
+                新建订单
+              </Button>
+            </Space>
           ) : null}
         </Space>
 
@@ -357,27 +426,37 @@ export function OrdersClient() {
             {
               title: "客人手机号",
               dataIndex: "guestPhone",
-              width: 140,
-              render: maskPhone
+              width: 140
             },
-            { title: "入住人数", dataIndex: "guestCount", width: 90 },
+            { title: "接送/入住人数", dataIndex: "guestCount", width: 110 },
             {
-              title: "入住日期",
-              dataIndex: "checkInDate",
+              title: "收费金额",
+              dataIndex: "settlementAmount",
               width: 120,
-              render: formatDate
+              render: (value) => value === null || value === undefined ? "-" : `¥${Number(value).toFixed(2)}`
             },
             {
-              title: "离店日期",
-              dataIndex: "checkOutDate",
-              width: 120,
-              render: formatDate
+              title: "服务开始",
+              dataIndex: "serviceStartAt",
+              width: 180,
+              render: (value, record) => formatDateTime(value || record.arrivalTime)
             },
             {
-              title: "接站类型",
+              title: "服务结束",
+              dataIndex: "serviceEndAt",
+              width: 180,
+              render: (value, record) => formatDateTime(value || record.checkOutDate)
+            },
+            {
+              title: "服务类型",
               dataIndex: "pickupType",
-              width: 100,
-              render: (value) => <PickupTypeTag value={value} />
+              width: 130,
+              render: (value, record) =>
+                record.serviceMode === "transport" ? (
+                  <Typography.Text>{formatTransportType(value, record.transportDirection)}</Typography.Text>
+                ) : (
+                  <PickupTypeTag value={value} />
+                )
             },
             { title: "到达地点", dataIndex: "arrivalStation", width: 150 },
             {
@@ -401,13 +480,13 @@ export function OrdersClient() {
             {
               title: "操作",
               fixed: "right",
-              width: 150,
+              width: 220,
               render: (_, record) => (
                 <Space>
                   <Button type="link" onClick={() => openDetail(record.id)}>
                     详情
                   </Button>
-                  {currentUser?.roleCode !== "finance" ? (
+                  {currentUser && ["admin", "dispatcher", "hotel_frontdesk"].includes(currentUser.roleCode) ? (
                     <Button
                       type="link"
                       onClick={() =>
@@ -415,6 +494,19 @@ export function OrdersClient() {
                       }
                     >
                       编辑
+                    </Button>
+                  ) : null}
+                  {currentUser?.roleCode === "admin" &&
+                  record.status === "pending_dispatch" &&
+                  (record.assignments?.length ?? 0) === 0 ? (
+                    <Button
+                      danger
+                      type="link"
+                      icon={<DeleteOutlined />}
+                      loading={deletingOrderId === record.id}
+                      onClick={() => deleteOrder(record)}
+                    >
+                      删除
                     </Button>
                   ) : null}
                 </Space>
@@ -439,6 +531,16 @@ export function OrdersClient() {
         onSubmit={handleSubmitOrder}
       />
 
+      {currentUser && canCreate ? (
+        <OrderImportModal
+          open={importOpen}
+          roleCode={currentUser.roleCode}
+          hotels={hotels}
+          onClose={() => setImportOpen(false)}
+          onImported={() => loadOrders(1, pagination.pageSize)}
+        />
+      ) : null}
+
       <Drawer
         title="订单详情"
         size={920}
@@ -458,8 +560,20 @@ export function OrdersClient() {
             currentUser?.roleCode === "dispatcher"
           }
           onCancelAssignment={cancelAssignmentFromDetail}
+          canReviewStayExtension={
+            currentUser?.roleCode === "admin" ||
+            currentUser?.roleCode === "dispatcher" ||
+            currentUser?.roleCode === "hotel_frontdesk"
+          }
+          onReviewStayExtension={reviewStayExtension}
         />
       </Drawer>
     </section>
   );
+}
+
+function formatTransportType(pickupType: string, direction?: string | null) {
+  if (pickupType === "airport") return direction === "dropoff" ? "送机" : "接机";
+  if (pickupType === "train") return direction === "dropoff" ? "送站" : "接站";
+  return "-";
 }

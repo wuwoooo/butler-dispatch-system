@@ -338,7 +338,7 @@ export function AdminShell({
           <Form.Item
             label="新密码"
             name="newPassword"
-            rules={[{ required: true, min: 8, message: "新密码至少 8 个字符" }]}
+            rules={[{ required: true, min: 6, message: "新密码至少 6 个字符" }]}
           >
             <Input.Password autoComplete="new-password" />
           </Form.Item>

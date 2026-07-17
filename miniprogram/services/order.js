@@ -7,6 +7,7 @@ exports.confirmOrder = confirmOrder;
 exports.rejectOrder = rejectOrder;
 exports.pickedGuest = pickedGuest;
 exports.completeOrder = completeOrder;
+exports.requestStayExtension = requestStayExtension;
 const request_1 = require("./request");
 function getButlerOrders() {
     return request_1.http.get("/api/butler/my-orders", { loading: false });
@@ -28,4 +29,7 @@ function pickedGuest(assignmentId, occurredAt) {
 }
 function completeOrder(assignmentId, occurredAt) {
     return request_1.http.post(`/api/butler/orders/${assignmentId}/complete`, occurredAt ? { occurredAt } : {});
+}
+function requestStayExtension(assignmentId, requestedCheckOutAt) {
+    return request_1.http.post(`/api/butler/orders/${assignmentId}/stay-extension`, { requestedCheckOutAt });
 }

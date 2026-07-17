@@ -30,6 +30,16 @@ export async function GET(request: NextRequest) {
       hotelId: params.get("hotelId") ?? undefined
     });
 
+    const butlerStatusMap: Record<string, string> = {
+      available: "空闲",
+      pending_confirm: "待接单",
+      confirmed_waiting: "已确认待接客",
+      in_service: "接待中",
+      on_leave: "请假中",
+      suspended: "空闲",
+      disabled: "空闲"
+    };
+
     const buffer = await buildWorkbookBuffer([
       {
         name: "管家统计",
@@ -46,7 +56,10 @@ export async function GET(request: NextRequest) {
           { header: "好评率", key: "goodReviewRate", width: 10 },
           { header: "请假天数", key: "leaveDays", width: 10 }
         ],
-        rows
+        rows: rows.map((item) => ({
+          ...item,
+          status: butlerStatusMap[item.status] || item.status
+        }))
       }
     ]);
 

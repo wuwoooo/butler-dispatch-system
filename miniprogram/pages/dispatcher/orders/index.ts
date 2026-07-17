@@ -18,6 +18,11 @@ Page({
     items: [] as AnyRecord[],
     loading: true
   },
+  onLoad(query: AnyRecord) {
+    if (query.tab) {
+      this.setData({ active: query.tab });
+    }
+  },
   onShow() {
     this.load();
   },

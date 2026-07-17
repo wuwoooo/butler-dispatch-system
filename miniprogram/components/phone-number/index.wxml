@@ -1,0 +1,5 @@
+<view wx:if="{{normalizedPhone}}" class="phone-number phone-number-clickable" catchtap="makeCall">
+  <text class="phone-icon">☎</text>
+  <text>{{displayText}}</text>
+</view>
+<view wx:else class="phone-number">-</view>

@@ -33,6 +33,9 @@ async function main() {
         id: true,
         order: {
           select: {
+            serviceMode: true,
+            serviceStartAt: true,
+            serviceEndAt: true,
             arrivalTime: true,
             checkInDate: true,
             checkOutDate: true
@@ -85,6 +88,9 @@ function buildRemark(input: {
   previousStatus: string | null;
   butlerName: string;
   order: {
+    serviceMode: "stay" | "transport";
+    serviceStartAt: Date;
+    serviceEndAt: Date;
     arrivalTime: Date;
     checkInDate: Date;
     checkOutDate: Date;
@@ -100,8 +106,8 @@ function buildRemark(input: {
 
   const title = isConfirmTimeout ? "管家超时未确认" : "管家确认后超期未完成";
   const action = isConfirmTimeout
-    ? "未在入住服务开始前确认接单"
-    : "已确认接单，但到离店日结束仍未完成服务";
+    ? input.order.serviceMode === "transport" ? "未在接送服务开始前确认接单" : "未在入住服务开始前确认接单"
+    : input.order.serviceMode === "transport" ? "已确认接单，但到接送服务结束仍未完成服务" : "已确认接单，但到离店日结束仍未完成服务";
   const deadline = isConfirmTimeout
     ? getOrderServiceWindow(input.order).startAt
     : getOrderServiceEndOfDay(input.order);

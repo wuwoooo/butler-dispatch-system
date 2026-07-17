@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { writeOperationLog } from "@/lib/logger";
 import { getRequestMeta, requireApiRoles, requireApiUser } from "@/lib/request";
 import { errorResponse, handleApiError, successResponse } from "@/lib/response";
-import { hotelPublicSelect } from "@/lib/selects";
+import { hotelPublicSelect, hotelRoomSelect } from "@/lib/selects";
 import { hotelUpdateSchema } from "@/lib/validators";
 
 type RouteContext = {
@@ -33,6 +33,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: { id },
       select: {
         ...hotelPublicSelect,
+        rooms: {
+          orderBy: { roomNo: "asc" },
+          select: hotelRoomSelect
+        },
         users: {
           where: {
             roleCode: "hotel_frontdesk"

@@ -16,6 +16,11 @@ Page({
     items: [] as AnyRecord[],
     loading: true
   },
+  onLoad(query: AnyRecord) {
+    if (query.status) {
+      this.setData({ activeStatus: query.status });
+    }
+  },
   onShow() {
     this.load();
   },

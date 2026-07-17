@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getRequestMeta, requireApiRoles } from "@/lib/request";
@@ -87,9 +88,34 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return errorResponse("HOTEL_ROOM_TYPE_NOT_FOUND", "房型不存在", 404);
     }
 
-    await prisma.hotelRoomType.delete({
-      where: { id }
+    const roomCount = await prisma.hotelRoom.count({
+      where: { roomTypeId: id }
     });
+    if (roomCount > 0) {
+      return errorResponse(
+        "ROOM_TYPE_IN_USE",
+        `该房型关联了 ${roomCount} 个房号，请先调整房间或将房型停用`,
+        409
+      );
+    }
+
+    try {
+      await prisma.hotelRoomType.delete({
+        where: { id }
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2003"
+      ) {
+        return errorResponse(
+          "ROOM_TYPE_IN_USE",
+          "该房型已被房号引用，请先调整房间或将房型停用",
+          409
+        );
+      }
+      throw error;
+    }
 
     await writeOperationLog({
       operatorId: user.id,

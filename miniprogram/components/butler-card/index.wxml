@@ -8,7 +8,14 @@
       <view class="name">{{item.name}}</view>
       <status-tag type="butler" value="{{item.status || 'available'}}" />
     </view>
-    <view class="meta">{{item.phone || '-'}} · 评分 {{item.averageScore || '0.00'}}</view>
+    <view class="meta meta-with-phone">
+      <phone-number phone="{{item.phone}}" />
+      <text>· 评分 {{item.averageScore || '0.00'}}</text>
+    </view>
+    <view class="meta">
+      <text wx:if="{{item.recommended}}" style="color: #2AACE2; font-weight: 700;">推荐 · </text>
+      <text>{{vehicleTypeText}}</text>
+    </view>
     <view wx:if="{{item.vehicleInfo}}" class="meta">车型：{{item.vehicleInfo}}</view>
     <view wx:if="{{reasonText}}" class="reason">{{reasonText}}</view>
   </view>

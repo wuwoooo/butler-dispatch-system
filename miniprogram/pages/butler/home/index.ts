@@ -204,11 +204,14 @@ Page({
     this.overduePrompting = true;
     this.overduePromptedAssignmentIds.add(task.id);
     const isPickup = task.status === "confirmed";
-    const expectedAt = isPickup ? task.order?.arrivalTime : getCheckOutDueAt(task.order?.checkOutDate);
+    const expectedAt = isPickup
+      ? task.order?.serviceStartAt || task.order?.arrivalTime
+      : task.order?.serviceEndAt || getCheckOutDueAt(task.order?.checkOutDate);
+    const isTransport = task.order?.serviceMode === "transport";
     wx.showModal({
       title: isPickup ? "确认是否已接到客人" : "确认是否已完成接待",
-      content: `订单 ${task.order?.orderNo || ""} 的客人预计${isPickup ? "到达" : "离店"}时间为 ${formatDateTimeFull(expectedAt)}，是否${isPickup ? "已接到客人" : "已离店并完成接待"}？`,
-      confirmText: "是，去确认",
+      content: `订单 ${task.order?.orderNo || ""} 的${isTransport ? "服务" : "客人"}预计${isPickup ? "开始" : isTransport ? "结束" : "离店"}时间为 ${formatDateTimeFull(expectedAt)}，是否${isPickup ? "已接到客人" : isTransport ? "已完成接送服务" : "已离店并完成接待"}？`,
+      confirmText: "去确认",
       cancelText: "稍后处理",
       confirmColor: "#2AACE2",
       success: async (res: AnyRecord) => {
@@ -223,6 +226,10 @@ Page({
       },
       complete: () => {
         this.overduePrompting = false;
+      },
+      fail: () => {
+        this.overduePromptedAssignmentIds.delete(task.id);
+        wx.showToast({ title: "提醒弹窗打开失败，请重试", icon: "none" });
       }
     });
   },
@@ -250,9 +257,12 @@ function findOverdueTask(tasks: AnyRecord[], promptedIds: Set<string>) {
   const now = Date.now();
   return tasks.find((task) => {
     if (!task?.id || promptedIds.has(task.id)) return false;
-    if (task.status === "confirmed") return isAtOrBeforeNow(task.order?.arrivalTime, now);
+    if (task.order?.stayExtensions?.length) return false;
+    if (task.status === "confirmed") {
+      return isAtOrBeforeNow(task.order?.serviceStartAt || task.order?.arrivalTime, now);
+    }
     if (["picked_guest", "in_service"].includes(task.status)) {
-      return isAtOrBeforeNow(getCheckOutDueAt(task.order?.checkOutDate), now);
+      return isAtOrBeforeNow(task.order?.serviceEndAt || getCheckOutDueAt(task.order?.checkOutDate), now);
     }
     return false;
   });

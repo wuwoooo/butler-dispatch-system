@@ -1,12 +1,14 @@
 import { getCurrentUser } from "../../../services/auth";
 import { logout } from "../../../services/user";
+import { getAppVersionText } from "../../../utils/constants";
 import { roleMap } from "../../../utils/status-map";
 
 Page({
   data: {
     user: {} as AnyRecord,
     avatar: "?",
-    roleText: "-"
+    roleText: "-",
+    appVersionText: getAppVersionText()
   },
   onShow() {
     this.load();
